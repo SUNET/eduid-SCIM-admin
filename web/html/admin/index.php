@@ -1,6 +1,6 @@
 <?php
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
-include $baseDir . '/configSCIM.php';
+include $baseDir . '/config.php';
 
 include $baseDir . '/include/Html.php';
 $html = new HTML('', $Mode);

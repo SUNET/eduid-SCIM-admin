@@ -5,7 +5,7 @@ Class SCIM {
 		$i = func_num_args();
 		if (isset($a[0])) {
 			$this->baseDir = array_shift($a);
-			include $this->baseDir . '/configSCIM.php';
+			include $this->baseDir . '/config.php';
 			try {
 				$this->Db = new PDO("mysql:host=$dbServername;dbname=$dbName", $dbUsername, $dbPassword);
 				// set the PDO error mode to exception
