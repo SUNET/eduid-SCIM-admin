@@ -4,7 +4,6 @@ $dbUsername = "admin";
 $dbPassword = "adminpwd";
 $dbName = "SCIM";
 
-$DiscoveryService='seamless';
 $Mode = 'Lab';
 
 $sourceIdP = 'https://idp.sunet.se/idp';

@@ -1,5 +1,18 @@
 <?php
 Class SCIM {
+	private $error = '';
+	private $scope = '';
+	private $authURL = '';
+	private $keyName = '';
+	private $certFile = '';
+	private $keyFile = '';
+	private $apiURL = '';
+	private $attibutes2migrate = '';
+	private $allowedScopes = '';
+	private $possibleAffiliations = '';
+	private $adminUsers = array();
+	private $adminAccess = 0;
+		
 	function __construct() {
 		$a = func_get_args();
 		$i = func_num_args();
@@ -14,15 +27,28 @@ Class SCIM {
 				echo "Error: " . $e->getMessage();
 			}
 
-			$this->error = '';
+			$this->scope = str_replace('/','',$_SERVER['CONTEXT_PREFIX']);
+			$this->authURL =  $authUrl;
+			$this->keyName = $keyName;
+			$this->certFile = $authCert;
+			$this->keyFile = $authKey;
+			$this->apiURL = $apiUrl;
+			$this->attibutes2migrate = $instances[$this->scope]['attibutes2migrate'];
+			$this->allowedScopes = $instances[$this->scope]['allowedScopes'];
+			$this->possibleAffiliations = $possibleAffiliations;
+			$this->adminUsers = $instances[$this->scope]['adminUsers'];
+						
 			// Get token from DB. If no param exists create
-			$paramsHandler = $this->Db->prepare('SELECT `value` FROM params WHERE `id` = :Id;');
+			$paramsHandler = $this->Db->prepare('SELECT `value` FROM params WHERE `id` = :Id AND `instance` = :Instance;');
 			$paramsHandler->bindValue(':Id', 'token');
+			$paramsHandler->bindValue(':Instance', $this->scope);
 			$paramsHandler->execute();
 			if ($param = $paramsHandler->fetch(PDO::FETCH_ASSOC)) {
 				$this->token = $param['value'];
 			} else {
-				$this->Db->query("INSERT INTO params (`id`, `value`) VALUES ('token', '')");
+				$addParamsHandler = $this->Db->prepare('INSERT INTO params (`instance`,`id`, `value`) VALUES ( :Instance, ' ."'token', '')");
+				$addParamsHandler->bindValue(':Instance', $this->scope);
+				$addParamsHandler->execute();
 				$this->getToken();
 			}
 		}
@@ -36,7 +62,7 @@ Class SCIM {
 
 	private function getToken() {
 		$access = new \stdClass();
-		$access->scope = 'sunet.se';
+		$access->scope = $this->scope;
 		$access->type = 'scim-api';
 
 		$access_token = new \stdClass();
@@ -46,10 +72,10 @@ Class SCIM {
 		$data = new \stdClass();
 		$data->access_token = array($access_token);
 		$data->client = new \stdClass();
-		$data->client->key = 'bjorn_test_1';
+		$data->client->key = $this->keyName;
 
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, "https://auth-test.sunet.se/transaction");
+		curl_setopt($ch, CURLOPT_URL, $this->authURL);
 		curl_setopt($ch, CURLOPT_PORT , 443);
 		curl_setopt($ch, CURLOPT_VERBOSE, 0);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -58,9 +84,9 @@ Class SCIM {
 			'Content-Type: application/json'
 		));
 
-		curl_setopt($ch, CURLOPT_SSLCERT, $this->baseDir . "/auth/authcert.pem");
+		curl_setopt($ch, CURLOPT_SSLCERT, $this->certFile);
 		  
-		curl_setopt($ch, CURLOPT_SSLKEY, $this->baseDir . "/auth/authkey.pem");
+		curl_setopt($ch, CURLOPT_SSLKEY, $this->keyFile);
 		curl_setopt($ch, CURLOPT_CAINFO, "/etc/ssl/certs/ca-certificates.crt");
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
@@ -72,8 +98,9 @@ Class SCIM {
 		$token = json_decode($response);
 		$tokenValue = $token->access_token->value;
 
-		$tokenHandler = $this->Db->prepare("UPDATE params SET `value` = :Token WHERE `id` = 'token'");
+		$tokenHandler = $this->Db->prepare("UPDATE params SET `value` = :Token WHERE `id` = 'token' AND `instance` = :Instance");
 		$tokenHandler->bindValue(':Token', $tokenValue);
+		$tokenHandler->bindValue(':Instance', $this->scope);
 		$tokenHandler->execute();
 		$this->token = $tokenValue;
 	}
@@ -99,7 +126,7 @@ Class SCIM {
 			'Content-Type: application/scim+json',
 			'Authorization: Bearer ' . $this->token
 		);
-		curl_setopt($ch, CURLOPT_URL, "https://api.dev.eduid.se/scim/test/$part");
+		curl_setopt($ch, CURLOPT_URL, $this->apiURL. "$part");
 		curl_setopt($ch, CURLOPT_PORT , 443);
 		curl_setopt($ch, CURLOPT_VERBOSE, 0);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -195,5 +222,29 @@ Class SCIM {
 	public function updateId($id, $data, $version) {
 		$result = $this->request('PUT','Users/'.$id, $data, array('if-match: ' . $version));
 		return $result;
+	}
+
+	public function getAttibutes2migrate(){
+		return $this->attibutes2migrate;
+	}
+
+	public function getAllowedScopes() {
+		return $this->allowedScopes;
+	}
+
+	public function getPossibleAffiliations() {
+		return $this->possibleAffiliations;
+	}
+
+	public function checkAccess($AdminUser) {
+		if (isset($this->adminUsers[$AdminUser])) {
+			$this->adminAccess = $this->adminUsers[$AdminUser];
+			return true;
+		}
+		return false;
+	}
+
+	public function getAdminAccess() {
+		return $this->adminAccess;
 	}
 }

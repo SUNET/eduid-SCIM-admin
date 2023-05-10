@@ -3,7 +3,7 @@ $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
 include $baseDir . '/config.php';
 
 include $baseDir . '/include/Html.php';
-$html = new HTML('', $Mode);
+$html = new HTML($Mode);
 
 include $baseDir . '/include/SCIM.php';
 $scim = new SCIM($baseDir);
@@ -18,7 +18,7 @@ if (isset($_GET['source'])) {
 	if ($data = $invites->checkSourceData()) {
 		$invites->updateInviteAttributes($sessionID, $data);
 		$hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
-		$redirectURL = $hostURL . '/?action=showMigrateFlow';
+		$redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=showMigrateFlow';
 		header('Location: ' . $redirectURL);
 	} else {
 		print "Error while migrating";
@@ -66,13 +66,13 @@ if (isset($_GET['source'])) {
 		if ($scim->updateId($id,json_encode($userArray),$version)) {
 			$invites->removeInvite($sessionID);
 			$hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
-			$redirectURL = $hostURL . '/?action=migrateSuccess';
+			$redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=migrateSuccess';
 			header('Location: ' . $redirectURL);
 		} else {
-			print "Error while migrating";
+			print "Error while migrating (Could not update SCIM)";
 		}
 	} else {
-		print "Error while migrating";
+		print "Error while migrating (Got no ePPN)";
 	}
 } else {
 	print "No action requested";

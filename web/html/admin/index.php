@@ -3,7 +3,7 @@ $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
 include $baseDir . '/config.php';
 
 include $baseDir . '/include/Html.php';
-$html = new HTML('', $Mode);
+$html = new HTML($Mode);
 
 include $baseDir . '/include/SCIM.php';
 $scim = new SCIM($baseDir);
@@ -12,6 +12,8 @@ include $baseDir .'/include/Invites.php';
 $invites = new Invites($baseDir);
 
 $errors = '';
+$errorURL = isset($_SERVER['Meta-errorURL']) ? '<a href="' . $_SERVER['Meta-errorURL'] . '">Mer information</a><br>' : '<br>';
+$errorURL = str_replace(array('ERRORURL_TS', 'ERRORURL_RP', 'ERRORURL_TID'), array(time(), 'https://'. $_SERVER['SERVER_NAME'] . '/shibboleth', $_SERVER['Shib-Session-ID']), $errorURL);
 
 if (isset($_SERVER['Meta-Assurance-Certification'])) {
 	$AssuranceCertificationFound = false;
@@ -25,41 +27,15 @@ if (isset($_SERVER['Meta-Assurance-Certification'])) {
 }
 
 if (isset($_SERVER['eduPersonPrincipalName'])) {
-	$EPPN = $_SERVER['eduPersonPrincipalName'];
+	$AdminUser = $_SERVER['eduPersonPrincipalName'];
+} elseif (isset($_SERVER['subject-id'])) {
+	$AdminUser = $_SERVER['subject-id'];
 } else {
 	$errors .= 'Missing eduPersonPrincipalName in SAML response ' . str_replace(array('ERRORURL_CODE', 'ERRORURL_CTX'), array('IDENTIFICATION_FAILURE', 'eduPersonPrincipalName'), $errorURL);
 }
 
-if (isset($_SERVER['eduPersonScopedAffiliation'])) {
-	$foundEmployee = false;
-	foreach (explode(';',$_SERVER['eduPersonScopedAffiliation']) as $ScopedAffiliation) {
-		if (explode('@',$ScopedAffiliation)[0] == 'employee')
-			$foundEmployee = true;
-	}
-	if (! $foundEmployee) {
-		$errors .= sprintf('Did not find employee in eduPersonScopedAffiliation. Only got %s<br>', $_SERVER['eduPersonScopedAffiliation']);
-	}
-} elseif (isset($_SERVER['eduPersonAffiliation'])) {
-	$foundEmployee = false;
-	foreach (explode(';',$_SERVER['eduPersonAffiliation']) as $Affiliation) {
-		if ($Affiliation == 'employee')
-			$foundEmployee = true;
-	}
-	if (! $foundEmployee) {
-		$errors .= sprintf('Did not find employee in eduPersonAffiliation. Only got %s<br>', $_SERVER['eduPersonAffiliation']);
-	}
-} else {
-	if (isset($_SERVER['Shib-Identity-Provider'])) {
-		switch ($_SERVER['Shib-Identity-Provider']) {
-			case 'https://login.idp.eduid.se/idp.xml' :
-				#OK to not send eduPersonScopedAffiliation / eduPersonAffiliation
-				$filterFirst = false;
-				break;
-			default :
-				$errors .= 'Missing eduPersonScopedAffiliation and eduPersonAffiliation in SAML response<br>One of them is required<br>';
-		}
-
-	} else $errors .= 'Missing eduPersonScopedAffiliation and eduPersonAffiliation in SAML response<br>One of them is required<br>';
+if (! $scim->checkAccess($AdminUser)) {
+	$errors .= $AdminUser . ' is not allowed to login to this page';
 }
 
 if ( isset($_SERVER['mail'])) {
@@ -78,26 +54,18 @@ if (isset($_SERVER['displayName'])) {
 } else
 	$fullName = '';
 
-if ($errors != '') {
+
+	if ($errors != '') {
 	$html->showHeaders('Metadata SWAMID - Problem');
 	printf('%s    <div class="row alert alert-danger" role="alert">%s      <div class="col">%s        <b>Errors:</b><br>%s        %s%s      </div>%s    </div>%s', "\n", "\n", "\n", "\n", str_ireplace("\n", "<br>", $errors), "\n", "\n","\n");
+	printf('    <div class="row alert alert-info" role="info">%s      <div class="col">%s        Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a href="%s">here</a> to logout.%s      </div>%s    </div>%s', "\n", "\n", $_SERVER['Shib-Identity-Provider'], 'https://'. $_SERVER['SERVER_NAME'] . '/Shibboleth.sso/Logout', "\n", "\n", "\n");
 	$html->showFooter(array());
 	exit;
 }
 
-switch ($EPPN) {
-	case 'bjorn@sunet.se' :
-	case 'kazof-vagus@eduid.se' :
-	case 'jocar@sunet.se' :
-	case 'zacharias@sunet.se' :
-		$userLevel = 20;
-		break;
-	default :
-		$userLevel = 1;
-}
-$displayName = '<div> Logged in as : <br> ' . $fullName . ' (' . $EPPN .')</div>';
+$displayName = '<div> Logged in as : <br> ' . $fullName . ' (' . $AdminUser .')</div>';
 $html->setDisplayName($displayName);
-$html->showHeaders('SCIM lab');
+$html->showHeaders('SCIM Admin');
 
 $id = isset($_GET['id']) ? $_GET['id'] : false;
 if (isset($_POST['action'])) {
@@ -122,21 +90,26 @@ if (isset($_POST['action'])) {
 			if ($id) showId($_GET['id']);
 			break;
 		case 'editId' :
-			$menuActive = 'editId';
-			showMenu($id);
-			if ($id) showId($_GET['id'], true);
+			if ( $scim->getAdminAccess() > 9 ) {
+				$menuActive = 'editId';
+				showMenu($id);
+				if ($id) showId($_GET['id'], true);
+								
+			}
 			break;
 		case 'listInvites' :
-			$menuActive = 'listInvites';
-			showMenu($id);
-			listInvites();
-
+			if ( $scim->getAdminAccess() > 19 ) {
+				$menuActive = 'listInvites';
+				showMenu($id);
+				listInvites();
+			}
 	}
 } else {
 	$menuActive = 'listUsers';
 	showMenu();
 	listUsers();
 }
+print "    <br>\n";
 $html->showFooter(array(),true);
 
 function listUsers() {
@@ -152,22 +125,23 @@ function listUsers() {
 }
 
 function showId($id, $edit=false) {
-	global $scim, $attibutes2migrate;
+	global $scim;
 
 	if ( $edit ) {
 		# Set up a list of allowd/expected attributes to be able to show unused atribute in edit-form
 		$samlAttributes = array();
-		foreach ($attibutes2migrate as $saml => $SCIM) {
+		foreach ($scim->getAttibutes2migrate() as $saml => $SCIM) {
 			$samlAttributes[$saml] =false;
 		}
 	}
 	$user = $scim->getId($id);
 	$userArray = (json_decode($user));
 	if ($edit) {
-		printf('    <form method="POST"><input type="hidden" name="action" value="saveId"><input type="hidden" name="id" value="%s"><table id="entities-table" class="table table-striped table-bordered">%s', $id, "\n");
+		printf('    <form method="POST"><input type="hidden" name="action" value="saveId"><input type="hidden" name="id" value="%s">', $id);
 	} else {
-		printf('    <table id="entities-table" class="table table-striped table-bordered">%s', "\n");
+		print "    ";
 	}
+	printf('<table id="entities-table" class="table table-striped table-bordered">%s', "\n");
 	printf('      <tbody>%s', "\n");
 	printf('        <tr><th>Id</th><td>%s</td></tr>%s', $id, "\n");
 	printf('        <tr><th>externalId</th><td>%s</td></tr>%s', $userArray->externalId, "\n");
@@ -176,7 +150,7 @@ function showId($id, $edit=false) {
 		foreach($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp->attributes as $key => $value) {
 			if ( $edit ) {
 				if ($key == 'eduPersonScopedAffiliation') {
-					showEduPersonScopedAffiliationInput($value); 
+					showEduPersonScopedAffiliationInput($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations());
 				} else {
 					$value = is_array($value) ? implode(", ", $value) : $value;
 					printf ('        <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"></td></tr>%s', $key, $key, $value, "\n");
@@ -192,7 +166,7 @@ function showId($id, $edit=false) {
 		foreach ($samlAttributes as $attribute => $found) {
 			if (! $found) {
 				if ($attribute == 'eduPersonScopedAffiliation') {
-					showEduPersonScopedAffiliationInput($value); 
+					showEduPersonScopedAffiliationInput(array(), $scim->getAllowedScopes(), $scim->getPossibleAffiliations());
 				} else {
 					printf('        <tr><th>%s</th><td><input type="text" name="saml[%s]" value=""></td></tr>%s', $attribute, $attribute, "\n");
 				}
@@ -237,13 +211,12 @@ function saveId($id) {
 		}
 		
 		foreach ($_POST['saml'] as $key => $value) {
-			$value = $key == 'eduPersonScopedAffiliation' ? parseEduPersonScopedAffiliation($value) : $value;
+			$value = $key == 'eduPersonScopedAffiliation' ? parseEduPersonScopedAffiliation($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations()) : $value;
 			if ($value == '') {
 				if (isset($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp->attributes->$key)) {
 					unset($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp->attributes->$key);
 				}
 			} else {
-				$value = strpos($value, ';') ? explode(";", $value) : $value;
 				$userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp->attributes->$key = $value;
 			}
 		}
@@ -251,8 +224,7 @@ function saveId($id) {
 	}
 }
 
-function showEduPersonScopedAffiliationInput($values) {
-	global 	$allowedScopes, $possibleAffiliations;
+function showEduPersonScopedAffiliationInput($values, $allowedScopes, $possibleAffiliations) {
 	foreach ($allowedScopes as $scope) {
 		$existingAffiliation[$scope] = array();
 		foreach ($possibleAffiliations as $affiliation => $depend) {
@@ -265,18 +237,17 @@ function showEduPersonScopedAffiliationInput($values) {
 		$scope = isset($affiliationArray[1]) ? $affiliationArray[1] : 'unset';
 		$existingAffiliation[$scope][$affiliationArray[0]] = true;
 	}
-	printf ('        <tr><th>eduPersonScopedAffiliation</th><td>');
+	printf ('        <tr><th>eduPersonScopedAffiliation</th><td>%s', "\n");
 	foreach ($allowedScopes as $scope) {
 		printf ('          <h5>Scope : %s</h5>%s', $scope, "\n");
 		foreach ($possibleAffiliations as $affiliation => $depend) {
 			printf ('          <input type="checkbox"%s name="saml[eduPersonScopedAffiliation][%s]"> %s<br>%s', $existingAffiliation[$scope][$affiliation] ? ' checked' : '', $affiliation . '@' . $scope, $affiliation, "\n");
 		}
 	}
-	printf ('</td></tr>%s', "\n");
+	printf ('        </td></tr>%s', "\n");
 }
 
-function parseEduPersonScopedAffiliation($value) {
-	global 	$allowedScopes, $possibleAffiliations;
+function parseEduPersonScopedAffiliation($value, $allowedScopes, $possibleAffiliations) {
 	$returnArray = array();
 	foreach ($value as $affiliation => $on) {
 		$returnArray[] = $affiliation;
@@ -302,17 +273,19 @@ function parseEduPersonScopedAffiliation($value) {
 }
 
 function showMenu($id = '') {
-	global $userLevel, $menuActive, $EPPN;
+	global $scim, $menuActive;
 	$filter = $id ? '&id=' . $id : '';
 	
 	print "\n    ";
-	printf('<a href="admin.php?action=listUsers%s"><button type="button" class="btn btn%s-primary">List Users</button></a>', $filter, $menuActive == 'listUsers' ? '' : '-outline');
+	printf('<a href="?action=listUsers%s"><button type="button" class="btn btn%s-primary">List Users</button></a>', $filter, $menuActive == 'listUsers' ? '' : '-outline');
 	if ($menuActive == 'showId' || $menuActive == 'editId') {
-		printf('<a href="admin.php?action=showId%s"><button type="button" class="btn btn%s-primary">Show User</button></a>', $filter, $menuActive == 'showId' ? '' : '-outline');
-		printf('<a href="admin.php?action=editId%s"><button type="button" class="btn btn%s-primary">Edit User</button></a>', $filter, $menuActive == 'editId' ? '' : '-outline');
+		printf('<a href="?action=showId%s"><button type="button" class="btn btn%s-primary">Show User</button></a>', $filter, $menuActive == 'showId' ? '' : '-outline');
+		if ( $scim->getAdminAccess() > 9 ) {
+			printf('<a href="?action=editId%s"><button type="button" class="btn btn%s-primary">Edit User</button></a>', $filter, $menuActive == 'editId' ? '' : '-outline');
+		}
 	}
-	if ( $userLevel > 10 ) {
-		printf('<a href="admin.php?action=listInvites%s"><button type="button" class="btn btn%s-primary">List invites</button></a>', $filter, $menuActive == 'listInvites' ? '' : '-outline');
+	if ( $scim->getAdminAccess() > 19 ) {
+		printf('<a href="?action=listInvites%s"><button type="button" class="btn btn%s-primary">List invites</button></a>', $filter, $menuActive == 'listInvites' ? '' : '-outline');
 	}
 	print "\n    <br>\n    <br>\n";
 }

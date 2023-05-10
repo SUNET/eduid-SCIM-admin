@@ -3,7 +3,7 @@ $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 1);
 include $baseDir . '/config.php';
 
 include $baseDir . '/include/Html.php';
-$html = new HTML('', $Mode);
+$html = new HTML($Mode);
 
 include $baseDir . '/include/SCIM.php';
 $scim = new SCIM($baseDir);
@@ -12,7 +12,6 @@ include $baseDir . '/include/Invites.php';
 $invites = new Invites($baseDir);
 
 session_start();
-
 
 if (isset($_GET['action'])) {
 	switch ($_GET['action']) {
@@ -38,7 +37,6 @@ if (isset($_GET['action'])) {
 
 function showInviteFlow() {
 	global $html, $invites;
-
 	
 	if (isset($_POST['code'])) {
 		$sessionID = $_COOKIE['PHPSESSID'];
@@ -51,7 +49,7 @@ function showInviteFlow() {
 	} else {
 		$error = '';
 	}
-	$html->showHeaders('SCIM lab');
+	$html->showHeaders('SCIM migrate');
 	if ($error) {
 		print $error;
 	}
@@ -67,7 +65,7 @@ function showMigrateFlow() {
 	global $html, $invites;
 	$sessionID = $_COOKIE['PHPSESSID'];
 
-	$html->showHeaders('SCIM lab');
+	$html->showHeaders('SCIM migrate');
 	$invite = $invites->checkInviteBySession($sessionID);
 
 	if ($invite) {
@@ -87,7 +85,7 @@ function showMigrateFlow() {
 
 function showStartPage() {
 	global $html;
-	$html->showHeaders('SCIM lab');
+	$html->showHeaders('SCIM migrate');
 	printf('<a href="?action=showMigrateFlow"><button type="button" class="btn btn-primary">Migrate from Old IdP</button></a><br>%s', "\n");
 	print '<br>';
 	printf('<a href="?action=showInviteFlow"><button type="button" class="btn btn-primary">Onboard with Invite-code</button></a><br>%s', "\n");
@@ -97,7 +95,7 @@ function showStartPage() {
 
 function showSuccess() {
 	global $html;
-	$html->showHeaders('SCIM lab');
+	$html->showHeaders('SCIM migrate');
 	print 'You are now onborded :-)';
 	print '<br>';
 	$html->showFooter(array(),false);
