@@ -37,13 +37,13 @@ if (isset($_GET['action'])) {
 
 function showInviteFlow() {
 	global $html, $invites;
-	
+
 	if (isset($_POST['code'])) {
 		$sessionID = $_COOKIE['PHPSESSID'];
 		if ($invites->updateInviteByCode($sessionID,$_POST['code']) ) {
 			showMigrateFlow();
 			exit;
-		} else { 
+		} else {
 			$error = 'Wrong code';
 		}
 	} else {

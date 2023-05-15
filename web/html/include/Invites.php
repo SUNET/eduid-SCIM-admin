@@ -19,7 +19,7 @@ Class Invites {
 			} catch(PDOException $e) {
 				echo "Error: " . $e->getMessage();
 			}
-			
+
 			$this->error = '';
 			$this->scope = str_replace('/','',$_SERVER['CONTEXT_PREFIX']);
 			$this->sourceIdP = $instances[$this->scope]['sourceIdP'];
@@ -74,13 +74,13 @@ Class Invites {
 			return json_encode($migrate);
 		} else {
 			return false;
-		}	
+		}
 	}
 
 	public function checkBackendData() {
 		if ($_SERVER['Shib-Identity-Provider'] == $this->backendIdP) {
 			if (isset($_SERVER['eduPersonPrincipalName'])) {
-				return $_SERVER['eduPersonPrincipalName']; 
+				return $_SERVER['eduPersonPrincipalName'];
 			} else {
 				return false;
 			}
@@ -95,7 +95,7 @@ Class Invites {
 		$invitesHandler->bindValue(':Instance', $this->scope);
 		$invitesHandler->execute();
 		if ($invitesHandler->fetch(PDO::FETCH_ASSOC)) {
-			# session exists in DB 
+			# session exists in DB
 			$updateHandler = $this->Db->prepare('UPDATE invites SET `attributes` = :Data, `modified` = NOW() WHERE `session` = :Session AND `instance` = :Instance');
 			$updateHandler->bindParam(':Session', $session);
 			$updateHandler->bindValue(':Instance', $this->scope);
@@ -117,7 +117,7 @@ Class Invites {
 		$invitesHandler->bindValue(':Instance', $this->scope);
 		$invitesHandler->execute();
 		if ($invitesHandler->fetch(PDO::FETCH_ASSOC)) {
-			# inviteCode exists in DB 
+			# inviteCode exists in DB
 			$updateHandler = $this->Db->prepare('UPDATE invites SET `session` = :Session, `modified` = NOW() WHERE `hash` = :Code AND `instance` = :Instance');
 			$updateHandler->bindParam(':Code', $code);
 			$updateHandler->bindParam(':Session', $session);

@@ -12,7 +12,7 @@ Class SCIM {
 	private $possibleAffiliations = '';
 	private $adminUsers = array();
 	private $adminAccess = 0;
-		
+
 	function __construct() {
 		$a = func_get_args();
 		$i = func_num_args();
@@ -37,7 +37,7 @@ Class SCIM {
 			$this->allowedScopes = $instances[$this->scope]['allowedScopes'];
 			$this->possibleAffiliations = $possibleAffiliations;
 			$this->adminUsers = $instances[$this->scope]['adminUsers'];
-						
+
 			// Get token from DB. If no param exists create
 			$paramsHandler = $this->Db->prepare('SELECT `value` FROM params WHERE `id` = :Id AND `instance` = :Instance;');
 			$paramsHandler->bindValue(':Id', 'token');
@@ -85,7 +85,7 @@ Class SCIM {
 		));
 
 		curl_setopt($ch, CURLOPT_SSLCERT, $this->certFile);
-		  
+
 		curl_setopt($ch, CURLOPT_SSLKEY, $this->keyFile);
 		curl_setopt($ch, CURLOPT_CAINFO, "/etc/ssl/certs/ca-certificates.crt");
 		curl_setopt($ch, CURLOPT_POST, 1);
@@ -105,10 +105,10 @@ Class SCIM {
 		$this->token = $tokenValue;
 	}
 
-	public function request($method, $part, $data, $extraHeaders = array()) {
+	public function request($method, $part, $data, $extraHeaders = array(), $first = true) {
 		$ch = curl_init();
 		switch ($method) {
-			case 'POST' : 
+			case 'POST' :
 				curl_setopt($ch, CURLOPT_POST, 1);
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 				break;
@@ -133,21 +133,26 @@ Class SCIM {
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($headers, $extraHeaders));
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		
+
 		$response = curl_exec($ch);
 
 		if (curl_errno($ch) == 0) {
 			if ($response == '{"schemas":["urn:ietf:params:scim:api:messages:2.0:Error"],"detail":"Bearer token error","status":401}') {
-				$this->getToken();
-				return $this->request($method, $part, $data);
+				if ($first) {
+					$this->getToken();
+					return $this->request($method, $part, $data, $extraHeaders, false);
+				} else {
+					print "Fail to get Bearer token";
+					exit;
+				}
 			} else {
 				$info = curl_getinfo($ch);
 				switch ($info['http_code']) {
-					case 200 : 
-					case 201 : 
+					case 200 :
+					case 201 :
 						return $response;
 					default:
-					print "<pre>";
+						print "<pre>";
 						print_r($info);
 						print "</pre>";
 						print $response;
@@ -180,8 +185,6 @@ Class SCIM {
 					if (isset($nutid->linked_accounts) && sizeof((array)$nutid->linked_accounts)) {
 						$userList[$Resource->id]['linked_accounts'] = true;
 					}
-					
-					
 				}
 			}
 			return ($userList);
@@ -193,14 +196,14 @@ Class SCIM {
 
 	public function getId($id) {
 		$user = $this->request('GET','Users/'.$id, '');
-		$userArray = json_decode($user);	
+		$userArray = json_decode($user);
 		return $user;
 	}
 
 	public function getIdFromExternalId($externalId) {
 		$request = sprintf('{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"], "filter": "externalId eq \"%s\"", "startIndex": 1, "count": 1}', $externalId);
 		$userInfo = $this->request('POST', 'Users/.search', $request);
-		$userArray = json_decode($userInfo);	
+		$userArray = json_decode($userInfo);
 		if ($userArray->totalResults == 1 && isset($userArray->Resources[0]->id)) {
 			return $userArray->Resources[0]->id;
 		} else {
@@ -211,7 +214,7 @@ Class SCIM {
 	public function createIdFromExternalId($externalId) {
 		$request = sprintf('{"schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"], "externalId": "%s"}', $externalId);
 		$userInfo = $this->request('POST', 'Users/', $request);
-		$userArray = json_decode($userInfo);	
+		$userArray = json_decode($userInfo);
 		if (isset($userArray->id)) {
 			return $userArray->id;
 		} else {

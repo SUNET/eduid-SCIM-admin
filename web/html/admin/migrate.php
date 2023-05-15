@@ -36,10 +36,10 @@ if (isset($_GET['source'])) {
 
 		$user = $scim->getId($id);
 		$userArray = (json_decode($user));
-		
+
 		$version = $userArray->meta->version;
 		unset($userArray->meta);
-		
+
 		$schemaNutidFound = false;
 		foreach ($userArray->schemas as $schema) {
 			$schemaNutidFound = $schema == 'https://scim.eduid.se/schema/nutid/user/v1' ? true : $schemaNutidFound;
@@ -48,17 +48,17 @@ if (isset($_GET['source'])) {
 
 		if (! isset($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'})) {
 			$userArray->{'https://scim.eduid.se/schema/nutid/user/v1'} = new \stdClass();
-		} 
+		}
 		if (! isset($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles)) {
 			$userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles = new \stdClass();
-		} 
+		}
 		if (! isset($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdps)) {
 			$userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp = new \stdClass();
-		} 
+		}
 		if (! isset($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp->attributes)) {
 			$userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp->attributes = new \stdClass();
-		} 
-		
+		}
+
 		foreach ($attributes as $key => $value) {
 			$userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp->attributes->$key = $value;
 		}

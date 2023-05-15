@@ -94,7 +94,6 @@ if (isset($_POST['action'])) {
 				$menuActive = 'editId';
 				showMenu($id);
 				if ($id) showId($_GET['id'], true);
-								
 			}
 			break;
 		case 'listInvites' :
@@ -187,10 +186,10 @@ function saveId($id) {
 		global $scim;
 		$user = $scim->getId($id);
 		$userArray = (json_decode($user));
-		
+
 		$version = $userArray->meta->version;
 		unset($userArray->meta);
-		
+
 		$schemaNutidFound = false;
 		foreach ($userArray->schemas as $schema) {
 			$schemaNutidFound = $schema == 'https://scim.eduid.se/schema/nutid/user/v1' ? true : $schemaNutidFound;
@@ -209,7 +208,7 @@ function saveId($id) {
 		if (! isset($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp->attributes)) {
 			$userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp->attributes = new \stdClass();
 		}
-		
+
 		foreach ($_POST['saml'] as $key => $value) {
 			$value = $key == 'eduPersonScopedAffiliation' ? parseEduPersonScopedAffiliation($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations()) : $value;
 			if ($value == '') {
@@ -231,7 +230,7 @@ function showEduPersonScopedAffiliationInput($values, $allowedScopes, $possibleA
 			$existingAffiliation[$scope][$affiliation] = false;
 		}
 	}
-	
+
 	foreach ($values as $affiliation) {
 		$affiliationArray = explode('@', $affiliation);
 		$scope = isset($affiliationArray[1]) ? $affiliationArray[1] : 'unset';
@@ -252,7 +251,7 @@ function parseEduPersonScopedAffiliation($value, $allowedScopes, $possibleAffili
 	foreach ($value as $affiliation => $on) {
 		$returnArray[] = $affiliation;
 	}
-	
+
 	do {
 		$added = false;
 		foreach ($returnArray as $affiliation) {
@@ -275,7 +274,7 @@ function parseEduPersonScopedAffiliation($value, $allowedScopes, $possibleAffili
 function showMenu($id = '') {
 	global $scim, $menuActive;
 	$filter = $id ? '&id=' . $id : '';
-	
+
 	print "\n    ";
 	printf('<a href="?action=listUsers%s"><button type="button" class="btn btn%s-primary">List Users</button></a>', $filter, $menuActive == 'listUsers' ? '' : '-outline');
 	if ($menuActive == 'showId' || $menuActive == 'editId') {
@@ -306,5 +305,5 @@ function listInvites () {
 		}
 		printf('</ul></td></tr>%s', "\n");
 	}
-	printf('      </tbody>%s    </table>%s', "\n", "\n");	
+	printf('      </tbody>%s    </table>%s', "\n", "\n");
 }
