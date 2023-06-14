@@ -63,6 +63,22 @@ if (isset($_GET['source'])) {
 			$userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp->attributes->$key = $value;
 		}
 
+		if (isset($_SERVER['givenName']) || isset($_SERVER['sn'])) {
+			$fullName = '';
+			if (! isset($userArray->{'name'})) {
+				$userArray->name = new \stdClass();
+			}
+			if (isset($_SERVER['givenName'])) {
+				$userArray->name->givenName = $_SERVER['givenName'];
+				$fullName = $_SERVER['givenName'];
+			}
+			if (isset($_SERVER['sn'])) {
+				$userArray->name->familyName = $_SERVER['sn'];
+				$fullName .= ' ' . $_SERVER['sn'];
+			}
+			$userArray->name->formatted = $fullName;
+		}
+
 		if ($scim->updateId($id,json_encode($userArray),$version)) {
 			$invites->removeInvite($sessionID);
 			$hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];

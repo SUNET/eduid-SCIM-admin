@@ -176,7 +176,10 @@ Class SCIM {
 			foreach ($IdListArray->Resources as $Resource) {
 				$user = $this->request('GET','Users/'.$Resource->id, '');
 				$userArray = json_decode($user);
-				$userList[$Resource->id] = array('id' => $Resource->id, 'externalId' => $userArray->externalId, 'profiles' => false, 'linked_accounts' => false);
+				$userList[$Resource->id] = array('id' => $Resource->id, 'externalId' => $userArray->externalId, 'fullName' => '', 'profiles' => false, 'linked_accounts' => false);
+				if (isset($userArray->name->formatted)) {
+					$userList[$Resource->id]['fullName'] = $userArray->name->formatted;
+				}
 				if (isset ($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'})) {
 					$nutid = $userArray->{'https://scim.eduid.se/schema/nutid/user/v1'};
 					if (isset($nutid->profiles) && sizeof((array)$nutid->profiles)) {

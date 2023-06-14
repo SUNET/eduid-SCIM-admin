@@ -115,10 +115,10 @@ function listUsers() {
 	global $scim;
 	$users = $scim->getAllUsers();
 	printf('    <table id="entities-table" class="table table-striped table-bordered">%s', "\n");
-	printf('      <thead><tr><th>externalId</th><th>Profile</th><th>Linked account</th></tr></thead>%s', "\n");
+	printf('      <thead><tr><th>externalId</th><th>Name</th><th>Profile</th><th>Linked account</th></tr></thead>%s', "\n");
 	printf('      <tbody>%s', "\n");
 	foreach ($users as $user) {
-		printf('        <tr><td><a href="?action=showId&id=%s">%s</td><td>%s</td><td>%s</td></tr>%s', $user['id'], $user['externalId'], $user['profiles'] ? 'X' : '', $user['linked_accounts'] ? 'X' : '', "\n");
+		printf('        <tr><td><a href="?action=showId&id=%s">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>%s', $user['id'], $user['externalId'], $user['fullName'], $user['profiles'] ? 'X' : '', $user['linked_accounts'] ? 'X' : '', "\n");
 	}
 	printf('      <tbody>%s    </table>%s', "\n", "\n");
 }
@@ -175,10 +175,12 @@ function showId($id, $edit=false) {
 	} else {
 		printf('      </tbody>%s    </table>%s', "\n", "\n");
 	}
-	print "<pre>";
-	print_r($userArray);
-	#print_r($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp);
-	print "</pre>";
+	if (isset($_GET['debug'])) {
+		print "<pre>";
+		print_r($userArray);
+		#print_r($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'}->profiles->connectIdp);
+		print "</pre>";
+	}
 }
 
 function saveId($id) {
