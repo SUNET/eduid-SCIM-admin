@@ -1,0 +1,558 @@
+/** Typography **/
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@font-face {
+  font-family: "Akkurat";
+  src: url("/fonts/Akkurat-Mono.ttf") format("truetype"), url("/fonts/Akkurat-Mono.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "ProximaNova-Light";
+  src: url("/fonts/ProximaNova-Light.ttf") format("truetype"), url("/fonts/ProximaNova-Light.woff") format("woff"),
+    url("/fonts/ProximaNova-Light.woff2") format("woff2");
+
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "ProximaNova-Regular";
+  src: url("/fonts/ProximaNova-Regular.ttf") format("truetype"), url("/fonts/ProximaNova-Regular.woff") format("woff"),
+    url("/fonts/ProximaNova-Regular.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "ProximaNova-Bold";
+  src: url("/fonts/ProximaNova-Bold.ttf") format("truetype"), url("/fonts/ProximaNova-Bold.woff") format("woff"),
+    url("/fonts/ProximaNova-Bold.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
+strong {
+  font-family: "ProximaNova-Bold";
+}
+
+h1.tagline {
+  font-size: 2.75rem;
+  line-height: 1.2;
+  font-family: "ProximaNova-Light";
+}
+h2 {
+  font-size: 1.65rem;
+  margin-bottom: 0.75em;
+  font-family: "ProximaNova-Bold";
+}
+h3 {
+  line-height: 1.2;
+  font-family: "ProximaNova-Light";
+  font-size: 1.5rem;
+  margin-bottom: 0.75em;
+  text-transform: uppercase;
+}
+h4 {
+  line-height: 1.2;
+  margin-bottom: 0.5em;
+  font-family: "ProximaNova-Bold";
+  font-size: 1.25rem;
+}
+
+h5 {
+  line-height: 1.2;
+  margin-bottom: 0.5em;
+  font-family: "ProximaNova-Bold";
+  font-size: 0.83em;
+}
+
+p {
+  font-size: 1.25rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+/** General **/
+body {
+  min-height: 100vh;
+  font-family: "ProximaNova-Regular", Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #161616;
+  display: flex;
+  flex-direction: column;
+  scroll-behavior: smooth;
+}
+
+.panel {
+  padding-bottom: 4rem;
+  display: flex;
+  flex: 1;
+  background-color: #f4f4f4;
+}
+.panel .content {
+  padding-top: 2rem;
+}
+.horizontal-content-margin {
+  padding: 0;
+  width: 58%;
+  max-width: 870px;
+  margin: 0 auto;
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  align-items: center;
+}
+
+.banner {
+  background-color: white;
+}
+
+.eduid-connect-logo {
+  width: 200px;
+  height: 40px;
+  background: url(/assets/eduid-connect-logo.svg);
+  background-size: contain;
+  background-repeat: no-repeat;
+  display: inline-block;
+}
+
+.tagline {
+  display: flex;
+  align-items: center;
+  margin: 2rem 0 3rem;
+}
+
+/** Content **/
+.intro {
+  font-family: "ProximaNova-Bold";
+  font-size: 1.5rem;
+}
+
+hr {
+  margin: 2.5rem 0;
+  height: 1px;
+  border: none;
+  background: #d8d8d8;
+}
+
+/* links */
+a.text-link {
+  color: #cc3600;
+  font-family: "Akkurat";
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+a.text-link:hover {
+  text-decoration: underline;
+}
+
+/* buttons */
+.buttons {
+  display: flex;
+  column-gap: 1rem;
+  padding: 0.5rem 0;
+  width: 100%;
+}
+
+.btn {
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  display: inline-block;
+  font-family: "Akkurat";
+  letter-spacing: 1px;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  border-radius: 1.5rem;
+  transition: all 0.3s ease;
+  outline: 0;
+  border: none;
+  cursor: pointer;
+}
+.btn:hover {
+  transform: scale(0.95);
+}
+
+.btn-sm {
+  font-size: 13px;
+  padding: 0.5rem 1rem;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #db3a00;
+  border: solid 2px #ff4500;
+  box-shadow: none;
+  min-width: 100px;
+  padding: 14px 1.125rem;
+}
+
+.btn-secondary {
+  color: #cc3600;
+  border: solid 2px #ff4500;
+}
+
+/** FAQ **/
+
+.faq-content > li {
+  border-top: 1px solid #d8d8d8;
+  padding-top: 0.25rem;
+  padding-bottom: 1rem;
+}
+
+.faq-content h3 {
+  padding-top: 1.75rem;
+}
+
+.faq-content p {
+  font-size: inherit;
+}
+
+ul .bullets {
+  list-style-position: inside;
+  list-style-type: disc;
+  margin-bottom: 1.5rem;
+}
+ul .bullets li {
+  margin-bottom: 0.75rem;
+}
+
+/* Footer */
+footer {
+  border-top: solid #ff4500 6px;
+  background-color: #f4f4f4;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 1rem;
+  font-size: 0.9rem;
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: baseline;
+}
+
+.sunet-logo {
+  width: 40px;
+  height: 50px;
+  margin-right: 8px;
+  background-image: url("/assets/sunet_logo.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+footer ul {
+  display: flex;
+}
+
+footer .text-link {
+  font-size: 0.9rem;
+  color: #cc3600;
+  line-height: 1.7rem;
+}
+
+.help-link {
+  margin-right: 1rem;
+}
+
+/** invite code **/
+label {
+  display: flex;
+  font-size: 1rem;
+  font-family: ProximaNova-bold, Arial, Helvetica, sans-serif;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  color: #161616;
+  margin: 0 5px 5px 0;
+}
+
+input[type="text"] {
+  background-color: white;
+  font-family: ProximaNova-Regular, Arial, Helvetica, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #161616;
+  box-shadow: none;
+  border-radius: 0;
+  border: none;
+  border-bottom: solid 2px #161616;
+  width: 100%;
+  padding: 0.3rem 0.3rem;
+  height: 2rem;
+}
+
+input[type="text"]:focus {
+  box-shadow: 0 0 0 0.2rem #d8d8d8;
+  outline: 0;
+  border-bottom: solid 2px #161616;
+}
+
+/** table **/
+table {
+  width: 100%;
+  font-size: 1.125rem;
+  font-family: ProximaNova-light, Arial, Helvetica, sans-serif;
+  table-layout: fixed;
+  background-color: #fff;
+  border-spacing: 0;
+}
+
+thead {
+  color: #5e5e5e;
+  background-color: #d8d8d8;
+  text-transform: uppercase;
+
+  font-family: ProximaNova-Regular, Arial, Helvetica, sans-serif;
+  font-size: 0.9rem;
+}
+
+tr th {
+  vertical-align: middle;
+  text-align: left;
+  padding-left: 20px;
+  width: 40%;
+  /* text-transform: uppercase; */
+  font-family: ProximaNova-Regular, Arial, Helvetica, sans-serif;
+  word-wrap: break-word;
+}
+
+.list-invites tr td:nth-child(4),
+.list-users tr th:first-child,
+.list-users tr th:nth-child(2) {
+  text-align: left;
+  padding-left: 20px;
+}
+
+thead tr .list-users th:first-child {
+  width: 40%;
+}
+
+thead tr .list-users th:nth-child(2) {
+  width: 20%;
+}
+
+tr {
+  border-bottom: 1px solid #ebebe3;
+  height: 3rem;
+}
+
+.list-invites tr td:nth-child(1),
+.list-invites tr td:nth-child(2),
+.list-users tr td:nth-child(3),
+.list-users tr td:nth-child(4) {
+  text-align: center;
+}
+
+td {
+  padding: 20px;
+}
+
+tbody tr:hover {
+  background-color: #ffe7dd;
+}
+
+table.list-invites tr th:nth-child(1),
+table.list-invites tr th:nth-child(2) {
+  width: 10%;
+}
+table.list-invites tr th:nth-child(3) {
+  width: 30%;
+  text-align: left;
+  padding-left: 20px;
+}
+table.list-invites tr th:last-child {
+  width: 50%;
+  text-align: left;
+  padding-left: 20px;
+}
+
+input[type="text"] {
+  background-color: #f4f4f4;
+}
+
+/** Responsive **/
+@media (min-width: 414px) {
+  .buttons {
+    width: auto;
+  }
+}
+
+@media (max-width: 823px) {
+  .horizontal-content-margin {
+    width: calc(80% - 2rem);
+  }
+  .tagline {
+    margin: 1rem 0 1.5rem;
+  }
+  .panel {
+    padding-bottom: 3rem;
+    flex-direction: column;
+  }
+  .panel .content {
+    padding-top: 1.5rem;
+  }
+  .faq-nav {
+    position: static;
+    margin-bottom: 0;
+  }
+  .faq-nav li {
+    display: inline-block;
+    margin: 0 1rem 0.375rem;
+  }
+  .faq-nav li:first-child span {
+    position: fixed;
+    left: 1rem;
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .horizontal-content-margin {
+    width: calc(80% - 1.25rem);
+  }
+
+  .eduid-logo {
+    width: 99px;
+    height: 34px;
+  }
+
+  h1.tagline {
+    font-size: 2rem;
+  }
+  h2 {
+    font-size: 1.5rem;
+  }
+  h3 {
+    font-size: 1.25rem;
+  }
+  h4 {
+    font-size: 1.125rem;
+  }
+  p {
+    font-size: 1.125rem;
+  }
+  .intro {
+    font-size: 1.25rem;
+  }
+
+  hr {
+    margin: 1.75rem 0;
+  }
+  .buttons {
+    justify-content: center;
+  }
+  button {
+    width: 100%;
+  }
+  ul .bullets {
+    margin-bottom: 1rem;
+  }
+  .faq-content > li {
+    padding-bottom: 0.75rem;
+  }
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  outline: 0;
+  box-shadow: none;
+  border: 0 !important;
+  background-image: none;
+  flex: 1;
+  padding: 0 0.5em;
+  color: #c23400;
+  cursor: pointer;
+  font-size: 1em;
+  font-family: Akkurat, Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+  background-color: #ebebeb;
+}
+select::-ms-expand {
+  display: none;
+}
+.select {
+  border: 2px solid #d8d8d8;
+  position: relative;
+  display: flex;
+  height: 3em;
+  line-height: 3;
+  color: #c23400;
+  overflow: hidden;
+  border-radius: 0.25em;
+}
+
+.select select:hover {
+  background: #c23400;
+  color: #fff;
+}
+
+.select::after {
+  content: "\25BC";
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0 1em;
+  /* background: #2b2e2e; */
+  cursor: pointer;
+  pointer-events: none;
+  transition: 0.25s all ease;
+}
+.select:hover::after {
+  color: #fff;
+}
+
+@media (max-width: 568px) {
+  .horizontal-content-margin {
+    width: calc(100% - 2rem);
+  }
+
+  header .btn {
+    align-self: flex-start;
+  }
+  .faq-nav {
+    margin-left: 0;
+  }
+  .faq-nav li:first-child span {
+    left: 0.125rem;
+  }
+}
+
+@media (max-width: 414px) {
+  .buttons {
+    flex-direction: column-reverse;
+  }
+
+  footer {
+    align-items: flex-end;
+  }
+
+  footer ul {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  a.help-link {
+    margin-right: 0px;
+  }
+  .faq-nav li {
+    display: block;
+  }
+}

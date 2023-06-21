@@ -176,14 +176,16 @@ Class SCIM {
 			foreach ($IdListArray->Resources as $Resource) {
 				$user = $this->request('GET','Users/'.$Resource->id, '');
 				$userArray = json_decode($user);
-				$userList[$Resource->id] = array('id' => $Resource->id, 'externalId' => $userArray->externalId, 'fullName' => '', 'profiles' => false, 'linked_accounts' => false);
+				$userList[$Resource->id] = array('id' => $Resource->id, 'externalId' => $userArray->externalId, 'fullName' => '', 'attributes' => '', 'profile' => false, 'linked_accounts' => false);
 				if (isset($userArray->name->formatted)) {
 					$userList[$Resource->id]['fullName'] = $userArray->name->formatted;
 				}
 				if (isset ($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'})) {
 					$nutid = $userArray->{'https://scim.eduid.se/schema/nutid/user/v1'};
-					if (isset($nutid->profiles) && sizeof((array)$nutid->profiles)) {
-						$userList[$Resource->id]['profiles'] = true;
+					if (isset($nutid->profiles) && sizeof((array)$nutid->profiles) && isset($nutid->profiles->connectIdp)) {
+						if (isset($nutid->profiles->connectIdp->attributes) )
+							$userList[$Resource->id]['profile'] = true;
+							$userList[$Resource->id]['attributes'] = $nutid->profiles->connectIdp->attributes;
 					}
 					if (isset($nutid->linked_accounts) && sizeof((array)$nutid->linked_accounts)) {
 						$userList[$Resource->id]['linked_accounts'] = true;

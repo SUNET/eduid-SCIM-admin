@@ -59,7 +59,7 @@ if (isset($_SERVER['displayName'])) {
 	$html->showHeaders('Metadata SWAMID - Problem');
 	printf('%s    <div class="row alert alert-danger" role="alert">%s      <div class="col">%s        <b>Errors:</b><br>%s        %s%s      </div>%s    </div>%s', "\n", "\n", "\n", "\n", str_ireplace("\n", "<br>", $errors), "\n", "\n","\n");
 	printf('    <div class="row alert alert-info" role="info">%s      <div class="col">%s        Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a href="%s">here</a> to logout.%s      </div>%s    </div>%s', "\n", "\n", $_SERVER['Shib-Identity-Provider'], 'https://'. $_SERVER['SERVER_NAME'] . '/Shibboleth.sso/Logout', "\n", "\n", "\n");
-	$html->showFooter(array());
+	$html->showFooter(false);
 	exit;
 }
 
@@ -109,16 +109,24 @@ if (isset($_POST['action'])) {
 	listUsers();
 }
 print "    <br>\n";
-$html->showFooter(array(),true);
+$html->showFooter(true);
 
 function listUsers() {
 	global $scim;
 	$users = $scim->getAllUsers();
-	printf('    <table id="entities-table" class="table table-striped table-bordered">%s', "\n");
+	printf('    <table id="entities-table" class="table table-striped table-bordered list-users">%s', "\n");
 	printf('      <thead><tr><th>externalId</th><th>Name</th><th>Profile</th><th>Linked account</th></tr></thead>%s', "\n");
 	printf('      <tbody>%s', "\n");
 	foreach ($users as $user) {
-		printf('        <tr><td><a href="?action=showId&id=%s">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>%s', $user['id'], $user['externalId'], $user['fullName'], $user['profiles'] ? 'X' : '', $user['linked_accounts'] ? 'X' : '', "\n");
+		printf('        <tr class="collapsible" data-id="%s" onclick="showUsers(\'%s\')"><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>%s', $user['id'], $user['id'], $user['externalId'], $user['fullName'], $user['profile'] ? 'X' : '', $user['linked_accounts'] ? 'X' : '', "\n");
+		printf('        <tr class="content" style="display: none;">%s          <td><button class="btn-primary"><a a href="?action=editId&id=%s">edit user</a></button></td><td colspan="3"><ul>%s', "\n", $user['id'], "\n");
+		if ($user['profile']) {
+			foreach($user['attributes'] as $key => $value) {
+				$value = is_array($value) ? implode(", ", $value) : $value;
+				printf ('            <li>%s - %s</li>%s', $key, $value, "\n");
+			}
+		}
+		printf('          </ul></td>%s        </tr>%s', "\n", "\n");
 	}
 	printf('      <tbody>%s    </table>%s', "\n", "\n");
 }
@@ -276,7 +284,14 @@ function parseEduPersonScopedAffiliation($value, $allowedScopes, $possibleAffili
 function showMenu($id = '') {
 	global $scim, $menuActive;
 	$filter = $id ? '&id=' . $id : '';
-
+/*
+<label for="select">Select a list</label>
+<div class="select">
+        <select id="select">
+            <option value="List Users">List Users</option>
+            <option value="List invites">List invites</option>
+          </select>
+</div>*/
 	print "\n    ";
 	printf('<a href="?action=listUsers%s"><button type="button" class="btn btn%s-primary">List Users</button></a>', $filter, $menuActive == 'listUsers' ? '' : '-outline');
 	if ($menuActive == 'showId' || $menuActive == 'editId') {
@@ -293,7 +308,7 @@ function showMenu($id = '') {
 
 function listInvites () {
 	global $invites;
-	printf('    <table id="entities-table" class="table table-striped table-bordered">%s', "\n");
+	printf('    <table id="entities-table" class="table table-striped table-bordered list-invites">%s', "\n");
 	printf('      <thead>%s', "\n");
 	printf('        <tr><th>Invited</th><th>Active</th><th>Last modified</th><th>Values</th></tr>%s', "\n");
 

@@ -54,48 +54,52 @@ function showInviteFlow() {
 		print $error;
 	}
 		?>
-    <form method="POST">
-      <input type="text" name="code">
-      <input type="submit">
-    </form>
-<?php	$html->showFooter(array(),false);
+    	<!-- input and submit button -->
+        <form method="POST">
+          <div class="invite-code-container">
+            <label for="invite-code">Invite code </label>
+          </div>
+          <input type="text" name="code" />
+          <div class="buttons">
+            <button type="submit" class="btn btn-primary">SUBMIT</button>
+          </div>
+        </form>
+    	<!-- input and submit button -->
+<?php	$html->showFooter(false);
 }
 
 function showMigrateFlow() {
 	global $html, $invites;
 	$sessionID = $_COOKIE['PHPSESSID'];
 
-	$html->showHeaders('SCIM migrate');
+	$html->showHeaders('Connect - Migrate');
 	$invite = $invites->checkInviteBySession($sessionID);
 
 	if ($invite) {
-		printf('    <p>You have stared migration.<br>Attribues to migrate : <ul>%s', "\n");
+		printf('        <p>You have stared migration.<br>Attribues to migrate : <ul>%s', "\n");
 		foreach (json_decode($invite['attributes']) as $SCIM => $attribute) {
 			$attribute = is_array($attribute) ? implode(', ', $attribute) : $attribute;
 			printf('          <li>%s - %s</li>%s', $SCIM, $attribute, "\n");
 		}
 		printf('    </ul></p>%s', "\n");
-		printf('<a href="?action=finalizeMigrate"><button type="button" class="btn btn-primary">Finalize migration to new IdP</button></a><br>%s', "\n");
+		printf('        <a href="?action=finalizeMigrate"><button type="button" class="btn btn-primary">Finalize migration to new IdP</button></a><br>%s', "\n");
 	} else {
-		printf('<a href="?action=startMigrate"><button type="button" class="btn btn-primary">Start new migration from old IdP</button></a><br>%s', "\n");
+		printf('        <a href="?action=startMigrate"><button type="button" class="btn btn-primary">Start new migration from old IdP</button></a><br>%s', "\n");
 	}
-	print '<br>';
-	$html->showFooter(array(),false);
+	$html->showFooter(false);
 }
 
 function showStartPage() {
 	global $html;
-	$html->showHeaders('SCIM migrate');
-	printf('<a href="?action=showMigrateFlow"><button type="button" class="btn btn-primary">Migrate from Old IdP</button></a><br>%s', "\n");
-	print '<br>';
-	printf('<a href="?action=showInviteFlow"><button type="button" class="btn btn-primary">Onboard with Invite-code</button></a><br>%s', "\n");
-	print '<br>';
-	$html->showFooter(array(),false);
+	$html->showHeaders('Connect - Onboard');
+	printf('        <div class="buttons"><a class="btn btn-primary" href="?action=showMigrateFlow">Migrate from Old IdP</a></div>%s', "\n");
+	printf('        <div class="buttons"><a class="btn btn-primary" href="?action=showInviteFlow">Onboard with Invite-code</a>%s', "\n");
+	$html->showFooter(false);
 }
 
 function showSuccess() {
 	global $html;
-	$html->showHeaders('SCIM migrate');
+	$html->showHeaders('Connect - Onboarded');
 	print 'You are now onborded :-)';
 	print '<br>';
 	$html->showFooter(array(),false);
