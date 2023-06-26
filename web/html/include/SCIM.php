@@ -58,6 +58,7 @@ Class SCIM {
 	}
 
 	private function __construct1() {
+		# Nothing to do for the moment
 	}
 
 	private function getToken() {
@@ -158,7 +159,8 @@ Class SCIM {
 		$response = curl_exec($ch);
 
 		if (curl_errno($ch) == 0) {
-			if ($response == '{"schemas":["urn:ietf:params:scim:api:messages:2.0:Error"],"detail":"Bearer token error","status":401}') {
+			if ($response ==
+			'{"schemas":["urn:ietf:params:scim:api:messages:2.0:Error"],"detail":"Bearer token error","status":401}') {
 				if ($first) {
 					$this->getToken();
 					return $this->request($method, $part, $data, $extraHeaders, false);
@@ -275,5 +277,10 @@ Class SCIM {
 
 	public function getAdminAccess() {
 		return $this->adminAccess;
+	}
+
+	public function validateID($id) {
+		return filter_var($id, FILTER_VALIDATE_REGEXP,
+			array("options"=>array("regexp"=>"/^[a-z,0-9,-]{36}$/")));
 	}
 }

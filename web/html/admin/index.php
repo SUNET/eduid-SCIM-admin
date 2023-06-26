@@ -76,7 +76,7 @@ $html->setDisplayName($displayName);
 $html->showHeaders('SCIM Admin');
 
 if (isset($_POST['action'])) {
-	$id = isset($_POST['id']) ? $_POST['id'] : false;
+	$id = isset($_POST['id']) ? $scim->validateID($_POST['id']) : false;
 	if ($_POST['action'] == 'saveId' && $id) {
 			saveId($id);
 			$menuActive = 'listUsers';
@@ -85,7 +85,7 @@ if (isset($_POST['action'])) {
 			listInvites(true);
 	}
 } elseif (isset($_GET['action'])) {
-	$id = isset($_GET['id']) ? $_GET['id'] : false;
+	$id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
 	switch ($_GET['action']) {
 		case 'editId' :
 			if ( $scim->getAdminAccess() > 9 && $id) {
