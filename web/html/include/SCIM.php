@@ -94,15 +94,36 @@ Class SCIM {
 		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
 		$response = curl_exec($ch);
-		curl_close($ch);
-		$token = json_decode($response);
-		$tokenValue = $token->access_token->value;
+		if (curl_errno($ch) == 0) {
+			$info = curl_getinfo($ch);
+			curl_close($ch);
+			switch ($info['http_code']) {
+				case 200 :
+				case 201 :
+					$token = json_decode($response);
+					$tokenValue = $token->access_token->value;
 
-		$tokenHandler = $this->Db->prepare("UPDATE params SET `value` = :Token WHERE `id` = 'token' AND `instance` = :Instance");
-		$tokenHandler->bindValue(':Token', $tokenValue);
-		$tokenHandler->bindValue(':Instance', $this->scope);
-		$tokenHandler->execute();
-		$this->token = $tokenValue;
+					$tokenHandler = $this->Db->prepare("UPDATE params
+						SET `value` = :Token
+						WHERE `id` = 'token' AND `instance` = :Instance");
+					$tokenHandler->bindValue(':Token', $tokenValue);
+					$tokenHandler->bindValue(':Instance', $this->scope);
+					$tokenHandler->execute();
+					$this->token = $tokenValue;
+					break;
+				default:
+					print "<pre>";
+					print_r($info);
+					print "</pre>";
+					print $response;
+					exit;
+					break;
+			}
+		} else {
+			print "Error on request to auth-server";
+			curl_close($ch);
+			exit;
+		}
 	}
 
 	public function request($method, $part, $data, $extraHeaders = array(), $first = true) {
@@ -176,14 +197,16 @@ Class SCIM {
 			foreach ($IdListArray->Resources as $Resource) {
 				$user = $this->request('GET','Users/'.$Resource->id, '');
 				$userArray = json_decode($user);
-				$userList[$Resource->id] = array('id' => $Resource->id, 'externalId' => $userArray->externalId, 'fullName' => '', 'profiles' => false, 'linked_accounts' => false);
+				$userList[$Resource->id] = array('id' => $Resource->id, 'externalId' => $userArray->externalId, 'fullName' => '', 'attributes' => '', 'profile' => false, 'linked_accounts' => false);
 				if (isset($userArray->name->formatted)) {
 					$userList[$Resource->id]['fullName'] = $userArray->name->formatted;
 				}
 				if (isset ($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'})) {
 					$nutid = $userArray->{'https://scim.eduid.se/schema/nutid/user/v1'};
-					if (isset($nutid->profiles) && sizeof((array)$nutid->profiles)) {
-						$userList[$Resource->id]['profiles'] = true;
+					if (isset($nutid->profiles) && sizeof((array)$nutid->profiles) && isset($nutid->profiles->connectIdp)) {
+						if (isset($nutid->profiles->connectIdp->attributes) )
+							$userList[$Resource->id]['profile'] = true;
+							$userList[$Resource->id]['attributes'] = $nutid->profiles->connectIdp->attributes;
 					}
 					if (isset($nutid->linked_accounts) && sizeof((array)$nutid->linked_accounts)) {
 						$userList[$Resource->id]['linked_accounts'] = true;
