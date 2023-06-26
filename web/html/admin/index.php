@@ -86,9 +86,8 @@ if (isset($_POST['action'])) {
 	}
 } elseif (isset($_GET['action'])) {
 	if (isset($_GET['id'])) {
-		 $id = filter_var($id, FILTER_VALIDATE_REGEXP,
+		 $id = filter_var($_GET['id'], FILTER_VALIDATE_REGEXP,
 		 array("options"=>array("regexp"=>"/^[a-z,0-9]{8}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{12}$/")));
-		 ($_GET['id']);
 	} else
 		$id = false;
 	switch ($_GET['action']) {
