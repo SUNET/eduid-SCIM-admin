@@ -94,15 +94,36 @@ Class SCIM {
 		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
 		$response = curl_exec($ch);
-		curl_close($ch);
-		$token = json_decode($response);
-		$tokenValue = $token->access_token->value;
+		if (curl_errno($ch) == 0) {
+			$info = curl_getinfo($ch);
+			curl_close($ch);
+			switch ($info['http_code']) {
+				case 200 :
+				case 201 :
+					$token = json_decode($response);
+					$tokenValue = $token->access_token->value;
 
-		$tokenHandler = $this->Db->prepare("UPDATE params SET `value` = :Token WHERE `id` = 'token' AND `instance` = :Instance");
-		$tokenHandler->bindValue(':Token', $tokenValue);
-		$tokenHandler->bindValue(':Instance', $this->scope);
-		$tokenHandler->execute();
-		$this->token = $tokenValue;
+					$tokenHandler = $this->Db->prepare("UPDATE params
+						SET `value` = :Token
+						WHERE `id` = 'token' AND `instance` = :Instance");
+					$tokenHandler->bindValue(':Token', $tokenValue);
+					$tokenHandler->bindValue(':Instance', $this->scope);
+					$tokenHandler->execute();
+					$this->token = $tokenValue;
+					break;
+				default:
+					print "<pre>";
+					print_r($info);
+					print "</pre>";
+					print $response;
+					exit;
+					break;
+			}
+		} else {
+			print "Error on request to auth-server";
+			curl_close($ch);
+			exit;
+		}
 	}
 
 	public function request($method, $part, $data, $extraHeaders = array(), $first = true) {

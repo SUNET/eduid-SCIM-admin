@@ -71,6 +71,20 @@ Class HTML {
           content.style.display = content.style.display === "none" ? "table-row" : "none";
         }
       }
+
+      const selectElement = document.querySelector("#selectList");
+      const usertable = document.getElementById("list-users-table");
+      const invitetable = document.getElementById("list-invites-table");
+
+      selectElement.addEventListener("change", (event) => {
+        if (event.target.value == "List Users") {
+          usertable.hidden = false;
+          invitetable.hidden = true;
+        } else {
+          usertable.hidden = true;
+          invitetable.hidden = false;
+        }
+      });
     </script>' . "\n";
 }?>
 
