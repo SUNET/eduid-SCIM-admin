@@ -85,7 +85,12 @@ if (isset($_POST['action'])) {
 			listInvites(true);
 	}
 } elseif (isset($_GET['action'])) {
-	$id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
+	if (isset($_GET['id'])) {
+		 $id = filter_var($id, FILTER_VALIDATE_REGEXP,
+		 array("options"=>array("regexp"=>"/^[a-z,0-9]{8}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{12}$/")));
+		 ($_GET['id']);
+	} else
+		$id = false;
 	switch ($_GET['action']) {
 		case 'editId' :
 			if ( $scim->getAdminAccess() > 9 && $id) {
