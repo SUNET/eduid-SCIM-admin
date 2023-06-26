@@ -1,17 +1,17 @@
 <?php
-Class HTML {
-	# Setup
-	function __construct($Mode='Prod') {
-		$this->displayName = '';
-		$this->startTimer = time();
-		$this->mode = $Mode;
+class HTML {
+  # Setup
+  public function __construct($mode='Prod') {
+    $this->displayName = '';
+    $this->startTimer = time();
+    $this->mode = $mode;
     $this->scope = str_replace('/','',$_SERVER['CONTEXT_PREFIX']);
-	}
+  }
 
-	###
-	# Print start of webpage
-	###
-	public function showHeaders($title = "", $collapse = true) { ?>
+  ###
+  # Print start of webpage
+  ###
+  public function showHeaders($title = "") { ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -21,12 +21,6 @@ Class HTML {
     <link rel="stylesheet" href="/<?=$this->scope?>/css/reset.css" type="text/css" media="all" />
     <link rel="stylesheet" href="/<?=$this->scope?>/css/index.css" type="text/css" media="all" />
     <link rel="icon" href="/assets/favicon.ico" type="image/x-icon" />
-    <!--style>
-    /* Space out content a bit */
-    .banner {
-      <?= $this->mode == 'QA' ? 'background-color: #F05523;' : ''?><?= $this->mode == 'Lab' ? 'background-color: #8B0000;' : ''?>
-    }
-    </style-->
   </head>
 
   <body>
@@ -35,7 +29,6 @@ Class HTML {
         <a href="<?=$_SERVER['CONTEXT_PREFIX']?>" area-label="eduID connect" title="eduID connect">
           <div class="eduid-connect-logo"></div>
         </a>
-        <!-- <?=$this->mode == 'Prod' ? '' : $this->mode?> -->
         <div><?=$this->displayName?></div>
       </header>
       <div class="horizontal-content-margin">
@@ -47,10 +40,10 @@ Class HTML {
       <div class="horizontal-content-margin content">
 <?php	}
 
-	###
-	# Print footer on webpage
-	###
-	public function showFooter($collapse = false) { ?>
+  ###
+  # Print footer on webpage
+  ###
+  public function showFooter($collapse = false) { ?>
       </div>
     </section>
 
@@ -91,9 +84,9 @@ Class HTML {
   </body>
 </html>
 <?php
-	}
+  }
 
-	public function setDisplayName($name) {
-		$this->displayName = $name;
-	}
+  public function setDisplayName($name) {
+    $this->displayName = $name;
+  }
 }
