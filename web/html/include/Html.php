@@ -38,7 +38,7 @@ class HTML {
 
     <section class="panel">
       <div class="horizontal-content-margin content">
-<?php	}
+<?php }
 
   ###
   # Print footer on webpage
