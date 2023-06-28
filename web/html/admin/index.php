@@ -1,6 +1,8 @@
 <?php
 const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
+
 require_once '../autoload.php';
+
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
 include_once $baseDir . '/config.php';
 
@@ -174,33 +176,17 @@ function showUser($user, $id) {
 function editId($id) {
   global $scim;
 
-  # Set up a list of allowd/expected attributes to be able to show unused atribute in edit-form
-  $samlAttributes = array();
-  foreach ($scim->getAttibutes2migrate() as $saml => $SCIM) {
-    $samlAttributes[$saml] =false;
-  }
   $userArray = $scim->getId($id);
   printf('    <form method="POST">
       <input type="hidden" name="action" value="saveId">
-      <input type="hidden" name="id" value="%s">', $id);
+      <input type="hidden" name="id" value="%s">', htmlspecialchars($id));
   printf('<table id="entities-table" class="table table-striped table-bordered">%s', "\n");
   printf('      <tbody>%s', "\n");
-  printf('        <tr><th>Id</th><td>%s</td></tr>%s', $id, "\n");
+  printf('        <tr><th>Id</th><td>%s</td></tr>%s', htmlspecialchars($id), "\n");
   printf('        <tr><th>externalId</th><td>%s</td></tr>%s', $userArray->externalId, "\n");
   printf('        <tr><th colspan="2">SAML Attributes</th></tr>%s', "\n");
-  if (isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp)) {
-    foreach($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes
-      as $key => $value) {
-      if ($key == 'eduPersonScopedAffiliation') {
-        showEduPersonScopedAffiliationInput($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations());
-      } else {
-        $value = is_array($value) ? implode(", ", $value) : $value;
-        printf ('        <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"></td></tr>%s',
-          $key, $key, $value, "\n");
-      }
-      $samlAttributes[$key] = true;
-    }
-  }
+  $samlAttributes = getSamlAttributes($userArray);
+
   foreach ($samlAttributes as $attribute => $found) {
     if (! $found) {
       if ($attribute == 'eduPersonScopedAffiliation') {
@@ -216,12 +202,36 @@ function editId($id) {
       <button type="submit" class="btn btn-primary">Submit</button>
       <a href="?action=listUsers&id=%s"><button class="btn btn-primary">Cancel</button></a>
     </div>%s    </form>%s',
-    "\n", $id, "\n", "\n");
+    "\n", htmlspecialchars($id), "\n", "\n");
   if (isset($_GET['debug'])) {
     print "<pre>";
     print_r($userArray);
     print "</pre>";
   }
+}
+
+function getSamlAttributes($userArray){
+  global $scim;
+
+  # Set up a list of allowd/expected attributes to be able to show unused atribute in edit-form
+  $samlAttributes = array();
+  foreach ($scim->getAttibutes2migrate() as $saml => $SCIM) {
+    $samlAttributes[$saml] =false;
+  }
+  if (isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp)) {
+    foreach($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes
+      as $key => $value) {
+      if ($key == 'eduPersonScopedAffiliation') {
+        showEduPersonScopedAffiliationInput($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations());
+      } else {
+        $value = is_array($value) ? implode(", ", $value) : $value;
+        printf ('        <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"></td></tr>%s',
+          $key, $key, $value, "\n");
+      }
+      $samlAttributes[$key] = true;
+    }
+  }
+  return $samlAttributes;
 }
 
 function saveId($id) {
