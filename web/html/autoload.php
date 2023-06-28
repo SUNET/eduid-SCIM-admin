@@ -14,14 +14,11 @@
     }
     $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
     $fullFileName = $includePath . DIRECTORY_SEPARATOR . $fileName;
-    echo "fileName = $fileName<br>";
-    echo "fullFileName = $fullFileName<br>";
     
     if (file_exists($fullFileName)) {
-      require $fullFileName;
+      require_once $fullFileName;
     } else {
       echo 'Class "'.$className.'" does not exist.';
     }
   }
   spl_autoload_register('loadClass'); // Registers the autoloader
-?>

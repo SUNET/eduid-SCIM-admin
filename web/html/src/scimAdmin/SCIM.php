@@ -2,6 +2,7 @@
 namespace scimAdmin;
 
 use PDO;
+use PDOException;
 
 class SCIM {
   private $error = '';
@@ -16,6 +17,7 @@ class SCIM {
   private $possibleAffiliations = '';
   private $adminUsers = array();
   private $adminAccess = 0;
+
   const SCIM_USERS = 'Users/';
 
   const SQL_INSTANCE = ':Instance';
@@ -211,16 +213,8 @@ class SCIM {
           $userList[$Resource->id]['fullName'] = $userArray->name->formatted;
         }
         if (isset ($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'})) {
-          $nutid = $userArray->{'https://scim.eduid.se/schema/nutid/user/v1'};
-          if (isset($nutid->profiles) && sizeof((array)$nutid->profiles) && isset($nutid->profiles->connectIdp)) {
-            if (isset($nutid->profiles->connectIdp->attributes) ) {
-              $userList[$Resource->id]['profile'] = true;
-            }
-              $userList[$Resource->id]['attributes'] = $nutid->profiles->connectIdp->attributes;
-          }
-          if (isset($nutid->linked_accounts) && sizeof((array)$nutid->linked_accounts)) {
-            $userList[$Resource->id]['linked_accounts'] = true;
-          }
+          $userList[$Resource->id] = $this->checkNutid(
+            $userArray->{'https://scim.eduid.se/schema/nutid/user/v1'},$userList[$Resource->id]);
         }
       }
       return $userList;
@@ -228,6 +222,19 @@ class SCIM {
       printf('Unknown schema : %s', $idListArray->schemas[0]);
       return false;
     }
+  }
+
+  private function checkNutid($nutid, $userList) {
+    if (isset($nutid->profiles) && sizeof((array)$nutid->profiles) && isset($nutid->profiles->connectIdp)) {
+      if (isset($nutid->profiles->connectIdp->attributes) ) {
+        $userList['profile'] = true;
+      }
+      $userList['attributes'] = $nutid->profiles->connectIdp->attributes;
+    }
+    if (isset($nutid->linked_accounts) && sizeof((array)$nutid->linked_accounts)) {
+      $userList['linked_accounts'] = true;
+    }
+    return $userList;
   }
 
   public function getId($id) {

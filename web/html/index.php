@@ -2,7 +2,7 @@
 require_once './autoload.php';
 
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 1);
-include $baseDir . '/config.php';
+include_once $baseDir . '/config.php';
 
 $html = new scimAdmin\HTML($Mode);
 
@@ -29,6 +29,8 @@ if (isset($_GET['action'])) {
     case 'migrateSuccess' :
       showSuccess();
       break;
+    default :
+      showStartPage();
   }
 } else {
   showStartPage();
@@ -81,9 +83,13 @@ function showMigrateFlow() {
       printf('          <li>%s - %s</li>%s', $SCIM, $attribute, "\n");
     }
     printf('    </ul></p>%s', "\n");
-    printf('        <a href="?action=finalizeMigrate"><button type="button" class="btn btn-primary">Finalize migration to new IdP</button></a><br>%s', "\n");
+    printf('        <a href="?action=finalizeMigrate">
+      <button type="button" class="btn btn-primary">Finalize migration to new IdP</button>%s        </a><br>%s',
+      "\n", "\n");
   } else {
-    printf('        <a href="?action=startMigrate"><button type="button" class="btn btn-primary">Start new migration from old IdP</button></a><br>%s', "\n");
+    printf('        <a href="?action=startMigrate">
+      <button type="button" class="btn btn-primary">Start new migration from old IdP</button>%s        </a><br>%s',
+      "\n", "\n");
   }
   $html->showFooter(false);
 }
@@ -91,8 +97,10 @@ function showMigrateFlow() {
 function showStartPage() {
   global $html;
   $html->showHeaders('Connect - Onboard');
-  printf('        <div class="buttons"><a class="btn btn-primary" href="?action=showMigrateFlow">Migrate from Old IdP</a></div>%s', "\n");
-  printf('        <div class="buttons"><a class="btn btn-primary" href="?action=showInviteFlow">Onboard with Invite-code</a>%s', "\n");
+  printf('        <div class="buttons">
+    <a class="btn btn-primary" href="?action=showMigrateFlow">Migrate from Old IdP</a>%s  </div>%s', "\n", "\n");
+  printf('        <div class="buttons">
+    <a class="btn btn-primary" href="?action=showInviteFlow">Onboard with Invite-code</a>%s  </div>%s',"\n", "\n");
   $html->showFooter(false);
 }
 
