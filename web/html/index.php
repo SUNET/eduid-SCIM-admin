@@ -1,15 +1,14 @@
 <?php
+require_once './autoload.php';
+
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 1);
 include $baseDir . '/config.php';
 
-include $baseDir . '/include/Html.php';
-$html = new HTML($Mode);
+$html = new scimAdmin\HTML($Mode);
 
-include $baseDir . '/include/SCIM.php';
-$scim = new SCIM($baseDir);
+$scim = new scimAdmin\SCIM($baseDir);
 
-include $baseDir . '/include/Invites.php';
-$invites = new Invites($baseDir);
+$invites = new scimAdmin\Invites($baseDir);
 
 session_start();
 

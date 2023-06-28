@@ -1,16 +1,14 @@
 <?php
 const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
+require_once '../autoload.php';
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
 include_once $baseDir . '/config.php';
 
-include_once $baseDir . '/include/Html.php';
-$html = new HTML($Mode);
+$html = new scimAdmin\HTML($Mode);
 
-include_once $baseDir . '/include/SCIM.php';
-$scim = new SCIM($baseDir);
+$scim = new scimAdmin\SCIM($baseDir);
 
-include_once $baseDir .'/include/Invites.php';
-$invites = new Invites($baseDir);
+$invites = new scimAdmin\Invites($baseDir);
 
 $errors = '';
 $errorURL = isset($_SERVER['Meta-errorURL']) ?

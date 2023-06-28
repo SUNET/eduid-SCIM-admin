@@ -1,4 +1,8 @@
 <?php
+namespace scimAdmin;
+
+use PDO;
+
 class Invites {
   private $error = '';
   private $scope = '';

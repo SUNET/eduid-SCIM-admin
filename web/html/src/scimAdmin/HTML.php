@@ -1,9 +1,10 @@
 <?php
+namespace scimAdmin;
+
 class HTML {
   # Setup
   public function __construct($mode='Prod') {
     $this->displayName = '';
-    $this->startTimer = time();
     $this->mode = $mode;
     $this->scope = str_replace('/','',$_SERVER['CONTEXT_PREFIX']);
   }

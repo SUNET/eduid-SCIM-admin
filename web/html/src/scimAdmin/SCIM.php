@@ -1,4 +1,8 @@
 <?php
+namespace scimAdmin;
+
+use PDO;
+
 class SCIM {
   private $error = '';
   private $scope = '';
