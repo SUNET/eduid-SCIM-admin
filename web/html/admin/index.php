@@ -94,8 +94,7 @@ if (isset($_POST['action'])) {
   }
 } elseif (isset($_GET['action'])) {
   if (isset($_GET['id'])) {
-     $id = filter_var($_GET['id'], FILTER_VALIDATE_REGEXP,
-     array("options"=>array("regexp"=>"/^[a-z,0-9]{8}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{12}$/")));
+     $id = $scim->validateID($_GET['id']);
   } else {
     $id = false;
   }
@@ -162,7 +161,7 @@ function showUser($user, $id) {
   $user['externalId'], $user['externalId'], $user['externalId'], $user['fullName'],
   $user['profile'] ? 'X' : '', $user['linked_accounts'] ? 'X' : '', "\n");
   printf('        <tr class="content" style="display: %s;">
-  <td><button class="btn-primary"><a a href="?action=editId&id=%s">edit user</a></button></td>
+  <td><a a href="?action=editId&id=%s"><button class="btn btn-primary btn-sm">edit user</button></a></td>
   <td colspan="3"><ul>%s', $id == $user['id'] ? 'table-row' : 'none', $user['id'], "\n");
   if ($user['profile']) {
     foreach($user['attributes'] as $key => $value) {
@@ -200,7 +199,7 @@ function editId($id) {
   printf('      </tbody>%s    </table>
     <div class="buttons">
       <button type="submit" class="btn btn-primary">Submit</button>
-      <a href="?action=listUsers&id=%s"><button class="btn btn-primary">Cancel</button></a>
+      <a href="?action=listUsers&id=%s"><button class="btn btn-secondary">Cancel</button></a>
     </div>%s    </form>%s',
     "\n", htmlspecialchars($id), "\n", "\n");
   if (isset($_GET['debug'])) {

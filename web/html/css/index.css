@@ -12,47 +12,62 @@
 }
 
 @font-face {
-  font-family: "ProximaNova-Light";
-  src: url("/fonts/ProximaNova-Light.ttf") format("truetype"), url("/fonts/ProximaNova-Light.woff") format("woff"),
-    url("/fonts/ProximaNova-Light.woff2") format("woff2");
-
+  font-family: "Inter-Bold";
+  src: url("/fonts/Inter-Bold.ttf") format("truetype"), url("/fonts/Inter-Bold.woff") format("woff"),
+    url("/fonts/Inter-Bold.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: "ProximaNova-Regular";
-  src: url("/fonts/ProximaNova-Regular.ttf") format("truetype"), url("/fonts/ProximaNova-Regular.woff") format("woff"),
-    url("/fonts/ProximaNova-Regular.woff2") format("woff2");
+  font-family: "Inter-SemiBold";
+  src: url("/fonts/Inter-SemiBold.ttf") format("truetype"), url("/fonts/Inter-SemiBold.woff") format("woff"),
+    url("/fonts/Inter-SemiBold.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: "ProximaNova-Bold";
-  src: url("/fonts/ProximaNova-Bold.ttf") format("truetype"), url("/fonts/ProximaNova-Bold.woff") format("woff"),
-    url("/fonts/ProximaNova-Bold.woff2") format("woff2");
+  font-family: "Inter-Medium";
+  src: url("/fonts/Inter-Medium.ttf") format("truetype"), url("/fonts/Inter-Medium.woff") format("woff"),
+    url("/fonts/Inter-Medium.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Inter-Regular";
+  src: url("/fonts/Inter-Regular.ttf") format("truetype"), url("/fonts/Inter-Regular.woff") format("woff"),
+    url("/fonts/Inter-Regular.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Inter-Light";
+  src: url("/fonts/Inter-Light.ttf") format("truetype"), url("/fonts/Inter-Light.woff") format("woff"),
+    url("/fonts/Inter-Light.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }
 
 strong {
-  font-family: "ProximaNova-Bold", Arial, Helvetica, sans-serif;
+  font-family: "Inter-SemiBold", Arial, Helvetica, sans-serif;
 }
 
 h1.tagline {
   font-size: 2.75rem;
   line-height: 1.2;
-  font-family: "ProximaNova-Light", Arial, Helvetica, sans-serif;
+  font-family: "Inter-Light", Arial, Helvetica, sans-serif;
 }
 h2 {
   font-size: 1.65rem;
   margin-bottom: 0.75em;
-  font-family: "ProximaNova-Bold", Arial, Helvetica, sans-serif;
+  font-family: "Inter-SemiBold", Arial, Helvetica, sans-serif;
 }
 h3 {
   line-height: 1.2;
-  font-family: "ProximaNova-Light", Arial, Helvetica, sans-serif;
+  font-family: "Inter-Light", Arial, Helvetica, sans-serif;
   font-size: 1.5rem;
   margin-bottom: 0.75em;
   text-transform: uppercase;
@@ -60,14 +75,14 @@ h3 {
 h4 {
   line-height: 1.2;
   margin-bottom: 0.5em;
-  font-family: "ProximaNova-Bold", Arial, Helvetica, sans-serif;
+  font-family: "Inter-SemiBold", Arial, Helvetica, sans-serif;
   font-size: 1.25rem;
 }
 
 h5 {
   line-height: 1.2;
   margin-bottom: 0.5em;
-  font-family: "ProximaNova-Bold", Arial, Helvetica, sans-serif;
+  font-family: "Inter-SemiBold", Arial, Helvetica, sans-serif;
   font-size: 0.83em;
 }
 
@@ -80,7 +95,7 @@ p {
 /** General **/
 body {
   min-height: 100vh;
-  font-family: "ProximaNova-Regular", Arial, Helvetica, sans-serif;
+  font-family: "Inter-Regular", Arial, Helvetica, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   color: #161616;
@@ -97,6 +112,7 @@ body {
 }
 .panel .content {
   padding-top: 2rem;
+  font-size: 1rem;
 }
 .horizontal-content-margin {
   padding: 0;
@@ -114,7 +130,7 @@ header {
 }
 
 .banner {
-  background-color: white;
+  background-color: #fff;
 }
 
 .eduid-connect-logo {
@@ -134,7 +150,7 @@ header {
 
 /** Content **/
 .intro {
-  font-family: "ProximaNova-Bold", Arial, Helvetica, sans-serif;
+  font-family: "Inter-Semibold", Arial, Helvetica, sans-serif;
   font-size: 1.5rem;
 }
 
@@ -143,6 +159,39 @@ hr {
   height: 1px;
   border: none;
   background: #d8d8d8;
+}
+
+tr.content {
+  display: table-row;
+  background-color: #ebebeb;
+}
+
+tr.content td {
+  width: 100%;
+  vertical-align: top;
+  padding-left: 20px;
+  padding-right: 0;
+}
+
+tr.content td a.text-link {
+  display: inline-block;
+  width: 100%;
+  overflow: hidden;
+
+  white-space: nowrap;
+}
+
+tr.content td ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+tr td ul {
+  font-size: 1rem;
+}
+
+tr td ul li {
+  margin-bottom: 0.5rem;
 }
 
 /* links */
@@ -181,14 +230,22 @@ a.text-link:hover {
   outline: 0;
   border: none;
   cursor: pointer;
+  height: 3rem;
 }
 .btn:hover {
   transform: scale(0.95);
 }
 
 .btn-sm {
+  padding: 0.5rem 1rem !important;
   font-size: 13px;
-  padding: 0.5rem 1rem;
+  min-width: -moz-fit-content;
+  min-width: fit-content;
+  width: auto;
+  height: auto;
+  margin-top: 0;
+  margin-bottom: 0;
+  letter-spacing: 1px;
 }
 
 .btn-primary {
@@ -201,8 +258,21 @@ a.text-link:hover {
 }
 
 .btn-secondary {
-  color: #cc3600;
+  color: #c23400;
   border: solid 2px #ff4500;
+  background-color: #fff;
+  box-shadow: none;
+  min-width: 100px;
+  padding: 0 1.125rem;
+  letter-spacing: 1px;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  height: 3rem;
+  border-radius: 1.5rem;
+  transition: all 0.3s ease;
+  outline: 0;
 }
 
 /** FAQ **/
@@ -273,7 +343,7 @@ footer .text-link {
 label {
   display: flex;
   font-size: 1rem;
-  font-family: ProximaNova-bold, Arial, Helvetica, sans-serif;
+  font-family: "Inter-Semibold", Arial, Helvetica, sans-serif;
   letter-spacing: 0.5px;
   line-height: 1;
   color: #161616;
@@ -282,7 +352,7 @@ label {
 
 input[type="text"] {
   background-color: #f4f4f4;
-  font-family: ProximaNova-Regular, Arial, Helvetica, sans-serif;
+  font-family: "Inter-Semibold", Arial, Helvetica, sans-serif;
   font-size: 1.5rem;
   font-weight: 500;
   color: #161616;
@@ -305,18 +375,18 @@ input[type="text"]:focus {
 table {
   width: 100%;
   font-size: 1.125rem;
-  font-family: ProximaNova-light, Arial, Helvetica, sans-serif;
+  font-family: "Inter-Light", Arial, Helvetica, sans-serif;
   table-layout: fixed;
   background-color: #fff;
   border-spacing: 0;
 }
 
 thead {
-  color: #5e5e5e;
+  color: #161616;
   background-color: #d8d8d8;
   text-transform: uppercase;
 
-  font-family: ProximaNova-Regular, Arial, Helvetica, sans-serif;
+  font-family: "Inter-Regular", Arial, Helvetica, sans-serif;
   font-size: 0.9rem;
 }
 
@@ -326,7 +396,7 @@ tr th {
   padding-left: 20px;
   width: 40%;
   /* text-transform: uppercase; */
-  font-family: ProximaNova-Regular, Arial, Helvetica, sans-serif;
+  font-family: "Inter-Regular", Arial, Helvetica, sans-serif;
   word-wrap: break-word;
 }
 
@@ -361,8 +431,9 @@ td {
   padding: 20px;
 }
 
-tbody tr:hover {
+tbody tr:not(.content):hover {
   background-color: #ffe7dd;
+  cursor: pointer;
 }
 
 table.list-invites tr th:nth-child(1),
@@ -532,9 +603,11 @@ select::-ms-expand {
 
 @media (max-width: 414px) {
   .buttons {
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
-
+  button {
+    margin: 0.5rem 0;
+  }
   footer {
     align-items: flex-end;
   }

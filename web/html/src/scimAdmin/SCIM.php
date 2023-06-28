@@ -151,7 +151,7 @@ class SCIM {
       'Content-Type: application/scim+json',
       'Authorization: Bearer ' . $this->token
     );
-    curl_setopt($ch, CURLOPT_URL, $this->apiURL. "$part");
+    curl_setopt($ch, CURLOPT_URL, $this->apiURL. htmlspecialchars($part));
     curl_setopt($ch, CURLOPT_PORT , 443);
     curl_setopt($ch, CURLOPT_VERBOSE, 0);
     curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -297,6 +297,6 @@ class SCIM {
 
   public function validateID($id) {
     return filter_var($id, FILTER_VALIDATE_REGEXP,
-      array("options"=>array("regexp"=>"/^[a-z,0-9,-]{36}$/")));
+      array("options"=>array("regexp"=>"/^[a-z,0-9]{8}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{12}$/")));
   }
 }
