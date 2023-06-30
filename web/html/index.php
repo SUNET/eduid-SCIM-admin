@@ -18,7 +18,7 @@ if (isset($_GET['action'])) {
       $invites->startMigrateFromSourceIdP();
       break;
     case 'finalizeMigrate' :
-      $invites->finalizeMigrateToNewIdP();
+      $invites->redirectToNewIdP('/admin/migrate.php?backend');
       break;
     case 'showInviteFlow' :
       showInviteFlow();

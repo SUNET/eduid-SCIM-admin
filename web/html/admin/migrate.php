@@ -17,6 +17,7 @@ $sessionID = $_COOKIE['PHPSESSID'];
 
 if (isset($_GET['source'])) {
   if ($data = $invites->checkSourceData()) {
+    #, $invites->checkALLevel(2)
     $invites->updateInviteAttributes($sessionID, $data);
     $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
     $redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=showMigrateFlow';

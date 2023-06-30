@@ -35,7 +35,6 @@ class Invites {
       $this->sourceIdP = $instances[$this->scope]['sourceIdP'];
       $this->backendIdP = $instances[$this->scope]['backendIdP'];
       $this->attibutes2migrate = $instances[$this->scope]['attibutes2migrate'];
-
     }
   }
 
@@ -65,13 +64,6 @@ class Invites {
     header('Location: ' . $redirectURL);
   }
 
-  public function finalizeMigrateToNewIdP() {
-    $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
-    $redirectURL = sprintf('%s/Shibboleth.sso/Login?entityID=%s&target=%s',
-      $hostURL, $this->backendIdP, urlencode($hostURL . '/' . $this->scope . '/admin/migrate.php?backend'));
-    header('Location: ' . $redirectURL);
-  }
-
   public function checkSourceData() {
     $migrate = array();
     if ($_SERVER['Shib-Identity-Provider'] == $this->sourceIdP) {
@@ -97,6 +89,22 @@ class Invites {
     } else {
       return false;
     }
+  }
+
+  public function checkALLevel($level) {
+    $idpACFound = false;
+    $userACFound = false;
+    if (isset($_SERVER['Meta-Assurance-Certification'])) {
+      foreach (explode(';', $_SERVER['Meta-Assurance-Certification']) as $AC) {
+        $idpACFound = ($AC == 'http://www.swamid.se/policy/assurance/al'. $level) ? true : $idpACFound;
+      }
+    }
+    if (isset($_SERVER['eduPersonAssurance'])) {
+      foreach (explode(';', $_SERVER['eduPersonAssurance']) as $AC) {
+        $userACFound = ($AC == 'http://www.swamid.se/policy/assurance/al'. $level) ? true : $userACFound;
+      }
+    }
+    return $idpACFound && $userACFound;
   }
 
   public function updateInviteAttributes($session, $data) {
@@ -164,5 +172,12 @@ class Invites {
 
   public function getInstance() {
     return $this->scope;
+  }
+
+  public function redirectToNewIdP($page) {
+    $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
+    $redirectURL = sprintf('%s/Shibboleth.sso/Login?entityID=%s&target=%s',
+      $hostURL, $this->backendIdP, urlencode($hostURL . '/' . $this->scope . '/' . $page));
+    header('Location: ' . $redirectURL);
   }
 }
