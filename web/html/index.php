@@ -2,7 +2,7 @@
 require_once './autoload.php';
 
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 1);
-include_once $baseDir . '/config.php';
+include_once $baseDir . '/config.php'; # NOSONAR
 
 $html = new scimAdmin\HTML($Mode);
 

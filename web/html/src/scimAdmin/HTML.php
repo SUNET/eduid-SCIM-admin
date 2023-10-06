@@ -57,7 +57,7 @@ class HTML {
     </footer>
 <?php if ($collapse) {
     print '    <script>
-      function showUsers(id) {
+      function showId(id) {
         const collapsible = document.querySelector(`tr.collapsible[data-id="${id}"]`);
         const content = collapsible.nextElementSibling;
 

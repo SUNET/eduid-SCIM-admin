@@ -45,15 +45,6 @@ if (! $scim->checkAccess($AdminUser)) {
   $errors .= $AdminUser . ' is not allowed to login to this page';
 }
 
-if ( isset($_SERVER['mail'])) {
-  $mailArray = explode(';',$_SERVER['mail']);
-  $mail = $mailArray[0];
-} else {
-  $errors .= 'Missing mail in SAML response ' .
-    str_replace(array('ERRORURL_CODE', 'ERRORURL_CTX'),
-    array('IDENTIFICATION_FAILURE', 'mail'), $errorURL);
-}
-
 if (isset($_SERVER['displayName'])) {
   $fullName = $_SERVER['displayName'];
 } elseif (isset($_SERVER['givenName'])) {
@@ -84,57 +75,46 @@ $html->setDisplayName($displayName);
 $html->showHeaders('SCIM Admin');
 
 if (isset($_POST['action'])) {
-  $id = isset($_POST['id']) ? $scim->validateID($_POST['id']) : false;
-  if ($_POST['action'] == 'saveId' && $id) {
-      saveId($id);
-      $menuActive = 'listUsers';
-      showMenu();
-      listUsers($id);
-      listInvites(true);
+  if ($_POST['action'] == 'saveUser' && $id) {
+    $id = isset($_POST['id']) ? $scim->validateID($_POST['id']) : false;
+    saveUser($id);
+    showMenu();
+    listUsers($id);
+    if ( $scim->getAdminAccess() > 19 ) {
+      listInvites($id, true);
+    }
   }
 } elseif (isset($_GET['action'])) {
-  if (isset($_GET['id'])) {
-     $id = $scim->validateID($_GET['id']);
-  } else {
-    $id = false;
-  }
   switch ($_GET['action']) {
-    case 'editId' :
+    case 'editUser' :
+      $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
       if ( $scim->getAdminAccess() > 9 && $id) {
-        editId($id);
+        editUser($id);
       } else {
-        $menuActive = 'listUsers';
         showMenu();
-        listUsers();
-        listInvites(true);
+        listUsers($id);
+        if ( $scim->getAdminAccess() > 19 ) {
+          listInvites($id, true);
+        }
       }
       break;
-    case 'listInvites' :
-      if ( $scim->getAdminAccess() > 19 ) {
-        $menuActive = 'listInvites';
-        showMenu();
-        listUsers('',true);
-        listInvites();
-      } else {
-        $menuActive = 'listUsers';
-        showMenu();
-        listUsers();
-        listInvites(true);
-      }
+    case 'editInvites' :
       break;
     default:
       # listUsers
-      $menuActive = 'listUsers';
       showMenu();
-      listUsers();
-      listInvites(true);
+      listUsers($id);
+      if ( $scim->getAdminAccess() > 19 ) {
+        listInvites($id, true);
+      }
       break;
   }
 } else {
-  $menuActive = 'listUsers';
   showMenu();
   listUsers();
-  listInvites(true);
+  if ( $scim->getAdminAccess() > 19 ) {
+    listInvites(0, true);
+  }
 }
 print "    <br>\n";
 $html->showFooter(true);
@@ -142,42 +122,44 @@ $html->showFooter(true);
 function listUsers($id='0-0', $hidden = false) {
   global $scim;
   $users = $scim->getAllUsers();
-  printf('    <table id="list-users-table" class="table table-striped table-bordered list-users"%s>
-      <thead><tr><th>externalId</th><th>Name</th><th>Profile</th><th>Linked account</th></tr></thead>
-      <tbody>%s', $hidden ? ' hidden' : '', "\n");
+  printf('        <table id="list-users-table" class="table table-striped table-bordered list-users"%s>
+          <thead>
+            <tr><th>externalId</th><th>Name</th><th>Profile</th><th>Linked account</th></tr>
+          </thead>
+          <tbody>%s', $hidden ? ' hidden' : '', "\n");
   foreach ($users as $user) {
     showUser($user, $id);
   }
-  printf('      <tbody>%s    </table>%s', "\n", "\n");
+  printf('          <tbody>%s        </table>%s', "\n", "\n");
 }
 
 function showUser($user, $id) {
-  printf('        <tr class="collapsible" data-id="%s" onclick="showUsers(\'%s\')">
-  <td>%s</td>
-  <td>%s</td>
-  <td>%s</td>
-  <td>%s</td>
-  </tr>%s',
+  printf('            <tr class="collapsible" data-id="%s" onclick="showId(\'%s\')">
+              <td>%s</td>
+              <td>%s</td>
+              <td>%s</td>
+              <td>%s</td>
+            </tr>%s',
   $user['externalId'], $user['externalId'], $user['externalId'], $user['fullName'],
   $user['profile'] ? 'X' : '', $user['linked_accounts'] ? 'X' : '', "\n");
-  printf('        <tr class="content" style="display: %s;">
-  <td><a a href="?action=editId&id=%s"><button class="btn btn-primary btn-sm">edit user</button></a></td>
-  <td colspan="3"><ul>%s', $id == $user['id'] ? 'table-row' : 'none', $user['id'], "\n");
+  printf('            <tr class="content" style="display: %s;">
+              <td><a a href="?action=editUser&id=%s"><button class="btn btn-primary btn-sm">edit user</button></a></td>
+              <td colspan="3"><ul>%s', $id == $user['id'] ? 'table-row' : 'none', $user['id'], "\n");
   if ($user['profile']) {
     foreach($user['attributes'] as $key => $value) {
       $value = is_array($value) ? implode(", ", $value) : $value;
-      printf ('            <li>%s - %s</li>%s', $key, $value, "\n");
+      printf ('                <li>%s - %s</li>%s', $key, $value, "\n");
     }
   }
-  printf('          </ul></td>%s        </tr>%s', "\n", "\n");
+  printf('              </ul></td>%s            </tr>%s', "\n", "\n");
 }
 
-function editId($id) {
+function editUser($id) {
   global $scim;
 
   $userArray = $scim->getId($id);
   printf('    <form method="POST">
-      <input type="hidden" name="action" value="saveId">
+      <input type="hidden" name="action" value="saveUser">
       <input type="hidden" name="id" value="%s">', htmlspecialchars($id));
   printf('<table id="entities-table" class="table table-striped table-bordered">%s', "\n");
   printf('      <tbody>%s', "\n");
@@ -214,7 +196,7 @@ function getSamlAttributes($userArray){
 
   # Set up a list of allowd/expected attributes to be able to show unused atribute in edit-form
   $samlAttributes = array();
-  foreach ($scim->getAttibutes2migrate() as $saml => $SCIM) {
+  foreach ($scim->getAttributes2migrate() as $saml => $SCIM) {
     $samlAttributes[$saml] =false;
   }
   if (isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp)) {
@@ -233,7 +215,7 @@ function getSamlAttributes($userArray){
   return $samlAttributes;
 }
 
-function saveId($id) {
+function saveUser($id) {
   if (isset($_POST['saml'])) {
     global $scim;
     $userArray = $scim->getId($id);
@@ -330,7 +312,7 @@ function parseEduPersonScopedAffiliation($value, $allowedScopes, $possibleAffili
 }
 
 function showMenu() {
-  global $scim, $menuActive;
+  global $scim;
   print '        <label for="select">Select a list</label>
         <div class="select">
           <select id="selectList">
@@ -341,30 +323,69 @@ function showMenu() {
   }
   print '
           </select>
-    </div>';
-  print '<div class="result"></div>';
+        </div>' . "\n";
+  print '        <div class="result"></div>';
   print "\n        <br>\n        <br>\n";
 }
 
-function listInvites ($hidden = false) {
+function listInvites ($id = 0, $hidden = false) {
   global $invites;
-  printf('    <table id="list-invites-table" class="table table-striped table-bordered list-invites"%s>%s',
-    $hidden ? ' hidden' : '', "\n");
-  printf('      <thead>%s', "\n");
-  printf('        <tr><th>Invited</th><th>Active</th><th>Last modified</th><th>Values</th></tr>%s', "\n");
-
-  printf('      </thead>%s', "\n");
-  printf('      <tbody>%s', "\n");
+  printf('        <table id="list-invites-table" class="table table-striped table-bordered list-invites"%s>
+          <thead>
+            <tr><th>Active</th><th>Last modified</th><th>Name</th></tr>
+          </thead>
+          <tbody>%s', $hidden ? ' hidden' : '', "\n");
   foreach ($invites->getInvitesList() as $invite) {
-    printf('        <tr><td>%s</td><td>%s</td><td>%s</td><td><ul>',
-      $invite['hash'] == '' ? '' : 'X',
-      $invite['session'] == '' ? '' : 'X',
-      $invite['modified']);
-    foreach (json_decode($invite['attributes']) as $SCIM => $attribute) {
-      $attribute = is_array($attribute) ? implode(", ", $attribute) : $attribute;
-      printf('<li>%s - %s</li>', $SCIM, $attribute);
-    }
-    printf('</ul></td></tr>%s', "\n");
+    showInvite($invite, $id);
   }
-  printf('      </tbody>%s    </table>%s', "\n", "\n");
+  printf('          </tbody>%s       </table>%s', "\n", "\n");
+}
+
+function showInvite($invite, $id) {
+  #print_r($invite);
+  $inviteInfo = json_decode($invite['inviteInfo']);
+  printf('            <tr class="collapsible" data-id="%s" onclick="showId(\'%s\')">
+              <td>%s</td>
+              <td>%s</td>
+              <td>%s</td>
+            </tr>%s',
+    $invite['id'], $invite['id'],
+    $invite['session'] == '' ? '' : 'X',
+    $invite['modified'],
+    $inviteInfo->givenName . ' ' . $inviteInfo->sn,
+    "\n");
+  if ($invite['status'] == 1) {
+    printf('            <tr class="content" style="display: %s;">
+                <td><a a href="?action=editInvite&id=%s">
+                  <button class="btn btn-primary btn-sm">edit invite</button></a>
+                </td>
+                <td>Attributes : <ul>%s', $id == $invite['id'] ? 'table-row' : 'none', $invite['id'], "\n");
+    foreach(json_decode($invite['attributes']) as $key => $value) {
+      $value = is_array($value) ? implode(", ", $value) : $value;
+      printf ('                <li>%s - %s</li>%s', $key, $value, "\n");
+    }
+    printf('              </ul></td>%s              <td>InviteInfo : <ul%s', "\n", "\n");
+    foreach($inviteInfo as $key => $value) {
+      $value = is_array($value) ? implode(", ", $value) : $value;
+      printf ('                <li>%s - %s</li>%s', $key, $value, "\n");
+    }
+  } else {
+
+  }
+  printf('              </ul></td>%s            </tr>%s', "\n", "\n");
+    /*Array ( 
+      [id] => 5 
+      [instance] => sunet.se 
+      [hash] => 
+      [status] => 
+      [session] => ufgd1lnnt99ciori8qkr2fdvfp 
+      [modified] => 2023-10-06 12:41:02 
+      [attributes] => {"eduPersonPrincipalName":"bjorn@sunet.se","eduPersonScopedAffiliation":["employee@sunet.se","member@sunet.se"],"mail":"bjorn@sunet.se"} 
+      [inviteInfo] => {"givenName":"Bj\u00f6rn","mail":"bjorn@sunet.se","sn":"Mattsson","personNIN":""} 
+      [migrateInfo] => )*/
+
+  /*foreach (json_decode($invite['attributes']) as $SCIM => $attribute) {
+    $attribute = is_array($attribute) ? implode(", ", $attribute) : $attribute;
+    printf('<li>%s - %s</li>', $SCIM, $attribute);
+  }*/
 }

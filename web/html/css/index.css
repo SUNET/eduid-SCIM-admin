@@ -400,7 +400,7 @@ tr th {
   word-wrap: break-word;
 }
 
-.list-invites tr td:nth-child(4),
+.list-invites tr td:nth-child(3),
 .list-users tr th:first-child,
 .list-users tr th:nth-child(2) {
   text-align: left;
@@ -421,7 +421,6 @@ tr {
 }
 
 .list-invites tr td:nth-child(1),
-.list-invites tr td:nth-child(2),
 .list-users tr td:nth-child(3),
 .list-users tr td:nth-child(4) {
   text-align: center;
@@ -436,17 +435,16 @@ tbody tr:not(.content):hover {
   cursor: pointer;
 }
 
-table.list-invites tr th:nth-child(1),
-table.list-invites tr th:nth-child(2) {
+table.list-invites tr th:nth-child(1) {
   width: 10%;
 }
-table.list-invites tr th:nth-child(3) {
-  width: 30%;
+table.list-invites tr th:nth-child(2) {
+  width: 45%;
   text-align: left;
   padding-left: 20px;
 }
 table.list-invites tr th:last-child {
-  width: 50%;
+  width: 45%;
   text-align: left;
   padding-left: 20px;
 }

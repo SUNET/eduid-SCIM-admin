@@ -16,9 +16,27 @@ session_start();
 $sessionID = $_COOKIE['PHPSESSID'];
 
 if (isset($_GET['source'])) {
-  if ($data = $invites->checkSourceData()) {
-    #, $invites->checkALLevel(2)
-    $invites->updateInviteAttributes($sessionID, $data);
+  if ($attributes = $invites->checkSourceData()) {
+    $inviteInfo = $invites->getUserDataFromIdP();
+
+    $attributes2Remove = array(
+      'eduPersonPrincipalName', 'mailLocalAddress', 'norEduPersonNIN', 'schacDateOfBirth', 'eduPersonAssurance');
+    #Remove unused parts and restructure
+    if (strstr($inviteInfo['eduPersonAssurance'], "http://www.swamid.se/policy/assurance/al2")) {
+      # The info we got is on AL2 level
+      $inviteInfo['personNIN'] = $inviteInfo['norEduPersonNIN'] = ''
+        ? $inviteInfo['schacDateOfBirth'] : $inviteInfo['norEduPersonNIN'];
+    } else {
+      #Don't add full trust to attributes
+      $inviteInfo['personNIN'] = '';
+    }
+
+    foreach ( $attributes2Remove as $part) {
+      if (isset($inviteInfo[$part])) {
+        unset($inviteInfo[$part]);
+      }
+    }
+    $invites->updateInviteAttributes($sessionID, $attributes, $inviteInfo);
     $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
     $redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=showMigrateFlow';
     header('Location: ' . $redirectURL);
@@ -26,8 +44,9 @@ if (isset($_GET['source'])) {
     print "Error while migrating";
   }
 } elseif (isset($_GET['backend'])) {
-  if ($EPPN = $invites->checkBackendData()) {
-    if (! $id = $scim->getIdFromExternalId($EPPN) && ! $id = $scim->createIdFromExternalId($EPPN)) {
+  if ($migrateInfo = $invites->checkBackendData()) {
+    $ePPN = $invites->migrateInfo['eduPersonPrincipalName'];
+    if (! $id = $scim->getIdFromExternalId($ePPN) && ! $id = $scim->createIdFromExternalId($ePPN)) {
       print "Could not create user in SCIM";
       exit;
     }

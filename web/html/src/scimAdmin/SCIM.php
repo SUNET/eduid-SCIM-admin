@@ -12,7 +12,7 @@ class SCIM {
   private $certFile = '';
   private $keyFile = '';
   private $apiURL = '';
-  private $attibutes2migrate = '';
+  private $attributes2migrate = '';
   private $allowedScopes = '';
   private $possibleAffiliations = '';
   private $adminUsers = array();
@@ -26,7 +26,7 @@ class SCIM {
     $a = func_get_args();
     if (isset($a[0])) {
       $this->baseDir = array_shift($a);
-      include $this->baseDir . '/config.php';
+      include $this->baseDir . '/config.php'; # NOSONAR
       try {
         $this->Db = new PDO("mysql:host=$dbServername;dbname=$dbName", $dbUsername, $dbPassword);
         // set the PDO error mode to exception
@@ -41,7 +41,7 @@ class SCIM {
       $this->certFile = $authCert;
       $this->keyFile = $authKey;
       $this->apiURL = $apiUrl;
-      $this->attibutes2migrate = $instances[$this->scope]['attibutes2migrate'];
+      $this->attributes2migrate = $instances[$this->scope]['attributes2migrate'];
       $this->allowedScopes = $instances[$this->scope]['allowedScopes'];
       $this->possibleAffiliations = $possibleAffiliations;
       $this->adminUsers = $instances[$this->scope]['adminUsers'];
@@ -271,8 +271,8 @@ class SCIM {
     return $this->request('PUT', self::SCIM_USERS.$id, $data, array('if-match: ' . $version));
   }
 
-  public function getAttibutes2migrate(){
-    return $this->attibutes2migrate;
+  public function getAttributes2migrate(){
+    return $this->attributes2migrate;
   }
 
   public function getAllowedScopes() {

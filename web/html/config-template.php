@@ -31,7 +31,7 @@ $instances = array (
     'allowedScopes' => array ('sunet.se'),
     # Array ('Shibb-name in apache' => 'name in satosa internal/SCIM')
 
-    'attibutes2migrate' => array (
+    'attributes2migrate' => array (
       'eduPersonPrincipalName' => 'eduPersonPrincipalName',
       'eduPersonScopedAffiliation' => 'eduPersonScopedAffiliation',
       'mail' => 'mail',
