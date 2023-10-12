@@ -214,9 +214,9 @@ class SCIM {
         if (isset($userArray->name->formatted)) {
           $userList[$Resource->id]['fullName'] = $userArray->name->formatted;
         }
-        if (isset ($userArray->{'https://scim.eduid.se/schema/nutid/user/v1'})) {
+        if (isset ($userArray->{self::SCIM_NUTID_SCHEMA})) {
           $userList[$Resource->id] = $this->checkNutid(
-            $userArray->{'https://scim.eduid.se/schema/nutid/user/v1'},$userList[$Resource->id]);
+            $userArray->{self::SCIM_NUTID_SCHEMA},$userList[$Resource->id]);
         }
       }
       return $userList;
@@ -340,7 +340,6 @@ class SCIM {
       $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->$key = $value;
     }
 
-    $fullName = '';
     if (! isset($userArray->{'name'})) {
       $userArray->name = new \stdClass();
     }

@@ -20,6 +20,8 @@ class Invites {
   const SQL_ID = ':Id';
   const SQL_MIGRATEINFO = ':MigrateInfo';
   const SQL_SESSION = ':Session';
+  const SQL_ATTRIBUTES =':Attributes';
+  const SQL_INVITEINFO = ':InviteInfo';
 
   public function __construct() {
     $a = func_get_args();
@@ -189,8 +191,8 @@ class Invites {
         WHERE `session` = :Session AND `instance` = :Instance');
       $updateHandler->bindParam(self::SQL_SESSION, $session);
       $updateHandler->bindValue(self::SQL_INSTANCE, $this->scope);
-      $updateHandler->bindValue(':Attributes', json_encode($attributes));
-      $updateHandler->bindValue(':InviteInfo', json_encode($inviteInfo));
+      $updateHandler->bindValue(self::SQL_ATTRIBUTES, json_encode($attributes));
+      $updateHandler->bindValue(self::SQL_INVITEINFO, json_encode($inviteInfo));
       return $updateHandler->execute();
     } else {
       # No session exists, create a new
@@ -199,8 +201,8 @@ class Invites {
         VALUES (:Instance, :Session, NOW(), :Attributes, 1, :InviteInfo)');
       $insertHandler->bindParam(self::SQL_SESSION, $session);
       $insertHandler->bindValue(self::SQL_INSTANCE, $this->scope);
-      $insertHandler->bindValue(':Attributes', json_encode($attributes));
-      $insertHandler->bindValue(':InviteInfo', json_encode($inviteInfo));
+      $insertHandler->bindValue(self::SQL_ATTRIBUTES, json_encode($attributes));
+      $insertHandler->bindValue(self::SQL_INVITEINFO, json_encode($inviteInfo));
       return $insertHandler->execute();
     }
   }
@@ -217,8 +219,8 @@ class Invites {
         WHERE `id` = :Id AND `instance` = :Instance');
       $updateHandler->bindParam(self::SQL_ID, $id);
       $updateHandler->bindValue(self::SQL_INSTANCE, $this->scope);
-      $updateHandler->bindValue(':Attributes', json_encode($attributes));
-      $updateHandler->bindValue(':InviteInfo', json_encode($inviteInfo));
+      $updateHandler->bindValue(self::SQL_ATTRIBUTES, json_encode($attributes));
+      $updateHandler->bindValue(self::SQL_INVITEINFO, json_encode($inviteInfo));
       return $updateHandler->execute();
     } else {
       # No id exists, create a new
@@ -226,8 +228,8 @@ class Invites {
         (`instance`, `modified`, `attributes`, `status`, `inviteInfo`)
         VALUES (:Instance, NOW(), :Attributes, 1, :InviteInfo)');
       $insertHandler->bindValue(self::SQL_INSTANCE, $this->scope);
-      $insertHandler->bindValue(':Attributes', json_encode($attributes));
-      $insertHandler->bindValue(':InviteInfo', json_encode($inviteInfo));
+      $insertHandler->bindValue(self::SQL_ATTRIBUTES, json_encode($attributes));
+      $insertHandler->bindValue(self::SQL_INVITEINFO, json_encode($inviteInfo));
       return $insertHandler->execute();
     }
   }

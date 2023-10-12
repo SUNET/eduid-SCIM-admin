@@ -1,4 +1,5 @@
 <?php
+const SWAMID_AL2 = 'http://www.swamid.se/policy/assurance/al2';
 require_once '../autoload.php';
 
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
@@ -20,7 +21,7 @@ if (isset($_GET['source'])) {
     $attributes2Remove = array(
       'eduPersonPrincipalName', 'mailLocalAddress', 'norEduPersonNIN', 'schacDateOfBirth', 'eduPersonAssurance');
     #Remove unused parts and restructure
-    if (strstr($inviteInfo['eduPersonAssurance'], "http://www.swamid.se/policy/assurance/al2")) {
+    if (strstr($inviteInfo['eduPersonAssurance'], SWAMID_AL2)) {
       # The info we got is on AL2 level
       $inviteInfo['personNIN'] = $inviteInfo['norEduPersonNIN'] = ''
         ? $inviteInfo['schacDateOfBirth'] : $inviteInfo['norEduPersonNIN'];
@@ -54,7 +55,7 @@ if (isset($_GET['source'])) {
         $migrateInfo['schacDateOfBirth'] == $inviteInfo->personNIN &&
         $migrateInfo['givenName'] == $inviteInfo->givenName &&
         $migrateInfo['sn'] == $inviteInfo->sn) {
-        # Name and Birthdate is OK. Now check if any mail matches
+        # Name and Birth date is OK. Now check if any mail matches
         $mailOK = $migrateInfo['mail'] == $inviteInfo->mail;
         foreach (explode (';',$migrateInfo['mailLocalAddress']) as $mailAddress) {
           $mailOK = $mailAddress == $inviteInfo->mail ? true : $mailOK;

@@ -242,7 +242,9 @@ function editUser($id) {
               <tr><th colspan="2">SAML Attributes</th></tr>%s',
     htmlspecialchars($id), htmlspecialchars($id), $userArray->externalId,
     isset($userArray->name->formatted) ? $userArray->name->formatted : 'Not set!!!',
-    isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo) ? $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo : 'Not set!!!',
+    isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo) ?
+      $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo :
+      'Not set!!!',
     "\n");
   $samlAttributes = getSamlAttributesSCIM($userArray);
 
