@@ -14,7 +14,7 @@
     }
     $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
     $fullFileName = $includePath . DIRECTORY_SEPARATOR . $fileName;
-    
+
     if (file_exists($fullFileName)) {
       require_once $fullFileName;
     } else {

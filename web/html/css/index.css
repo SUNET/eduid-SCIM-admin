@@ -449,6 +449,16 @@ table.list-invites tr th:last-child {
   padding-left: 20px;
 }
 
+.row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.col3 {
+  float: left;
+  width: 33%;
+}
+
 /** Responsive **/
 @media (min-width: 414px) {
   .buttons {

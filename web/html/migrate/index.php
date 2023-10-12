@@ -1,10 +1,8 @@
 <?php
-const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
-
 require_once '../autoload.php';
 
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
-include_once $baseDir . '/config.php';
+include_once $baseDir . '/config.php'; # NOSONAR
 
 $html = new scimAdmin\HTML($Mode);
 
@@ -45,69 +43,68 @@ if (isset($_GET['source'])) {
   }
 } elseif (isset($_GET['backend'])) {
   if ($migrateInfo = $invites->checkBackendData()) {
-    $ePPN = $invites->migrateInfo['eduPersonPrincipalName'];
-    if (! $id = $scim->getIdFromExternalId($ePPN) && ! $id = $scim->createIdFromExternalId($ePPN)) {
-      print "Could not create user in SCIM";
-      exit;
-    }
+    if ($invites->checkALLevel(2)) {
+      $inviteData = $invites->getInviteBySession($sessionID);
+      $inviteInfo = json_decode($inviteData['inviteInfo']);
 
-    $attributes = json_decode($invites->getInviteAttributes($sessionID));
-
-    $userArray = $scim->getId($id);
-    
-    $version = $userArray->meta->version;
-    unset($userArray->meta);
-
-    $schemaNutidFound = false;
-    foreach ($userArray->schemas as $schema) {
-      $schemaNutidFound = $schema == SCIM_NUTID_SCHEMA ? true : $schemaNutidFound;
-    }
-    if (! $schemaNutidFound) {$userArray->schemas[] = SCIM_NUTID_SCHEMA; }
-
-    if (! isset($userArray->{SCIM_NUTID_SCHEMA})) {
-      $userArray->{SCIM_NUTID_SCHEMA} = new \stdClass();
-    }
-    if (! isset($userArray->{SCIM_NUTID_SCHEMA}->profiles)) {
-      $userArray->{SCIM_NUTID_SCHEMA}->profiles = new \stdClass();
-    }
-    if (! isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdps)) {
-      $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp = new \stdClass();
-    }
-    if (! isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes)) {
-      $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes = new \stdClass();
-    }
-
-    foreach ($attributes as $key => $value) {
-      $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->$key = $value;
-    }
-
-    if (isset($_SERVER['givenName']) || isset($_SERVER['sn'])) {
-      $fullName = '';
-      if (! isset($userArray->{'name'})) {
-        $userArray->name = new \stdClass();
+      if ($migrateInfo['norEduPersonNIN'] == $inviteInfo->personNIN) {
+        # Match on full norEduPersonNIN. No need to check more
+        migrate(json_encode($migrateInfo), $inviteData['attributes'], $inviteData['id']);
+      } elseif (
+        $migrateInfo['schacDateOfBirth'] == $inviteInfo->personNIN &&
+        $migrateInfo['givenName'] == $inviteInfo->givenName &&
+        $migrateInfo['sn'] == $inviteInfo->sn) {
+        # Name and Birthdate is OK. Now check if any mail matches
+        $mailOK = $migrateInfo['mail'] == $inviteInfo->mail;
+        foreach (explode (';',$migrateInfo['mailLocalAddress']) as $mailAddress) {
+          $mailOK = $mailAddress == $inviteInfo->mail ? true : $mailOK;
+        }
+        if ($mailOK) {
+          migrate(json_encode($migrateInfo), $inviteData['attributes'], $inviteData['id']);
+        } else {
+          # Manual check before migration!!!
+          move2Manual($inviteData['id'],$migrateInfo);
+        }
+      } else {
+        # Manual check before migration!!!
+        move2Manual($inviteData['id'],$migrateInfo);
       }
-      if (isset($_SERVER['givenName'])) {
-        $userArray->name->givenName = $_SERVER['givenName'];
-        $fullName = $_SERVER['givenName'];
-      }
-      if (isset($_SERVER['sn'])) {
-        $userArray->name->familyName = $_SERVER['sn'];
-        $fullName .= ' ' . $_SERVER['sn'];
-      }
-      $userArray->name->formatted = $fullName;
-    }
-
-    if ($scim->updateId($id,json_encode($userArray),$version)) {
-      $invites->removeInvite($sessionID);
-      $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
-      $redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=migrateSuccess';
-      header('Location: ' . $redirectURL);
     } else {
-      print "Error while migrating (Could not update SCIM)";
+      showError('Account needs to be at least AL2');
     }
   } else {
-    print "Error while migrating (Got no ePPN)";
+    showError('Error while migrating (Got no ePPN or wrong IdP');
   }
 } else {
-  print "No action requested";
+  showError('No action requested');
+}
+
+function migrate($migrateInfo, $attributes, $id) {
+  global $scim, $invites;
+  if ($scim->migrate($migrateInfo, $attributes)) {
+    $invites->removeInvite($id);
+    $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
+    $redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=migrateSuccess';
+    header('Location: ' . $redirectURL);
+  } else {
+    showError('Error while migrating (Could not update SCIM)');
+  }
+}
+
+function move2Manual($id,$migrateInfo) {
+  global $invites;
+  $invites->move2Manual($id,json_encode($migrateInfo));
+  showError('Some attributes did not match. Adding your request to queue for manual approval');
+}
+
+function showError($error, $exit = true) {
+  global $html;
+
+  $html->showHeaders('eduID Connect Self-service');
+  print $error;
+  if ($exit) {
+    print"\n";
+    $html->showFooter(false);
+    exit;
+  }
 }

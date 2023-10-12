@@ -22,6 +22,8 @@ class SCIM {
 
   const SQL_INSTANCE = ':Instance';
 
+  const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
+
   public function __construct() {
     $a = func_get_args();
     if (isset($a[0])) {
@@ -244,9 +246,9 @@ class SCIM {
 
   public function getIdFromExternalId($externalId) {
     $request =
-    sprintf('{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
-      "filter": "externalId eq \"%s\"", "startIndex": 1, "count": 1}',
-      $externalId);
+      sprintf('{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
+        "filter": "externalId eq \"%s\"", "startIndex": 1, "count": 1}',
+        $externalId);
     $userInfo = $this->request('POST', self::SCIM_USERS.'.search', $request);
     $userArray = json_decode($userInfo);
     if ($userArray->totalResults == 1 && isset($userArray->Resources[0]->id)) {
@@ -298,5 +300,54 @@ class SCIM {
   public function validateID($id) {
     return filter_var($id, FILTER_VALIDATE_REGEXP,
       array("options"=>array("regexp"=>"/^[a-z,0-9]{8}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{12}$/")));
+  }
+
+  public function migrate ($migrateInfo, $attributes) {
+    $migrateInfo = json_decode($migrateInfo);
+    $attributes = json_decode($attributes);
+
+    $ePPN = $migrateInfo->eduPersonPrincipalName;
+    if ((! $id = $this->getIdFromExternalId($ePPN)) && (! $id = $this->createIdFromExternalId($ePPN))) {
+      print "Could not create user in SCIM";
+      exit;
+    }
+
+    $userArray = $this->getId($id);
+
+    $version = $userArray->meta->version;
+    unset($userArray->meta);
+
+    $schemaNutidFound = false;
+    foreach ($userArray->schemas as $schema) {
+      $schemaNutidFound = $schema == self::SCIM_NUTID_SCHEMA ? true : $schemaNutidFound;
+    }
+    if (! $schemaNutidFound) {$userArray->schemas[] = self::SCIM_NUTID_SCHEMA; }
+
+    if (! isset($userArray->{self::SCIM_NUTID_SCHEMA})) {
+      $userArray->{self::SCIM_NUTID_SCHEMA} = new \stdClass();
+    }
+    if (! isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles)) {
+      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles = new \stdClass();
+    }
+    if (! isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdps)) {
+      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp = new \stdClass();
+    }
+    if (! isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes)) {
+      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes = new \stdClass();
+    }
+
+    foreach ($attributes as $key => $value) {
+      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->$key = $value;
+    }
+
+    $fullName = '';
+    if (! isset($userArray->{'name'})) {
+      $userArray->name = new \stdClass();
+    }
+    $userArray->name->givenName = $migrateInfo->givenName;
+    $userArray->name->familyName = $migrateInfo->sn;
+    $userArray->name->formatted = $migrateInfo->givenName . ' ' . $migrateInfo->sn;
+
+    return $this->updateId($id,json_encode($userArray),$version);
   }
 }

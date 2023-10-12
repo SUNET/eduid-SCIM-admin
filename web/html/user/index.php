@@ -5,7 +5,7 @@ const SCIM_USER_SCHEMA = 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:
 require_once '../autoload.php';
 
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
-include_once $baseDir . '/config.php';
+include_once $baseDir . '/config.php'; # NOSONAR
 
 $html = new scimAdmin\HTML($Mode);
 
@@ -50,7 +50,7 @@ if ($invites->checkCorrectBackendIdP()) {
         $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo = $migrateInfo['schacDateOfBirth'];
       }
     }
-  
+
     if (! $scim->updateId($id,json_encode($userArray),$version)) {
       showError('        Error while update recovery info (Could not update SCIM)');
     }

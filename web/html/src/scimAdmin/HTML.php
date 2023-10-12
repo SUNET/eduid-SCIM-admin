@@ -81,7 +81,6 @@ class HTML {
       });
     </script>' . "\n";
 }?>
-
   </body>
 </html>
 <?php
