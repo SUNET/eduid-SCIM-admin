@@ -1,5 +1,5 @@
 <?php
-const SWAMID_AL2 = 'http://www.swamid.se/policy/assurance/al2';
+const SWAMID_AL2 = 'http://www.swamid.se/policy/assurance/al2'; # NOSONAR
 require_once '../autoload.php';
 
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
