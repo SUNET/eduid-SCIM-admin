@@ -2,7 +2,7 @@
 require_once './autoload.php';
 
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 1);
-include_once $baseDir . '/config.php';
+include_once $baseDir . '/config.php'; # NOSONAR
 
 $html = new scimAdmin\HTML($Mode);
 
@@ -18,7 +18,7 @@ if (isset($_GET['action'])) {
       $invites->startMigrateFromSourceIdP();
       break;
     case 'finalizeMigrate' :
-      $invites->redirectToNewIdP('/admin/migrate.php?backend');
+      $invites->redirectToNewIdP('/migrate?backend');
       break;
     case 'showInviteFlow' :
       showInviteFlow();
@@ -84,7 +84,7 @@ function showMigrateFlow() {
     }
     printf('    </ul></p>%s', "\n");
     printf('        <a href="?action=finalizeMigrate">
-      <button type="button" class="btn btn-primary">Finalize migration to new IdP</button>%s        </a><br>%s',
+      <button type="button" class="btn btn-primary">Finalize migration</button>%s        </a><br>%s',
       "\n", "\n");
   } else {
     printf('        <a href="?action=startMigrate">
