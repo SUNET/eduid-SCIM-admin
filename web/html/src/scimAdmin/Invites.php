@@ -23,6 +23,8 @@ class Invites {
   const SQL_ATTRIBUTES =':Attributes';
   const SQL_INVITEINFO = ':InviteInfo';
 
+  const SWAMID_AL = 'http://www.swamid.se/policy/assurance/al'; # NOSONAR
+
   public function __construct() {
     $a = func_get_args();
     if (isset($a[0])) {
@@ -168,12 +170,12 @@ class Invites {
     $userACFound = false;
     if (isset($_SERVER['Meta-Assurance-Certification'])) {
       foreach (explode(';', $_SERVER['Meta-Assurance-Certification']) as $AC) {
-        $idpACFound = ($AC == 'http://www.swamid.se/policy/assurance/al'. $level) ? true : $idpACFound;
+        $idpACFound = ($AC == self::SWAMID_AL . $level) ? true : $idpACFound;
       }
     }
     if (isset($_SERVER['eduPersonAssurance'])) {
       foreach (explode(';', $_SERVER['eduPersonAssurance']) as $AC) {
-        $userACFound = ($AC == 'http://www.swamid.se/policy/assurance/al'. $level) ? true : $userACFound;
+        $userACFound = ($AC == self::SWAMID_AL . $level) ? true : $userACFound;
       }
     }
     return $idpACFound && $userACFound;
