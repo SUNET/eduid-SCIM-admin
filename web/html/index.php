@@ -1,5 +1,6 @@
 <?php
-require_once './autoload.php';
+//Load composer's autoloader
+require_once 'vendor/autoload.php';
 
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 1);
 include_once $baseDir . '/config.php'; # NOSONAR
@@ -76,7 +77,7 @@ function showMigrateFlow() {
   $html->showHeaders('Connect - Migrate');
   $invite = $invites->checkInviteBySession($sessionID);
 
-  if ($invite) {
+  if ($invite && $invite['status'] == 1) {
     printf('        <p>You have stared migration.<br>Attribues to migrate : <ul>%s', "\n");
     foreach (json_decode($invite['attributes']) as $SCIM => $attribute) {
       $attribute = is_array($attribute) ? implode(', ', $attribute) : $attribute;

@@ -1,7 +1,7 @@
 CREATE TABLE `invites` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `instance` varchar(20) DEFAULT NULL,
-  `hash` varchar(20) DEFAULT NULL,
+  `hash` varchar(65) DEFAULT NULL,
   `status` tinyint unsigned,
   `session` varchar(27) DEFAULT NULL,
   `modified` datetime DEFAULT NULL,

@@ -2,7 +2,8 @@
 const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
 const LI_ITEM = '                <li>%s - %s</li>%s';
 
-require_once '../autoload.php';
+//Load composer's autoloader
+require_once '../vendor/autoload.php';
 
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
 include_once $baseDir . '/config.php'; # NOSONAR
@@ -10,8 +11,6 @@ include_once $baseDir . '/config.php'; # NOSONAR
 $html = new scimAdmin\HTML($Mode);
 
 $scim = new scimAdmin\SCIM($baseDir);
-
-$invites = new scimAdmin\Invites($baseDir);
 
 $errors = '';
 $errorURL = isset($_SERVER['Meta-errorURL']) ?
@@ -42,10 +41,6 @@ if (isset($_SERVER['eduPersonPrincipalName'])) {
     array('IDENTIFICATION_FAILURE', 'eduPersonPrincipalName'), $errorURL);
 }
 
-if (! $scim->checkAccess($AdminUser)) {
-  $errors .= $AdminUser . ' is not allowed to login to this page';
-}
-
 if (isset($_SERVER['displayName'])) {
   $fullName = $_SERVER['displayName'];
 } elseif (isset($_SERVER['givenName'])) {
@@ -55,6 +50,20 @@ if (isset($_SERVER['displayName'])) {
   }
 } else {
   $fullName = '';
+}
+
+if ($scim->checkScopeConfigured()) {
+  if (! $scim->checkAccess($AdminUser)) {
+    $errors .= $AdminUser . ' is not allowed to login to this page.';
+  }
+} else {
+  $userScope = preg_replace('/(.+)@/i', '', $AdminUser);
+  if ($scim->checkScopeExists($userScope)) {
+    header('Location: https://' . $_SERVER['HTTP_HOST'] . '/' . $userScope . '/admin/');
+    exit;
+  } else {
+    $errors .= $userScope . ' is not configured for this service.';
+  }
 }
 
 if ($errors != '') {
@@ -70,6 +79,8 @@ if ($errors != '') {
   $html->showFooter(false);
   exit;
 }
+
+$invites = new scimAdmin\Invites($baseDir);
 
 $displayName = '<div> Logged in as : <br> ' . $fullName . ' (' . $AdminUser .')</div>';
 $html->setDisplayName($displayName);
@@ -127,6 +138,18 @@ if (isset($_POST['action'])) {
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
       if ( $scim->getAdminAccess() > 19 && $id) {
         editInvite($id);
+      } else {
+        showMenu(2);
+        listUsers('', true);
+        if ( $scim->getAdminAccess() > 19 ) {
+          listInvites($id);
+        }
+      }
+      break;
+    case 'resendInvite' :
+      $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
+      if ( $scim->getAdminAccess() > 19 && $id) {
+        resendInvite($id);
       } else {
         showMenu(2);
         listUsers('', true);
@@ -420,7 +443,7 @@ function parseEduPersonScopedAffiliation($value, $allowedScopes, $possibleAffili
 }
 
 function showMenu($show = 1) {
-  global $scim;
+  global $scim, $result;
   print '        <label for="select">Select a list</label>
         <div class="select">
           <select id="selectList">
@@ -432,7 +455,7 @@ function showMenu($show = 1) {
   print '
           </select>
         </div>' . "\n";
-  print '        <div class="result"></div>';
+  printf('        <div class="result">%s</div>', $result);
   print "\n        <br>\n        <br>\n";
 }
 
@@ -467,10 +490,15 @@ function showInvite($invite, $id) {
     "\n");
   if ($invite['status'] == 1) {
     printf('            <tr class="content" style="display: %s;">
-                <td><a a href="?action=editInvite&id=%s">
-                  <button class="btn btn-primary btn-sm">edit invite</button></a>
+                <td>
+                  <a a href="?action=editInvite&id=%s">
+                    <button class="btn btn-primary btn-sm">edit invite</button>
+                  </a><br>
+                  <a a href="?action=resendInvite&id=%s">
+                    <button class="btn btn-primary btn-sm">resend invite</button>
+                  </a>
                 </td>
-                <td>Attributes : <ul>%s', $id == $invite['id'] ? 'table-row' : 'none', $invite['id'], "\n");
+                <td>Attributes : <ul>%s', $id == $invite['id'] ? 'table-row' : 'none', $invite['id'], $invite['id'], "\n");
     foreach(json_decode($invite['attributes']) as $key => $value) {
       $value = is_array($value) ? implode(", ", $value) : $value;
       printf (LI_ITEM, $key, $value, "\n");
@@ -573,6 +601,21 @@ function editInvite($id) {
           <a href="?action=listInvites&id=%s"><button class="btn btn-secondary">Cancel</button></a>
         </div>%s',
     "\n", htmlspecialchars($id), "\n", "\n");
+}
+
+function resendInvite($id) {
+  global $invites, $scim, $result;
+  if ($id > 0) {
+    $invites->sendNewInviteCode($id);
+    $invite = $invites->getInvite($id);
+    $inviteInfo = json_decode($invite['inviteInfo']);
+    $result = 'New code sent to ' . $inviteInfo->mail;
+  }
+  showMenu(2);
+  listUsers('', true);
+  if ( $scim->getAdminAccess() > 19 ) {
+    listInvites($id);
+  }
 }
 
 function saveInvite($id) {

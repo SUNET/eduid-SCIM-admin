@@ -17,6 +17,7 @@ class SCIM {
   private $possibleAffiliations = '';
   private $adminUsers = array();
   private $adminAccess = 0;
+  private $scopeConfigured = false;
 
   const SCIM_USERS = 'Users/';
 
@@ -43,24 +44,27 @@ class SCIM {
       $this->certFile = $authCert;
       $this->keyFile = $authKey;
       $this->apiURL = $apiUrl;
-      $this->attributes2migrate = $instances[$this->scope]['attributes2migrate'];
-      $this->allowedScopes = $instances[$this->scope]['allowedScopes'];
-      $this->possibleAffiliations = $possibleAffiliations;
-      $this->adminUsers = $instances[$this->scope]['adminUsers'];
+      if (isset($instances[$this->scope])) {
+        $this->scopeConfigured = true;
+        $this->attributes2migrate = $instances[$this->scope]['attributes2migrate'];
+        $this->allowedScopes = $instances[$this->scope]['allowedScopes'];
+        $this->possibleAffiliations = $possibleAffiliations;
+        $this->adminUsers = $instances[$this->scope]['adminUsers'];
 
-      // Get token from DB. If no param exists create
-      $paramsHandler = $this->Db->prepare('SELECT `value` FROM params WHERE `id` = :Id AND `instance` = :Instance;');
-      $paramsHandler->bindValue(':Id', 'token');
-      $paramsHandler->bindValue(self::SQL_INSTANCE, $this->scope);
-      $paramsHandler->execute();
-      if ($param = $paramsHandler->fetch(PDO::FETCH_ASSOC)) {
-        $this->token = $param['value'];
-      } else {
-        $addParamsHandler = $this->Db->prepare('INSERT INTO params (`instance`,`id`, `value`)
-          VALUES ( :Instance, ' ."'token', '')");
-        $addParamsHandler->bindValue(self::SQL_INSTANCE, $this->scope);
-        $addParamsHandler->execute();
-        $this->getToken();
+        // Get token from DB. If no param exists create
+        $paramsHandler = $this->Db->prepare('SELECT `value` FROM params WHERE `id` = :Id AND `instance` = :Instance;');
+        $paramsHandler->bindValue(':Id', 'token');
+        $paramsHandler->bindValue(self::SQL_INSTANCE, $this->scope);
+        $paramsHandler->execute();
+        if ($param = $paramsHandler->fetch(PDO::FETCH_ASSOC)) {
+          $this->token = $param['value'];
+        } else {
+          $addParamsHandler = $this->Db->prepare('INSERT INTO params (`instance`,`id`, `value`)
+            VALUES ( :Instance, ' ."'token', '')");
+          $addParamsHandler->bindValue(self::SQL_INSTANCE, $this->scope);
+          $addParamsHandler->execute();
+          $this->getToken();
+        }
       }
     }
   }
@@ -348,5 +352,14 @@ class SCIM {
     $userArray->name->formatted = $migrateInfo->givenName . ' ' . $migrateInfo->sn;
 
     return $this->updateId($id,json_encode($userArray),$version);
+  }
+
+  public function checkScopeConfigured() {
+    return $this->scopeConfigured;
+  }
+
+  public function checkScopeExists($scope) {
+    include $this->baseDir . '/config.php'; # NOSONAR
+    return isset($instances[$scope]);
   }
 }

@@ -1,6 +1,7 @@
 <?php
 const SWAMID_AL2 = 'http://www.swamid.se/policy/assurance/al2'; # NOSONAR
-require_once '../autoload.php';
+//Load composer's autoloader
+require_once '../vendor/autoload.php';
 
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
 include_once $baseDir . '/config.php'; # NOSONAR

@@ -11,6 +11,11 @@ class Invites {
   private $backendIdP = '';
   private $attributes2migrate = '';
 
+  private $smtpHost = '';
+  private $saslUser = '';
+  private $saslPassword = '';
+  private $mailFrom = '';
+
   const SQL_INVITELIST = 'SELECT *  FROM invites WHERE `instance` = :Instance
     ORDER BY `status` DESC, `hash`, `session`';
   const SQL_INVITE = 'SELECT *  FROM invites WHERE `instance` = :Instance AND `id` = :Id';
@@ -22,6 +27,7 @@ class Invites {
   const SQL_SESSION = ':Session';
   const SQL_ATTRIBUTES =':Attributes';
   const SQL_INVITEINFO = ':InviteInfo';
+  const SQL_HASH = ':Hash';
 
   const SWAMID_AL = 'http://www.swamid.se/policy/assurance/al'; # NOSONAR
 
@@ -43,6 +49,11 @@ class Invites {
       $this->sourceIdP = $instances[$this->scope]['sourceIdP'];
       $this->backendIdP = $instances[$this->scope]['backendIdP'];
       $this->attributes2migrate = $instances[$this->scope]['attributes2migrate'];
+
+      $this->smtpHost = $smtpHost;
+      $this->saslUser = $saslUser;
+      $this->saslPassword = $saslPassword;
+      $this->mailFrom = $mailFrom;
 
       $dbVersionHandler = $this->Db->query("SELECT value FROM params WHERE `instance`='' AND `id`='dbVersion'");
       if (! $dbVersion = $dbVersionHandler->fetch(PDO::FETCH_ASSOC)) {
@@ -71,6 +82,9 @@ class Invites {
             "ALTER TABLE invites ADD
               `migrateInfo` text DEFAULT NULL
             AFTER `inviteInfo`");
+          $this->Db->query(
+            "ALTER TABLE invites MODIFY COLUMN
+              `hash` varchar(65) DEFAULT NULL");
           $this->Db->query("UPDATE params SET value = 2 WHERE `instance`='' AND `id`='dbVersion'");
         }
       }
@@ -209,6 +223,71 @@ class Invites {
     }
   }
 
+  public function sendNewInviteCode($id) {
+    $invite = $this->getInvite($id);
+    $inviteInfo = json_decode($invite['inviteInfo']);
+    $code = hash_hmac('md5','HashCode',time()); // NOSONAR
+
+    $updateHandler = $this->Db->prepare('UPDATE invites
+      SET `hash` = :Hash, `modified` = NOW(), `session` = ""
+      WHERE `instance` = :Instance AND `id` = :Id');
+    $updateHandler->bindValue(self::SQL_INSTANCE, $this->scope);
+    $updateHandler->bindValue(self::SQL_ID, $id);
+    $updateHandler->bindValue(self::SQL_HASH, hash('sha256', $code));
+    $updateHandler->execute();
+
+    $hostURL = "http" . (!empty($_SERVER['HTTPS'])?"s":"") . "://" . $_SERVER['SERVER_NAME'] . '/' . $this->scope . '/';
+
+    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+    $mail->isSMTP();
+    $mail->CharSet = "UTF-8";
+    $mail->Host = $this->smtpHost;
+    $mail->SMTPAuth = true;
+    $mail->SMTPAutoTLS = true;
+    $mail->Port = 587;
+    $mail->SMTPAuth = true;
+    $mail->Username = $this->saslUser;
+    $mail->Password = $this->saslPassword;
+    $mail->SMTPSecure = 'tls';
+
+    //Recipients
+    $mail->setFrom($this->mailFrom, 'Connect - Admin');
+    $mail->addAddress($inviteInfo->mail);
+    //Content
+    $mail->isHTML(true);
+    $mail->Body = sprintf("<!DOCTYPE html>
+        <html lang=\"en\">
+          <head>
+            <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+          </head>
+          <body>
+            <p>Hi.</p>
+            <p>Your code is <b>%s</b> .</p>
+            <p>Enter it at <a href=\"%s\">%s</a></p>
+            <p>This is a message from update connect tool.<br>
+            --<br>
+            On behalf of SUNET</p>
+          </body>
+        </html>",
+        $code, $hostURL, $hostURL);
+    $mail->AltBody = sprintf("Hi.
+        \nYour code is %s .
+        \nEnter it at %s
+        \nThis is a message from update connect tool.
+        --
+        On behalf of SUNET",
+        $code, $hostURL);
+
+    $mail->Subject  = 'Code for connect ';
+
+    try {
+      $mail->send();
+    } catch (Exception $e) {
+      echo 'Message could not be sent to invited person.<br>';
+      echo 'Mailer Error: ' . $mail->ErrorInfo . '<br>';
+    }
+  }
+
   public function updateInviteAttributesById($id, $attributes, $inviteInfo) {
     $invitesHandler = $this->Db->prepare('SELECT *  FROM invites WHERE `id` = :Id AND `instance` = :Instance');
     $invitesHandler->bindParam(self::SQL_ID, $id);
@@ -232,22 +311,27 @@ class Invites {
       $insertHandler->bindValue(self::SQL_INSTANCE, $this->scope);
       $insertHandler->bindValue(self::SQL_ATTRIBUTES, json_encode($attributes));
       $insertHandler->bindValue(self::SQL_INVITEINFO, json_encode($inviteInfo));
-      return $insertHandler->execute();
+      if ($insertHandler->execute()) {
+        $this->sendNewInviteCode($this->Db->lastInsertId());
+        return true;
+      } else {
+        return false;
+      }
     }
   }
 
   public function updateInviteByCode($session,$code) {
     $invitesHandler = $this->Db->prepare("SELECT *  FROM invites
-      WHERE `hash` = :Code AND `instance` = :Instance AND `session` = '' ");
-    $invitesHandler->bindParam(':Code', $code);
+      WHERE `hash` = :Hash AND `instance` = :Instance AND `session` = '' ");
+    $invitesHandler->bindValue(self::SQL_HASH, hash('sha256', $code));
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->scope);
     $invitesHandler->execute();
     if ($invitesHandler->fetch(PDO::FETCH_ASSOC)) {
       # inviteCode exists in DB and has not been used
       $updateHandler = $this->Db->prepare('UPDATE invites
         SET `session` = :Session, `modified` = NOW()
-        WHERE `hash` = :Code AND `instance` = :Instance');
-      $updateHandler->bindParam(':Code', $code);
+        WHERE `hash` = :Hash AND `instance` = :Instance');
+      $updateHandler->bindValue(self::SQL_HASH, hash('sha256', $code));
       $updateHandler->bindParam(self::SQL_SESSION, $session);
       $updateHandler->bindValue(self::SQL_INSTANCE, $this->scope);
       return $updateHandler->execute();
