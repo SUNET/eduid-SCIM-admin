@@ -262,23 +262,23 @@ class Invites {
           </head>
           <body>
             <p>Hi.</p>
+            <p>This is a message from Update Connect for you to create your account at sunet.se.</p>
             <p>Your code is <b>%s</b> .</p>
-            <p>Enter it at <a href=\"%s\">%s</a></p>
-            <p>This is a message from update connect tool.<br>
-            --<br>
-            On behalf of SUNET</p>
+            <p>Enter your code at <a href=\"%s/?action=showInviteFlow\">%s?action=showInviteFlow</a></p>
+            <p>--<br>
+            On behalf of SUNET - Swedish University Network</p>
           </body>
         </html>",
         $code, $hostURL, $hostURL);
     $mail->AltBody = sprintf("Hi.
+        \nThis is a message from Update Connect for you to create your account at sunet.se.
         \nYour code is %s .
-        \nEnter it at %s
-        \nThis is a message from update connect tool.
+        \nEnter your code at %s/?action=showInviteFlow
         --
-        On behalf of SUNET",
+        On behalf of SUNET - Swedish University Network",
         $code, $hostURL);
 
-    $mail->Subject  = 'Code for connect ';
+    $mail->Subject  = 'Your invite code for eduID Connect';
 
     try {
       $mail->send();
