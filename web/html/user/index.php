@@ -2,7 +2,7 @@
 const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
 const SCIM_USER_SCHEMA = 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User';
 
-require_once '../autoload.php';
+require_once '../vendor/autoload.php';
 
 $baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
 include_once $baseDir . '/config.php'; # NOSONAR

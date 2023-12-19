@@ -10,6 +10,10 @@ $authCert = "<full path in OS>/authcert.pem";
 $authKey = "<full path in OS>/authkey.pem";
 $apiUrl = "https://api.dev.eduid.se/scim/test/";      # URL to the SCIM API
 
+$smtpHost = 'smtp.xxx.se';
+$saslUser = 'update-connect@smtp1.xxxxx.se';
+$mailFrom = 'no-reply@eduid.se';
+
 $Mode = 'Lab'; # Lab or Prod
 
 # Array ('affiliation' => 'depening on affilation')

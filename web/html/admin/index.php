@@ -570,7 +570,7 @@ function editInvite($id) {
               <tr><th colspan="2">Invite Info</th></tr>
               <tr><th>givenName</th><td><input type="text" name="givenName" value="%s"></td></tr>
               <tr><th>sn</th><td><input type="text" name="sn" value="%s"></td></tr>
-              <tr><th>mail</th><td><input type="text" name="mail" value="%s"></td></tr>
+              <tr><th>invite mail</th><td><input type="text" name="mail" value="%s"></td></tr>
               <tr><th>personNIN</th><td><input type="text" name="personNIN" value="%s"></td></tr>%s',
       htmlspecialchars($id),
       isset($inviteInfo->givenName) ? $inviteInfo->givenName : '',

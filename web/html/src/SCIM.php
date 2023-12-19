@@ -120,6 +120,15 @@ class SCIM {
           $tokenHandler->execute();
           $this->token = $tokenValue;
           break;
+        case 404 :
+          $result = json_decode($response);
+          if ($result->detail == 'User not found') {
+            return 'User didn\'t exists';
+          } else {
+            print_r($result);
+            exit;
+          }
+          break;
         default:
           print "<pre>";
           print_r($info);
@@ -343,6 +352,11 @@ class SCIM {
     foreach ($attributes as $key => $value) {
       $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->$key = $value;
     }
+
+    if (! isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data)) {
+      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data = new \stdClass();
+    }
+    $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo = $migrateInfo->norEduPersonNIN;
 
     if (! isset($userArray->{'name'})) {
       $userArray->name = new \stdClass();
