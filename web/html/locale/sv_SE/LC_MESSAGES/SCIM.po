@@ -1,0 +1,125 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the SCIM package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: SCIM 1\n"
+"Report-Msgid-Bugs-To: bjorn@sunet.se\n"
+"POT-Creation-Date: 2024-05-31 15:37+0200\n"
+"PO-Revision-Date: 2024-05-31 15:38+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: sv_SE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.4\n"
+
+#: web/html/index.php:52
+msgid "Wrong code"
+msgstr "Felaktig kod"
+
+#: web/html/index.php:59 web/html/index.php:104 web/html/index.php:125
+msgid ""
+"To be able to make this connection, you need to have done the following:"
+msgstr ""
+"För att du kunna göra denna anslutning behöver du ha gjort följande om du "
+"inte redan gjort det:"
+
+#: web/html/index.php:60 web/html/index.php:105 web/html/index.php:126
+msgid "Create a personal identity on eduID."
+msgstr "Skapa en personlig identitet på eduID."
+
+#: web/html/index.php:61 web/html/index.php:106 web/html/index.php:127
+msgid "Verify your identity in eduID."
+msgstr "Verifiera din identitet i eduID."
+
+#: web/html/index.php:62 web/html/index.php:107 web/html/index.php:128
+msgid "Add a security key to eduID for safer login."
+msgstr "Lägg till en säkerhetsnyckel i eduID för säkrare inloggning."
+
+#: web/html/index.php:64
+msgid ""
+"When you have a personal identity in eduID, proceed by entering the one-time "
+"code and click the button."
+msgstr ""
+"När du har en personlig identitet i eduID går du vidare genom att fylla i "
+"engångskoden och klicka på knappen."
+
+#: web/html/index.php:73
+msgid "Invite code"
+msgstr "Inbjudningskod"
+
+#: web/html/index.php:77
+msgid "Next"
+msgstr "Nästa"
+
+#: web/html/index.php:93
+msgid ""
+"You've started the migration from the old login service to the eduID "
+"organisation login service."
+msgstr ""
+"Du har påbörjat migrering en från organisationens gamla inloggningstjänst "
+"till organisationens inloggningstjänst i eduID."
+
+#: web/html/index.php:94
+msgid "The following data will be migrated:"
+msgstr "Följande uppgifter kommer att migreras:"
+
+#: web/html/index.php:101
+msgid "Finalize migration"
+msgstr "Slutför migreringen"
+
+#: web/html/index.php:109
+msgid ""
+"When you have a personal identity in eduID, proceed by click the button."
+msgstr ""
+"När du har en personlig identitet i eduID går du vidare genom att klicka på "
+"knappen."
+
+#: web/html/index.php:112
+msgid "Start new migration from old IdP"
+msgstr "Påbörja migrering från din gamla IdP"
+
+#: web/html/index.php:121
+#, php-format
+msgid ""
+"%s uses eduID for logging in to national and international web services. To "
+"be able to log in to these, you need to connect your personal eduID identity "
+"to your organisation. You can do this by following the instructions below."
+msgstr ""
+"%s använder eduID för inloggning i nationella och internationella "
+"webbtjänster. För att du ska kunna logga in i dessa behöver du ansluta ditt "
+"personliga eduID-identitet till din organisation. Detta gör du genom att "
+"följa instruktionerna nedan."
+
+#: web/html/index.php:130
+msgid ""
+"When you have completed the above steps, proceed and click one of the "
+"buttons below. If you have received an invitation code via email from an "
+"administrator, use that option; otherwise, use login via the "
+"organisation\\’s old login service."
+msgstr ""
+"När du har genomfört ovanstående går du vidare och klickar på en av "
+"knapparna nedan. Om du fått en inbjudningskod från en administratör via e-"
+"post använder du det alternativet, annars använder du inloggning via "
+"organisationens gamla inloggningstjänst."
+
+#: web/html/index.php:133
+msgid "Migrate from Old IdP"
+msgstr "Migrera från din gamla IdP"
+
+#: web/html/index.php:135
+msgid "Onboard with Invite-code"
+msgstr "Anslut med inbjudningskod"
+
+#: web/html/index.php:142
+msgid "You are now onborded :-)"
+msgstr "Ditt konto är nu skapat."
+
+#: web/html/src/HTML.php:36
+msgid "Activate your organisation identity in eduID"
+msgstr "Aktivera din organisationsidentitet i eduID"
