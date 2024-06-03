@@ -459,6 +459,11 @@ table.list-invites tr th:last-child {
   width: 33%;
 }
 
+.numberList ol {
+  list-style: inside;
+  list-style-type: decimal;
+}
+
 /** Responsive **/
 @media (min-width: 414px) {
   .buttons {

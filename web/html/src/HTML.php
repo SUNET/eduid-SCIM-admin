@@ -33,7 +33,7 @@ class HTML {
         <div><?=$this->displayName?></div>
       </header>
       <div class="horizontal-content-margin">
-        <h1 class="tagline">eduID Connect ger en organisationstillhörighet till eduID konton.</h1>
+        <h1 class="tagline"><?= _('Activate your organisation identity in eduID')?></h1>
       </div>
     </section>
 
@@ -53,6 +53,10 @@ class HTML {
         <a href="https://www.sunet.se/" area-label="Sunet.se" title="Sunet.se">
           <div class="sunet-logo"></div>
         </a>
+      </div>
+      <div>
+        <?php printf ('<a href="%s/?lang=sv">Svenska</a> | <a href="%s/?lang=en">English</a>', $_SERVER['SCRIPT_NAME'], $_SERVER['SCRIPT_NAME']);?>
+
       </div>
     </footer>
 <?php if ($collapse) {

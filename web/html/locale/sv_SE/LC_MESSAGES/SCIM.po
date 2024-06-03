@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SCIM 1\n"
 "Report-Msgid-Bugs-To: bjorn@sunet.se\n"
-"POT-Creation-Date: 2024-05-31 15:37+0200\n"
-"PO-Revision-Date: 2024-05-31 15:38+0200\n"
+"POT-Creation-Date: 2024-05-31 17:17+0200\n"
+"PO-Revision-Date: 2024-05-31 17:20+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: sv_SE\n"
@@ -21,6 +21,10 @@ msgstr ""
 #: web/html/index.php:52
 msgid "Wrong code"
 msgstr "Felaktig kod"
+
+#: web/html/index.php:57
+msgid "SCIM migrate"
+msgstr ""
 
 #: web/html/index.php:59 web/html/index.php:104 web/html/index.php:125
 msgid ""
@@ -57,6 +61,10 @@ msgstr "Inbjudningskod"
 msgid "Next"
 msgstr "Nästa"
 
+#: web/html/index.php:88
+msgid "Connect - Migrate"
+msgstr ""
+
 #: web/html/index.php:93
 msgid ""
 "You've started the migration from the old login service to the eduID "
@@ -83,6 +91,10 @@ msgstr ""
 #: web/html/index.php:112
 msgid "Start new migration from old IdP"
 msgstr "Påbörja migrering från din gamla IdP"
+
+#: web/html/index.php:119
+msgid "Connect - Onboard"
+msgstr ""
 
 #: web/html/index.php:121
 #, php-format
@@ -116,10 +128,103 @@ msgstr "Migrera från din gamla IdP"
 msgid "Onboard with Invite-code"
 msgstr "Anslut med inbjudningskod"
 
+#: web/html/index.php:141
+msgid "Connect - Onboarded"
+msgstr ""
+
 #: web/html/index.php:142
 msgid "You are now onborded :-)"
 msgstr "Ditt konto är nu skapat."
 
+#: web/html/migrate/index.php:44
+msgid "Error while migrating"
+msgstr "Fel vid migreringen"
+
+#: web/html/migrate/index.php:75
+msgid "Account needs to be at least AL2."
+msgstr "Kontot måste vara minsta AL2."
+
+#: web/html/migrate/index.php:78
+msgid "Error while migrating (Got no ePPN or wrong IdP)"
+msgstr ""
+
+#: web/html/migrate/index.php:92
+msgid "Error while migrating (Could not update SCIM)"
+msgstr ""
+
+#: web/html/migrate/index.php:99
+msgid ""
+"Some attributes did not match. Adding your request to queue for manual "
+"approval"
+msgstr ""
+"Vissa attribut stämde inte överens. Lägger din begäran för manuell granskning"
+
+#: web/html/migrate/index.php:105 web/html/user/index.php:19
+#: web/html/user/index.php:106
+msgid "eduID Connect Self-service"
+msgstr ""
+
 #: web/html/src/HTML.php:36
 msgid "Activate your organisation identity in eduID"
 msgstr "Aktivera din organisationsidentitet i eduID"
+
+#: web/html/user/index.php:21
+msgid "Could not find user in SCIM.<br>Please contact your admin."
+msgstr ""
+
+#: web/html/user/index.php:24
+msgid "User or IdP is not at"
+msgstr ""
+
+#: web/html/user/index.php:55
+msgid "Error while update recovery info (Could not update SCIM)"
+msgstr ""
+
+#: web/html/user/index.php:67
+msgid "User Attributes"
+msgstr ""
+
+#: web/html/user/index.php:68
+msgid ""
+"When you log into a service via your organization identity provider most "
+"personal data is retrieved from your eduID account but the organization "
+"profile contains the organizational information."
+msgstr ""
+
+#: web/html/user/index.php:69
+msgid "To update the personal data in your eduID account please go to the"
+msgstr ""
+
+#: web/html/user/index.php:70 web/html/user/index.php:95
+msgid "eduID Dashboard"
+msgstr ""
+
+#: web/html/user/index.php:71
+msgid ""
+"and to update the organizational profile please contact your home "
+"organization service desk or IT support."
+msgstr ""
+
+#: web/html/user/index.php:92
+msgid "Recovery info"
+msgstr ""
+
+#: web/html/user/index.php:93
+msgid ""
+"The recovery info is only used to be able to reconnect the organization "
+"profile to you as a person if you need to change what eduID account is used "
+"for the profile."
+msgstr ""
+
+#: web/html/user/index.php:94
+msgid "To update the recovery info first update the information in your"
+msgstr ""
+
+#: web/html/user/index.php:96
+msgid ""
+"and thereafter automatically update them in this service by logging in again."
+msgstr ""
+
+#: web/html/user/index.php:107
+msgid "Did not get any ePPN from IdP!"
+msgstr ""

@@ -41,7 +41,7 @@ if (isset($_GET['source'])) {
     $redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=showMigrateFlow';
     header('Location: ' . $redirectURL);
   } else {
-    print "Error while migrating";
+    print _('Error while migrating');
   }
 } elseif (isset($_GET['backend'])) {
   if ($migrateInfo = $invites->checkBackendData()) {
@@ -72,10 +72,10 @@ if (isset($_GET['source'])) {
         move2Manual($inviteData['id'],$migrateInfo);
       }
     } else {
-      showError('Account needs to be at least AL2');
+      showError(_('Account needs to be at least AL2.'));
     }
   } else {
-    showError('Error while migrating (Got no ePPN or wrong IdP');
+    showError(_('Error while migrating (Got no ePPN or wrong IdP)'));
   }
 } else {
   showError('No action requested');
@@ -89,20 +89,20 @@ function migrate($migrateInfo, $attributes, $id) {
     $redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=migrateSuccess';
     header('Location: ' . $redirectURL);
   } else {
-    showError('Error while migrating (Could not update SCIM)');
+    showError(_('Error while migrating (Could not update SCIM)'));
   }
 }
 
 function move2Manual($id,$migrateInfo) {
   global $invites;
   $invites->move2Manual($id,json_encode($migrateInfo));
-  showError('Some attributes did not match. Adding your request to queue for manual approval');
+  showError(_('Some attributes did not match. Adding your request to queue for manual approval'));
 }
 
 function showError($error, $exit = true) {
   global $html;
 
-  $html->showHeaders('eduID Connect Self-service');
+  $html->showHeaders(_('eduID Connect Self-service'));
   print $error;
   if ($exit) {
     print"\n";

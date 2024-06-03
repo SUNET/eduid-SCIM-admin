@@ -16,12 +16,12 @@ $invites = new scimAdmin\Invites($baseDir);
 if ($invites->checkCorrectBackendIdP()) {
   if ($migrateInfo = $invites->checkBackendData()) {
     $ePPN = $migrateInfo['eduPersonPrincipalName'];
-    $html->showHeaders('eduID Connect Self-service');
+    $html->showHeaders(_('eduID Connect Self-service'));
     if (! $id = $scim->getIdFromExternalId($ePPN)) {
-      showError('        Could not find user in SCIM.<br>Please contact your admin.');
+      showError('        ' . _('Could not find user in SCIM.<br>Please contact your admin.'));
     }
     if (! $invites->checkALLevel(2)) {
-      showError('        User or IdP is not at http://www.swamid.se/policy/assurance/al2.');
+      showError('        ' . _('User or IdP is not at') . ' http://www.swamid.se/policy/assurance/al2.');
     }
     $userArray = $scim->getId($id);
     $version = $userArray->meta->version;
@@ -52,21 +52,23 @@ if ($invites->checkCorrectBackendIdP()) {
     }
 
     if (! $scim->updateId($id,json_encode($userArray),$version)) {
-      showError('        Error while update recovery info (Could not update SCIM)');
+      showError('        ' . _('Error while update recovery info (Could not update SCIM)'));
     }
 
     printf ('        <table id="entities-table" class="table table-striped table-bordered">
           <tbody>
             <tr>
               <th colspan="2">
-                <h3>User Attributes</h3>
-                When you log into a service via your organization identity provider most personal data is retrieved
-                from your eduID account but the organization profile contains the organizational information.<br>
-                To update the personal data in your eduID account please go to the
-                <a href="https://dashboard.eduid.se/">eduID Dashboard</a> and to update the organizational
-                profile please contact your home organization service desk or IT support.
+                <h3>%s</h3>
+                %s<br>%s
+                <a href="https://dashboard.eduid.se/">%s</a> %s
               </th>
             </tr>%s',
+      _('User Attributes'),
+      _('When you log into a service via your organization identity provider most personal data is retrieved from your eduID account but the organization profile contains the organizational information.'),
+      _('To update the personal data in your eduID account please go to the'),
+      _('eduID Dashboard'),
+      _('and to update the organizational profile please contact your home organization service desk or IT support.'),
       "\n");
     if (isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes)) {
       foreach($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes
@@ -79,16 +81,19 @@ if ($invites->checkCorrectBackendIdP()) {
     printf ('            <tr><th colspan="2"></th></tr>
             <tr>
               <th colspan="2">
-                <h3>Recovery info</h3>
-                The recovery info is only used to be able to reconnect the organization profile to you as a person
-                if you need to change what eduID account is used for the profile.<br>
-                To update the recovery info first update the information in your
-                <a href="https://dashboard.eduid.se/">eduID account</a> and thereafter
-                automatically update them in this service by logging in again.
+                <h3>%s</h3>
+                %s<br>
+                %s
+                <a href="https://dashboard.eduid.se/">%s</a> %s
               </th>
             </tr>
             <tr><th>Name</th><td>%s</td></tr>
             <tr><th>ID-number</th><td>%s</td></tr>%s',
+      _('Recovery info'),
+      _('The recovery info is only used to be able to reconnect the organization profile to you as a person if you need to change what eduID account is used for the profile.'),
+      _('To update the recovery info first update the information in your'),
+      _('eduID Dashboard'),
+      _('and thereafter automatically update them in this service by logging in again.'),
       isset($userArray->name->formatted) ? $userArray->name->formatted : '',
       isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo) ?
         $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo : '',
@@ -98,8 +103,8 @@ if ($invites->checkCorrectBackendIdP()) {
         </table>\n";
     $html->showFooter(false);
   } else {
-    $html->showHeaders('eduID Connect Self-service');
-    showError('        Did not get any ePPN from IdP!');
+    $html->showHeaders(_('eduID Connect Self-service'));
+    showError('        ' . _('Did not get any ePPN from IdP!'));
   }
 } else {
   $invites->redirectToNewIdP('/user');
