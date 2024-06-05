@@ -4,24 +4,25 @@ const SCIM_USER_SCHEMA = 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:
 
 require_once '../vendor/autoload.php';
 
-$baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
-include_once $baseDir . '/config.php'; # NOSONAR
+$config = new scimAdmin\Configuration();
 
-$html = new scimAdmin\HTML($Mode);
+$html = new scimAdmin\HTML($config->mode());
 
-$scim = new scimAdmin\SCIM($baseDir);
+$scim = new scimAdmin\SCIM();
 
-$invites = new scimAdmin\Invites($baseDir);
+$invites = new scimAdmin\Invites();
+
+$localize = new scimAdmin\Localize();
 
 if ($invites->checkCorrectBackendIdP()) {
   if ($migrateInfo = $invites->checkBackendData()) {
     $ePPN = $migrateInfo['eduPersonPrincipalName'];
     $html->showHeaders(_('eduID Connect Self-service'));
     if (! $id = $scim->getIdFromExternalId($ePPN)) {
-      showError('        ' . _('Could not find user in SCIM.<br>Please contact your admin.'));
+      showError(_('Could not find your account in our user database.<br>Please contact your admin.'));
     }
     if (! $invites->checkALLevel(2)) {
-      showError('        ' . _('User or IdP is not at') . ' http://www.swamid.se/policy/assurance/al2.');
+      showError(_('User or IdP is not at') . ' http://www.swamid.se/policy/assurance/al2.'); # NOSONAR
     }
     $userArray = $scim->getId($id);
     $version = $userArray->meta->version;
@@ -52,7 +53,7 @@ if ($invites->checkCorrectBackendIdP()) {
     }
 
     if (! $scim->updateId($id,json_encode($userArray),$version)) {
-      showError('        ' . _('Error while update recovery info (Could not update SCIM)'));
+      showError(_('Error while update recovery info (Could not update database)'));
     }
 
     printf ('        <table id="entities-table" class="table table-striped table-bordered">
@@ -104,16 +105,16 @@ if ($invites->checkCorrectBackendIdP()) {
     $html->showFooter(false);
   } else {
     $html->showHeaders(_('eduID Connect Self-service'));
-    showError('        ' . _('Did not get any ePPN from IdP!'));
+    showError(_('Did not get any ePPN from IdP!'));
   }
 } else {
-  $invites->redirectToNewIdP('/user');
+  $invites->redirectToNewIdP('/user', $config->forceMFA());
 }
 
 function showError($error, $exit = true) {
   global $html;
 
-  print $error;
+  printf('        %s', $error);
   if ($exit) {
     print"\n";
     $html->showFooter(false);

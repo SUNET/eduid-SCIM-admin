@@ -2,11 +2,10 @@
 namespace scimAdmin;
 
 use PDO;
-use PDOException;
+use scimAdmin\Configuration;
 
 class SCIM {
-  private $error = '';
-  private $scope = '';
+  private $scope = false;
   private $authURL = '';
   private $keyName = '';
   private $certFile = '';
@@ -17,7 +16,8 @@ class SCIM {
   private $possibleAffiliations = '';
   private $adminUsers = array();
   private $adminAccess = 0;
-  private $scopeConfigured = false;
+  private $db;
+  private $token;
 
   const SCIM_USERS = 'Users/';
 
@@ -26,45 +26,36 @@ class SCIM {
   const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
 
   public function __construct() {
-    $a = func_get_args();
-    if (isset($a[0])) {
-      $this->baseDir = array_shift($a);
-      include $this->baseDir . '/config.php'; # NOSONAR
-      try {
-        $this->Db = new PDO("mysql:host=$dbServername;dbname=$dbName", $dbUsername, $dbPassword);
-        // set the PDO error mode to exception
-        $this->Db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-      } catch(PDOException $e) {
-        echo "Error: " . $e->getMessage();
-      }
+    $config = new Configuration();
+    $this->db = $config->getDb();
 
-      $this->scope = str_replace('/','',$_SERVER['CONTEXT_PREFIX']);
-      $this->authURL =  $authUrl;
-      $this->keyName = $keyName;
-      $this->certFile = $authCert;
-      $this->keyFile = $authKey;
-      $this->apiURL = $apiUrl;
-      if (isset($instances[$this->scope])) {
-        $this->scopeConfigured = true;
-        $this->attributes2migrate = $instances[$this->scope]['attributes2migrate'];
-        $this->allowedScopes = $instances[$this->scope]['allowedScopes'];
-        $this->possibleAffiliations = $possibleAffiliations;
-        $this->adminUsers = $instances[$this->scope]['adminUsers'];
+    $scimConfig = $config->getSCIM();
+    $this->authURL =  $scimConfig['authUrl'];
+    $this->keyName = $scimConfig['keyName'];
+    $this->certFile = $scimConfig['authCert'];
+    $this->keyFile = $scimConfig['authKey'];
+    $this->apiURL = $scimConfig['apiUrl'];
 
-        // Get token from DB. If no param exists create
-        $paramsHandler = $this->Db->prepare('SELECT `value` FROM params WHERE `id` = :Id AND `instance` = :Instance;');
-        $paramsHandler->bindValue(':Id', 'token');
-        $paramsHandler->bindValue(self::SQL_INSTANCE, $this->scope);
-        $paramsHandler->execute();
-        if ($param = $paramsHandler->fetch(PDO::FETCH_ASSOC)) {
-          $this->token = $param['value'];
-        } else {
-          $addParamsHandler = $this->Db->prepare('INSERT INTO params (`instance`,`id`, `value`)
-            VALUES ( :Instance, ' ."'token', '')");
-          $addParamsHandler->bindValue(self::SQL_INSTANCE, $this->scope);
-          $addParamsHandler->execute();
-          $this->getToken();
-        }
+    if ($instance = $config->getInstance()) {
+      $this->scope = $config->getScope();
+      $this->attributes2migrate = $instance['attributes2migrate'];
+      $this->allowedScopes = $instance['allowedScopes'];
+      $this->adminUsers = $instance['adminUsers'];
+      $this->possibleAffiliations = $config->getPossibleAffiliations();
+
+      // Get token from DB. If no param exists create
+      $paramsHandler = $this->db->prepare('SELECT `value` FROM params WHERE `id` = :Id AND `instance` = :Instance;');
+      $paramsHandler->bindValue(':Id', 'token');
+      $paramsHandler->bindValue(self::SQL_INSTANCE, $this->scope);
+      $paramsHandler->execute();
+      if ($param = $paramsHandler->fetch(PDO::FETCH_ASSOC)) {
+        $this->token = $param['value'];
+      } else {
+        $addParamsHandler = $this->db->prepare('INSERT INTO params (`instance`,`id`, `value`)
+          VALUES ( :Instance, ' ."'token', '')");
+        $addParamsHandler->bindValue(self::SQL_INSTANCE, $this->scope);
+        $addParamsHandler->execute();
+        $this->getToken();
       }
     }
   }
@@ -84,7 +75,7 @@ class SCIM {
     $data->client->key = $this->keyName;
 
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $this->authURL);
+    curl_setopt($ch, CURLOPT_URL, $this->authURL . 'transaction');
     curl_setopt($ch, CURLOPT_PORT , 443);
     curl_setopt($ch, CURLOPT_VERBOSE, 0);
     curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -112,7 +103,7 @@ class SCIM {
           $token = json_decode($response);
           $tokenValue = $token->access_token->value;
 
-          $tokenHandler = $this->Db->prepare("UPDATE params
+          $tokenHandler = $this->db->prepare("UPDATE params
             SET `value` = :Token
             WHERE `id` = 'token' AND `instance` = :Instance");
           $tokenHandler->bindValue(':Token', $tokenValue);
@@ -203,13 +194,11 @@ class SCIM {
       }
     } else {
       print "Error";
-      $this->error = 'Error while';
       return false;
     }
   }
 
   public function getAllUsers() {
-    $this->error = '';
     $userList = array();
     $idList = $this->request('POST',
       self::SCIM_USERS.'.search','{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
@@ -368,12 +357,8 @@ class SCIM {
     return $this->updateId($id,json_encode($userArray),$version);
   }
 
-  public function checkScopeConfigured() {
-    return $this->scopeConfigured;
-  }
-
   public function checkScopeExists($scope) {
-    include $this->baseDir . '/config.php'; # NOSONAR
+    include __DIR__ . '/../config.php'; # NOSONAR
     return isset($instances[$scope]);
   }
 }

@@ -2,7 +2,6 @@
 namespace scimAdmin;
 
 use PDO;
-use PDOException;
 
 class Invites {
   private $error = '';
@@ -15,6 +14,8 @@ class Invites {
   private $saslUser = '';
   private $saslPassword = '';
   private $mailFrom = '';
+
+  private $db;
 
   const SQL_INVITELIST = 'SELECT *  FROM invites WHERE `instance` = :Instance
     ORDER BY `status` DESC, `hash`, `session`';
@@ -32,74 +33,35 @@ class Invites {
   const SWAMID_AL = 'http://www.swamid.se/policy/assurance/al'; # NOSONAR
 
   public function __construct() {
-    $a = func_get_args();
-    if (isset($a[0])) {
-      $this->baseDir = array_shift($a);
-      include $this->baseDir . '/config.php'; # NOSONAR
-      try {
-        $this->Db = new PDO("mysql:host=$dbServername;dbname=$dbName", $dbUsername, $dbPassword);
-        // set the PDO error mode to exception
-        $this->Db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-      } catch(PDOException $e) {
-        echo "Error: " . $e->getMessage();
-      }
+    $config = new Configuration();
+    $this->db = $config->getDb();
 
-      $this->error = '';
-      $this->scope = str_replace('/','',$_SERVER['CONTEXT_PREFIX']);
-      $this->sourceIdP = $instances[$this->scope]['sourceIdP'];
-      $this->backendIdP = $instances[$this->scope]['backendIdP'];
-      $this->attributes2migrate = $instances[$this->scope]['attributes2migrate'];
+    $this->error = '';
 
-      $this->smtpHost = $smtpHost;
-      $this->saslUser = $saslUser;
-      $this->saslPassword = $saslPassword;
-      $this->mailFrom = $mailFrom;
+    if ($instance = $config->getInstance()) {
+      $this->scope = $config->getScope();
+      $this->sourceIdP = $instance['sourceIdP'];
+      $this->backendIdP = $instance['backendIdP'];
+      $this->attributes2migrate = $instance['attributes2migrate'];
+    }
 
-      $dbVersionHandler = $this->Db->query("SELECT value FROM params WHERE `instance`='' AND `id`='dbVersion'");
-      if (! $dbVersion = $dbVersionHandler->fetch(PDO::FETCH_ASSOC)) {
-        $dbVersion = 0;
-      } else {
-        $dbVersion=$dbVersion['value'];
-      }
-      if ($dbVersion < 2) {
-        if ($dbVersion < 1) {
-          $this->Db->query("INSERT INTO params (`instance`, `id`, `value`) VALUES ('', 'dbVersion', 1)");
-        }
-        if ($this->Db->query(
-          "ALTER TABLE invites ADD
-            `id` int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY
-            FIRST")) {
-          # 1 Update went well. Do the rest
-          $this->Db->query(
-            "ALTER TABLE invites ADD
-              `status` tinyint unsigned
-            AFTER `hash`");
-          $this->Db->query(
-            "ALTER TABLE invites ADD
-              `inviteInfo` text DEFAULT NULL
-            AFTER `attributes`");
-          $this->Db->query(
-            "ALTER TABLE invites ADD
-              `migrateInfo` text DEFAULT NULL
-            AFTER `inviteInfo`");
-          $this->Db->query(
-            "ALTER TABLE invites MODIFY COLUMN
-              `hash` varchar(65) DEFAULT NULL");
-          $this->Db->query("UPDATE params SET value = 2 WHERE `instance`='' AND `id`='dbVersion'");
-        }
-      }
+    if ($smtp = $config->getSMTP()) {
+      $this->smtpHost = $smtp['Host'];
+      $this->saslUser = $smtp['User'];
+      $this->saslPassword = $smtp['Password'];
+      $this->mailFrom = $smtp['From'];
     }
   }
 
   public function getInvitesList() {
-    $invitesHandler = $this->Db->prepare(self::SQL_INVITELIST);
+    $invitesHandler = $this->db->prepare(self::SQL_INVITELIST);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->scope);
     $invitesHandler->execute();
     return $invitesHandler->fetchAll(PDO::FETCH_ASSOC);
   }
 
   public function getInvite($id) {
-    $invitesHandler = $this->Db->prepare(self::SQL_INVITE);
+    $invitesHandler = $this->db->prepare(self::SQL_INVITE);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->scope);
     $invitesHandler->bindValue(self::SQL_ID, $id);
     $invitesHandler->execute();
@@ -107,7 +69,7 @@ class Invites {
   }
 
   public function validateID($id) {
-    $invitesHandler = $this->Db->prepare(self::SQL_INVITE);
+    $invitesHandler = $this->db->prepare(self::SQL_INVITE);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->scope);
     $invitesHandler->bindValue(self::SQL_ID, $id);
     $invitesHandler->execute();
@@ -118,7 +80,7 @@ class Invites {
   }
 
   public function checkInviteBySession($session) {
-    $invitesHandler = $this->Db->prepare(self::SQL_SPECIFICINVITE);
+    $invitesHandler = $this->db->prepare(self::SQL_SPECIFICINVITE);
     $invitesHandler->bindParam(self::SQL_SESSION, $session);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->scope);
     $invitesHandler->execute();
@@ -196,13 +158,13 @@ class Invites {
   }
 
   public function updateInviteAttributes($session, $attributes, $inviteInfo) {
-    $invitesHandler = $this->Db->prepare(self::SQL_SPECIFICINVITE);
+    $invitesHandler = $this->db->prepare(self::SQL_SPECIFICINVITE);
     $invitesHandler->bindParam(self::SQL_SESSION, $session);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->scope);
     $invitesHandler->execute();
     if ($invitesHandler->fetch(PDO::FETCH_ASSOC)) {
       # session exists in DB
-      $updateHandler = $this->Db->prepare('UPDATE invites
+      $updateHandler = $this->db->prepare('UPDATE invites
         SET `attributes` = :Attributes, `modified` = NOW(), status = 1, `inviteInfo` = :InviteInfo
         WHERE `session` = :Session AND `instance` = :Instance');
       $updateHandler->bindParam(self::SQL_SESSION, $session);
@@ -212,7 +174,7 @@ class Invites {
       return $updateHandler->execute();
     } else {
       # No session exists, create a new
-      $insertHandler = $this->Db->prepare('INSERT INTO invites
+      $insertHandler = $this->db->prepare('INSERT INTO invites
         (`instance`, `session`, `modified`, `attributes`, `status`, `inviteInfo`)
         VALUES (:Instance, :Session, NOW(), :Attributes, 1, :InviteInfo)');
       $insertHandler->bindParam(self::SQL_SESSION, $session);
@@ -228,7 +190,7 @@ class Invites {
     $inviteInfo = json_decode($invite['inviteInfo']);
     $code = hash_hmac('md5','HashCode',time()); // NOSONAR
 
-    $updateHandler = $this->Db->prepare('UPDATE invites
+    $updateHandler = $this->db->prepare('UPDATE invites
       SET `hash` = :Hash, `modified` = NOW(), `session` = ""
       WHERE `instance` = :Instance AND `id` = :Id');
     $updateHandler->bindValue(self::SQL_INSTANCE, $this->scope);
@@ -289,13 +251,13 @@ class Invites {
   }
 
   public function updateInviteAttributesById($id, $attributes, $inviteInfo) {
-    $invitesHandler = $this->Db->prepare('SELECT *  FROM invites WHERE `id` = :Id AND `instance` = :Instance');
+    $invitesHandler = $this->db->prepare('SELECT *  FROM invites WHERE `id` = :Id AND `instance` = :Instance');
     $invitesHandler->bindParam(self::SQL_ID, $id);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->scope);
     $invitesHandler->execute();
     if ($invitesHandler->fetch(PDO::FETCH_ASSOC)) {
       # session exists in DB
-      $updateHandler = $this->Db->prepare('UPDATE invites
+      $updateHandler = $this->db->prepare('UPDATE invites
         SET `attributes` = :Attributes, `modified` = NOW(), status = 1, `inviteInfo` = :InviteInfo
         WHERE `id` = :Id AND `instance` = :Instance');
       $updateHandler->bindParam(self::SQL_ID, $id);
@@ -305,14 +267,14 @@ class Invites {
       return $updateHandler->execute();
     } else {
       # No id exists, create a new
-      $insertHandler = $this->Db->prepare('INSERT INTO invites
+      $insertHandler = $this->db->prepare('INSERT INTO invites
         (`instance`, `modified`, `attributes`, `status`, `inviteInfo`)
         VALUES (:Instance, NOW(), :Attributes, 1, :InviteInfo)');
       $insertHandler->bindValue(self::SQL_INSTANCE, $this->scope);
       $insertHandler->bindValue(self::SQL_ATTRIBUTES, json_encode($attributes));
       $insertHandler->bindValue(self::SQL_INVITEINFO, json_encode($inviteInfo));
       if ($insertHandler->execute()) {
-        $this->sendNewInviteCode($this->Db->lastInsertId());
+        $this->sendNewInviteCode($this->db->lastInsertId());
         return true;
       } else {
         return false;
@@ -321,14 +283,14 @@ class Invites {
   }
 
   public function updateInviteByCode($session,$code) {
-    $invitesHandler = $this->Db->prepare("SELECT *  FROM invites
-      WHERE `hash` = :Hash AND `instance` = :Instance AND `session` = '' ");
+    $invitesHandler = $this->db->prepare("SELECT *  FROM invites
+      WHERE `hash` = :Hash AND `instance` = :Instance AND `status` = 1");
     $invitesHandler->bindValue(self::SQL_HASH, hash('sha256', $code));
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->scope);
     $invitesHandler->execute();
     if ($invitesHandler->fetch(PDO::FETCH_ASSOC)) {
       # inviteCode exists in DB and has not been used
-      $updateHandler = $this->Db->prepare('UPDATE invites
+      $updateHandler = $this->db->prepare('UPDATE invites
         SET `session` = :Session, `modified` = NOW()
         WHERE `hash` = :Hash AND `instance` = :Instance');
       $updateHandler->bindValue(self::SQL_HASH, hash('sha256', $code));
@@ -341,7 +303,7 @@ class Invites {
   }
 
   public function getInviteBySession($session) {
-    $invitesHandler = $this->Db->prepare(self::SQL_SPECIFICINVITE);
+    $invitesHandler = $this->db->prepare(self::SQL_SPECIFICINVITE);
     $invitesHandler->bindParam(self::SQL_SESSION, $session);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->scope);
     $invitesHandler->execute();
@@ -349,7 +311,7 @@ class Invites {
   }
 
   public function removeInvite($id) {
-    $invitesHandler = $this->Db->prepare('DELETE FROM invites
+    $invitesHandler = $this->db->prepare('DELETE FROM invites
       WHERE `id` = :Id AND `instance` = :Instance');
     $invitesHandler->bindParam(self::SQL_ID, $id);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->scope);
@@ -357,7 +319,7 @@ class Invites {
   }
 
   public function move2Manual($id, $migrateInfo) {
-    $invitesHandler = $this->Db->prepare('UPDATE invites
+    $invitesHandler = $this->db->prepare('UPDATE invites
       SET `status` = 2, `migrateInfo`= :MigrateInfo
       WHERE `id` = :Id AND `instance` = :Instance');
     $invitesHandler->bindParam(self::SQL_ID, $id);
@@ -370,10 +332,11 @@ class Invites {
     return $this->scope;
   }
 
-  public function redirectToNewIdP($page) {
+  public function redirectToNewIdP($page, $mfa = false) {
     $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
-    $redirectURL = sprintf('%s/Shibboleth.sso/Login?entityID=%s&target=%s',
-      $hostURL, $this->backendIdP, urlencode($hostURL . '/' . $this->scope . '/' . $page));
+    $redirectURL = sprintf('%s/Shibboleth.sso/Login?entityID=%s&target=%s&forceAuthn=true%s',
+      $hostURL, $this->backendIdP, urlencode($hostURL . '/' . $this->scope . '/' . $page),
+      $mfa ? '&authnContextClassRef=https%3A%2F%2Frefeds.org%2Fprofile%2Fmfa' : '');
     header('Location: ' . $redirectURL);
   }
 }

@@ -2,15 +2,13 @@
 const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
 const LI_ITEM = '                <li>%s - %s</li>%s';
 
-//Load composer's autoloader
 require_once '../vendor/autoload.php';
 
-$baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
-include_once $baseDir . '/config.php'; # NOSONAR
+$config = new scimAdmin\Configuration();
 
-$html = new scimAdmin\HTML($Mode);
+$html = new scimAdmin\HTML($config->mode());
 
-$scim = new scimAdmin\SCIM($baseDir);
+$scim = new scimAdmin\SCIM();
 
 $errors = '';
 $errorURL = isset($_SERVER['Meta-errorURL']) ?
@@ -21,7 +19,7 @@ $errorURL = str_replace(array('ERRORURL_TS', 'ERRORURL_RP', 'ERRORURL_TID'),
 if (isset($_SERVER['Meta-Assurance-Certification'])) {
   $AssuranceCertificationFound = false;
   foreach (explode(';',$_SERVER['Meta-Assurance-Certification']) as $AssuranceCertification) {
-    if ($AssuranceCertification == 'http://www.swamid.se/policy/assurance/al1') {
+    if ($AssuranceCertification == 'http://www.swamid.se/policy/assurance/al1') { # NOSONAR
       $AssuranceCertificationFound = true;
     }
   }
@@ -52,7 +50,7 @@ if (isset($_SERVER['displayName'])) {
   $fullName = '';
 }
 
-if ($scim->checkScopeConfigured()) {
+if ($config->scopeConfigured()) {
   if (! $scim->checkAccess($AdminUser)) {
     $errors .= $AdminUser . ' is not allowed to login to this page.';
   }
@@ -72,7 +70,7 @@ if ($errors != '') {
       <div class="col">%s        <b>Errors:</b><br>%s        %s%s      </div>%s    </div>%s',
     "\n", "\n", "\n", str_ireplace("\n", "<br>", $errors), "\n", "\n","\n");
   printf('    <div class="row alert alert-info" role="info">%s      <div class="col">
-        Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a href="%s">here</a> to logout.
+        ' . _('Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a href="%s">here</a> to logout.') .'
       </div>%s    </div>%s',
      "\n", $_SERVER['Shib-Identity-Provider'],
      'https://'. $_SERVER['SERVER_NAME'] . '/Shibboleth.sso/Logout', "\n", "\n");
@@ -80,41 +78,57 @@ if ($errors != '') {
   exit;
 }
 
-$invites = new scimAdmin\Invites($baseDir);
+$invites = new scimAdmin\Invites();
 
 $displayName = '<div> Logged in as : <br> ' . $fullName . ' (' . $AdminUser .')</div>';
 $html->setDisplayName($displayName);
 $html->showHeaders('SCIM Admin');
 
 if (isset($_POST['action'])) {
-  if ($_POST['action'] == 'saveUser') {
-    if ( $scim->getAdminAccess() > 19 ) {
-      $id = isset($_POST['id']) ? $scim->validateID($_POST['id']) : false;
-      if ($id) {
-        saveUser($id);
+  $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
+  switch ($_POST['action']) {
+    case 'saveUser' :
+      if ( $scim->getAdminAccess() > 19 ) {
+        if ($id) {
+          saveUser($id);
+        }
+        showMenu();
+        listUsers($id);
+        listInvites($id, true);
+      } else {
+        showMenu();
+        listUsers($id);
       }
-      showMenu();
-      listUsers($id);
-      listInvites($id, true);
-    } else {
-      showMenu();
-      listUsers($id);
-    }
-  }
-  if ($_POST['action'] == 'saveInvite') {
-    $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
-    if ( $scim->getAdminAccess() > 19 && ($id == 0 || $id)) {
-      saveInvite($id);
-    }
-    showMenu(2);
-    listUsers('', true);
-    if ( $scim->getAdminAccess() > 19 ) {
-      listInvites($id);
-    }
+      break;
+    case 'saveInvite' :
+      if ( $scim->getAdminAccess() > 19 && ($id == 0 || $id)) {
+        saveInvite($id);
+      }
+      showMenu(2);
+      listUsers('', true);
+      if ( $scim->getAdminAccess() > 19 ) {
+        listInvites($id);
+      }
+      break;
+    case 'deleteInvite' :
+      if ( $scim->getAdminAccess() > 19 ) {
+        if ($id) {
+          $invites->removeInvite($id);
+        }
+        showMenu();
+        listUsers($id, true);
+        listInvites($id);
+      } else {
+        showMenu();
+        listUsers($id);
+      }
+      break;
+    default:
   }
 } elseif (isset($_GET['action'])) {
   switch ($_GET['action']) {
     case 'editUser' :
+      $actionURL='&action=deleteInvite';
       $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
       if ( $scim->getAdminAccess() > 9 && $id) {
         editUser($id);
@@ -191,7 +205,18 @@ if (isset($_POST['action'])) {
           listInvites($id);
         }
       }
-
+      break;
+    case 'deleteInvite' :
+      $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
+      if ( $scim->getAdminAccess() > 19) {
+        deleteInvite($id);
+      } else {
+        showMenu(2);
+        listUsers('', true);
+        if ( $scim->getAdminAccess() > 19 ) {
+          listInvites($id);
+        }
+      }
       break;
     default:
       # listUsers
@@ -496,9 +521,12 @@ function showInvite($invite, $id) {
                   </a><br>
                   <a a href="?action=resendInvite&id=%s">
                     <button class="btn btn-primary btn-sm">resend invite</button>
+                  </a><br>
+                  <a a href="?action=deleteInvite&id=%s">
+                    <button class="btn btn-primary btn-sm">delete invite</button>
                   </a>
                 </td>
-                <td>Attributes : <ul>%s', $id == $invite['id'] ? 'table-row' : 'none', $invite['id'], $invite['id'], "\n");
+                <td>Attributes : <ul>%s', $id == $invite['id'] ? 'table-row' : 'none', $invite['id'], $invite['id'], $invite['id'], "\n");
     foreach(json_decode($invite['attributes']) as $key => $value) {
       $value = is_array($value) ? implode(", ", $value) : $value;
       printf (LI_ITEM, $key, $value, "\n");
@@ -646,5 +674,41 @@ function approveInvite($id) {
   if ($scim->migrate($migrateInfo, $attributes)) {
     $invites->removeInvite($id);
   }
+}
+
+function deleteInvite($id)  {
+  global $invites;
+
+  if ($id > 0) {
+    $invite = $invites->getInvite($id);
+  } else {
+    $invite = array ('inviteInfo' => '{}', 'attributes' => '{}');
+  }
+  $inviteInfo = json_decode($invite['inviteInfo']);
+  printf('        <form method="POST">
+          <input type="hidden" name="action" value="deleteInvite">
+          <input type="hidden" name="id" value="%s">
+          <table id="entities-table" class="table table-striped table-bordered">
+            <tbody>
+              <tr><th colspan="2">Invite Info</th></tr>
+              <tr><th>givenName</th><td><input type="text" name="givenName" value="%s"></td></tr>
+              <tr><th>sn</th><td><input type="text" name="sn" value="%s"></td></tr>
+              <tr><th>invite mail</th><td><input type="text" name="mail" value="%s"></td></tr>
+              <tr><th>personNIN</th><td><input type="text" name="personNIN" value="%s"></td></tr>%s',
+      htmlspecialchars($id),
+      isset($inviteInfo->givenName) ? $inviteInfo->givenName : '',
+      isset($inviteInfo->sn) ? $inviteInfo->sn : '',
+      isset($inviteInfo->mail) ? $inviteInfo->mail : '',
+      isset($inviteInfo->personNIN) ? $inviteInfo->personNIN : '',
+      "\n");
+  printf('            </tbody>%s          </table>
+      <div class="buttons">
+        <button type="submit" class="btn btn-primary">Delete</button>
+      </div>
+    </form>
+    <div class="buttons">
+      <a href="?action=listInvites&id=%s"><button class="btn btn-secondary">Cancel</button></a>
+    </div>%s',
+    "\n", htmlspecialchars($id), "\n", "\n");
 }
 

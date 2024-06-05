@@ -3,19 +3,20 @@ const SWAMID_AL2 = 'http://www.swamid.se/policy/assurance/al2'; # NOSONAR
 
 require_once '../vendor/autoload.php';
 
-$baseDir = dirname($_SERVER['SCRIPT_FILENAME'], 2);
-include_once $baseDir . '/config.php'; # NOSONAR
+$config = new scimAdmin\Configuration();
 
-$html = new scimAdmin\HTML($Mode);
+$html = new scimAdmin\HTML($config->mode());
 
-$scim = new scimAdmin\SCIM($baseDir);
+$scim = new scimAdmin\SCIM();
 
-$invites = new scimAdmin\Invites($baseDir);
+$invites = new scimAdmin\Invites();
 
-session_start();
+$localize = new scimAdmin\Localize();
+
 $sessionID = $_COOKIE['PHPSESSID'];
 
 if (isset($_GET['source'])) {
+  $html->setExtraURLPart('&source');
   if ($attributes = $invites->checkSourceData()) {
     $inviteInfo = $invites->getUserDataFromIdP();
 
@@ -44,6 +45,7 @@ if (isset($_GET['source'])) {
     print _('Error while migrating');
   }
 } elseif (isset($_GET['backend'])) {
+  $html->setExtraURLPart('&backend');
   if ($migrateInfo = $invites->checkBackendData()) {
     if ($invites->checkALLevel(2)) {
       $inviteData = $invites->getInviteBySession($sessionID);
@@ -72,10 +74,10 @@ if (isset($_GET['source'])) {
         move2Manual($inviteData['id'],$migrateInfo);
       }
     } else {
-      showError(_('Account needs to be at least AL2.'));
+      showError(_('Account needs to be at verified.'));
     }
   } else {
-    showError(_('Error while migrating (Got no ePPN or wrong IdP)'));
+    showError(_('Error while adding account (Got no ePPN or wrong IdP)'));
   }
 } else {
   showError('No action requested');
@@ -89,21 +91,25 @@ function migrate($migrateInfo, $attributes, $id) {
     $redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=migrateSuccess';
     header('Location: ' . $redirectURL);
   } else {
-    showError(_('Error while migrating (Could not update SCIM)'));
+    showError(_('Error while adding account (Could not update SCIM)'));
   }
 }
 
 function move2Manual($id,$migrateInfo) {
   global $invites;
   $invites->move2Manual($id,json_encode($migrateInfo));
-  showError(_('Some attributes did not match. Adding your request to queue for manual approval'));
+  showError(_('Some attributes did not match. Adding your request to queue for manual approval. Please contact your admin to activate your account.'));
 }
 
 function showError($error, $exit = true) {
-  global $html;
+  global $html, $config;
 
   $html->showHeaders(_('eduID Connect Self-service'));
-  print $error;
+  printf('        %s
+        <div class="buttons">
+          <a class="btn btn-primary" href="/%s/">%s</a>
+        </div>',
+    $error, $config->getScope(), _('Back'));
   if ($exit) {
     print"\n";
     $html->showFooter(false);

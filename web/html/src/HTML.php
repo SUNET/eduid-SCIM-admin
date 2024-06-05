@@ -3,8 +3,14 @@ namespace scimAdmin;
 
 class HTML {
   # Setup
+  private $displayName = '';
+  private $extraURL  = '';
+  private $mode  = '';
+  private $scope = '';
+
   public function __construct($mode='Prod') {
     $this->displayName = '';
+    $this->extraURL = '';
     $this->mode = $mode;
     $this->scope = str_replace('/','',$_SERVER['CONTEXT_PREFIX']);
   }
@@ -55,7 +61,9 @@ class HTML {
         </a>
       </div>
       <div>
-        <?php printf ('<a href="%s/?lang=sv">Svenska</a> | <a href="%s/?lang=en">English</a>', $_SERVER['SCRIPT_NAME'], $_SERVER['SCRIPT_NAME']);?>
+        <?php
+        printf ('<a href="?lang=sv%s">Svenska</a> | <a href="?lang=en%s">English</a>', $this->extraURL, $this->extraURL);
+        ?>
 
       </div>
     </footer>
@@ -92,5 +100,9 @@ class HTML {
 
   public function setDisplayName($name) {
     $this->displayName = $name;
+  }
+
+  public function setExtraURLPart($extra) {
+    $this->extraURL = $extra;
   }
 }
