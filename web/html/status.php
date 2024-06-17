@@ -16,17 +16,15 @@ function request($url) {
 
   if (curl_errno($ch) == 0) {
     $info = curl_getinfo($ch);
-    switch ($info['http_code']) {
-      case 200 :
-        return $response;
-      default:
-        print "<pre>";
-        print_r($info);
-        print "</pre><br><pre>";
-        print $response;
-        print "</pre>";
-        exit;
-        break;
+    if ($info['http_code'] == 200 ) {
+      return $response;
+    } else {
+      print "<pre>";
+      print_r($info);
+      print "</pre><br><pre>";
+      print $response;
+      print "</pre>";
+      exit;
     }
   } else {
     print "Error";

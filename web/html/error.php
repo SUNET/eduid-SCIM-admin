@@ -51,22 +51,8 @@ switch ($_GET['errorType']) {
     break;
   default :
     showInfo();
-} ?>
-
-      </div>
-    </section>
-
-    <footer id="footer">
-      <div class="logo-wrapper">
-        <a href="https://www.sunet.se/" area-label="Sunet.se" title="Sunet.se">
-          <div class="sunet-logo"></div>
-        </a>
-      </div>
-      <a class="text-link" href="./en/index.html">English</a>
-    </footer>
-  </body>
-</html>
-<?php
+}
+showFooter ();
 
 function showMetadataException() {?>
         <h1>Unknown Identity Provider</h1>
@@ -117,6 +103,18 @@ function showInfo() { ?>
 ###
 # Print footer on webpage
 ###
-function showFooter($collapse = false) { ?>
+function showFooter() { ?>
+      </div>
+    </section>
 
+    <footer id="footer">
+      <div class="logo-wrapper">
+        <a href="https://www.sunet.se/" area-label="Sunet.se" title="Sunet.se">
+          <div class="sunet-logo"></div>
+        </a>
+      </div>
+      <a class="text-link" href="./en/index.html">English</a>
+    </footer>
+  </body>
+</html>
 <?php }

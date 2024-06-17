@@ -17,78 +17,58 @@ class Configuration {
   public function __construct($startDB = true, $scope = false) {
     include __DIR__ . '/../config.php'; # NOSONAR
 
-    if (isset($dbServername) && isset($dbUsername) && isset($dbPassword) && isset($dbName)) {
-      if ($startDB) {
-        try {
-          $this->db = new PDO("mysql:host=$dbServername;dbname=$dbName", $dbUsername, $dbPassword);
-          // set the PDO error mode to exception
-          $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch(PDOException $e) {
-          echo "Error: " . $e->getMessage();
-        }
-        $this->checkDBVersion();
+    $reqParams = array('dbServername', 'dbUsername', 'dbPassword', 'dbName',
+      'authUrl', 'keyName', 'authCert', 'authKey', 'apiUrl',
+      'smtpHost', 'saslUser', 'saslPassword', 'mailFrom',
+      'Mode', 'possibleAffiliations', 'instances');
+    $reqParamsInstance = array('sourceIdP', 'backendIdP', 'forceMFA',
+      'orgName', 'allowedScopes', 'attributes2migrate');
+
+    foreach ($reqParams as $param) {
+      if (! isset(${$param})) {
+        print "Missing $param in config.php<br>";
+        exit;
       }
-    } else {
-      print 'Missing config for DB. One or more of $dbServername, $dbUsername, $dbPassword or $dbName is missing in config.php';
-      exit;
+    }
+
+    if ($startDB) {
+      try {
+        $this->db = new PDO("mysql:host=$dbServername;dbname=$dbName", $dbUsername, $dbPassword);
+        // set the PDO error mode to exception
+        $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+      } catch(PDOException $e) {
+        echo "Error: " . $e->getMessage();
+      }
+      $this->checkDBVersion();
     }
 
     $this->scope = $scope ? $scope : str_replace('/','',$_SERVER['CONTEXT_PREFIX']);
 
-    if (isset($Mode)) {
-      $this->mode =  $Mode;
-    } else {
-      print 'Missing config for Mode in config.php. Should be Lab or Prod';
-      exit;
-    }
+    $this->mode =  $Mode;
 
-    if (isset($authUrl) && isset($keyName) && isset($authCert) && isset($authKey) && isset($apiUrl)) {
-      $this->scim['authUrl'] =  $authUrl;
-      $this->scim['keyName'] = $keyName;
-      $this->scim['authCert'] = $authCert;
-      $this->scim['authKey'] = $authKey;
-      $this->scim['apiUrl'] = $apiUrl;
-    } else {
-      print 'Missing config for Auth or SCIM-api. One or more of $authUrl, $keyName, $authCert, $authKey or $apiUrl is missing in config.php';
-      exit;
-    }
+    $this->scim['authUrl'] =  $authUrl;
+    $this->scim['keyName'] = $keyName;
+    $this->scim['authCert'] = $authCert;
+    $this->scim['authKey'] = $authKey;
+    $this->scim['apiUrl'] = $apiUrl;
 
-    if (isset($possibleAffiliations)) {
-      $this->possibleAffiliations = $possibleAffiliations;
-    } else {
-      print 'Missing config for $possibleAffiliations in config.php';
-      exit;
-    }
+    $this->possibleAffiliations = $possibleAffiliations;
 
-
-    if (isset($smtpHost) && isset($saslUser) && isset($saslPassword) && isset($mailFrom)) {
-      $this->smtp['Host'] = $smtpHost;
-      $this->smtp['User'] = $saslUser;
-      $this->smtp['Password'] = $saslPassword;
-      $this->smtp['From'] = $mailFrom;
-    } else {
-      print 'Missing mail config. One or more of $smtpHost, $saslUser, $saslPassword or $mailFrom is missing in config.php';
-      exit;
-    }
+    $this->smtp['Host'] = $smtpHost;
+    $this->smtp['User'] = $saslUser;
+    $this->smtp['Password'] = $saslPassword;
+    $this->smtp['From'] = $mailFrom;
 
     if (isset($instances[$this->scope])) {
       $this->instance = $instances[$this->scope];
 
-      if (!(isset($instances[$this->scope]['sourceIdP']) && isset($instances[$this->scope]['backendIdP']))) {
-        printf ('Missing config for IdP:s. One or more of sourceIdP or backendIdP is missing in $instances[%s] in config.php', $this->scope);
-        exit;
+      foreach ($reqParamsInstance as $param) {
+        if (! isset($this->instance[$param])) {
+          printf('Missing $instances[%s][%s] in config.php<br>', $this->scope, $param);
+          exit;
+        }
       }
-
-      if (! isset($instances[$this->scope]['forceMFA'])) {
-        $this->instance['forceMFA'] = false;
-      }
-
-      if (isset($instances[$this->scope]['orgName']) && isset($instances[$this->scope]['allowedScopes']) && isset($instances[$this->scope]['attributes2migrate']) && isset($instances[$this->scope]['adminUsers'])) {
-        $this->orgName = $instances[$this->scope]['orgName'];
-      } else {
-        printf ('Missing config for Organisation. One or more of orgName, attributes2migrate, allowedScopes or adminUsers is missing in $instances[%s] in config.php', $this->scope);
-        exit;
-      }
+      $this->orgName = $instances[$this->scope]['orgName'];
     }
   }
 

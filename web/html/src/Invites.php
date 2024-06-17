@@ -244,7 +244,7 @@ class Invites {
 
     try {
       $mail->send();
-    } catch (Exception $e) {
+    } catch (\PHPMailer\PHPMailer\Exception $e) {
       echo 'Message could not be sent to invited person.<br>';
       echo 'Mailer Error: ' . $mail->ErrorInfo . '<br>';
     }
