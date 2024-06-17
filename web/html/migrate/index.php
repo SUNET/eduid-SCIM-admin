@@ -20,6 +20,13 @@ if (isset($_GET['source'])) {
   if ($attributes = $invites->checkSourceData()) {
     $inviteInfo = $invites->getUserDataFromIdP();
 
+    if (isset($inviteInfo['eduPersonPrincipalName'])) {
+      if ($scim->ePPNexists($inviteInfo['eduPersonPrincipalName'])) {
+        showError(sprintf(_('%s have already have an account.'), $inviteInfo['eduPersonPrincipalName']));
+      } elseif ($invites->ePPNexists($inviteInfo['eduPersonPrincipalName'])) {
+        showError(sprintf(_('%s have already have an invite, please ask your admin for a resend of invite-code.'), $inviteInfo['eduPersonPrincipalName']));
+      }
+    }
     $attributes2Remove = array(
       'eduPersonPrincipalName', 'mailLocalAddress', 'norEduPersonNIN', 'schacDateOfBirth', 'eduPersonAssurance');
     #Remove unused parts and restructure
@@ -42,7 +49,7 @@ if (isset($_GET['source'])) {
     $redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=showMigrateFlow';
     header('Location: ' . $redirectURL);
   } else {
-    print _('Error while migrating');
+    showError(_('Error while migrating'));
   }
 } elseif (isset($_GET['backend'])) {
   $html->setExtraURLPart('&backend');

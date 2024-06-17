@@ -18,10 +18,12 @@ class SCIM {
   private $adminAccess = 0;
   private $db;
   private $token;
+  private $dbInstanceId = 0;
 
   const SCIM_USERS = 'Users/';
 
   const SQL_INSTANCE = ':Instance';
+  const SQL_EPPN = ':EPPN';
 
   const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
 
@@ -42,18 +44,19 @@ class SCIM {
       $this->allowedScopes = $instance['allowedScopes'];
       $this->adminUsers = $instance['adminUsers'];
       $this->possibleAffiliations = $config->getPossibleAffiliations();
+      $this->dbInstanceId = $config->getDbInstanceId();
 
       // Get token from DB. If no param exists create
-      $paramsHandler = $this->db->prepare('SELECT `value` FROM params WHERE `id` = :Id AND `instance` = :Instance;');
+      $paramsHandler = $this->db->prepare('SELECT `value` FROM params WHERE `id` = :Id AND `instance_id` = :Instance;');
       $paramsHandler->bindValue(':Id', 'token');
-      $paramsHandler->bindValue(self::SQL_INSTANCE, $this->scope);
+      $paramsHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
       $paramsHandler->execute();
       if ($param = $paramsHandler->fetch(PDO::FETCH_ASSOC)) {
         $this->token = $param['value'];
       } else {
-        $addParamsHandler = $this->db->prepare('INSERT INTO params (`instance`,`id`, `value`)
+        $addParamsHandler = $this->db->prepare('INSERT INTO params (`instance_id`,`id`, `value`)
           VALUES ( :Instance, ' ."'token', '')");
-        $addParamsHandler->bindValue(self::SQL_INSTANCE, $this->scope);
+        $addParamsHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
         $addParamsHandler->execute();
         $this->getToken();
       }
@@ -105,9 +108,9 @@ class SCIM {
 
           $tokenHandler = $this->db->prepare("UPDATE params
             SET `value` = :Token
-            WHERE `id` = 'token' AND `instance` = :Instance");
+            WHERE `id` = 'token' AND `instance_id` = :Instance");
           $tokenHandler->bindValue(':Token', $tokenValue);
-          $tokenHandler->bindValue(self::SQL_INSTANCE, $this->scope);
+          $tokenHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
           $tokenHandler->execute();
           $this->token = $tokenValue;
           break;
@@ -199,6 +202,13 @@ class SCIM {
   }
 
   public function getAllUsers() {
+    $rand = rand(0,20);
+    if ($rand == 0) {
+      $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN');
+      $addUserHandler = $this->db->prepare('INSERT INTO `users` (`instance_id`, `ePPN`) VALUES (:Instance, :EPPN)');
+      $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
+      $addUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
+    }
     $userList = array();
     $idList = $this->request('POST',
       self::SCIM_USERS.'.search','{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
@@ -219,6 +229,14 @@ class SCIM {
         if (isset ($userArray->{self::SCIM_NUTID_SCHEMA})) {
           $userList[$Resource->id] = $this->checkNutid(
             $userArray->{self::SCIM_NUTID_SCHEMA},$userList[$Resource->id]);
+          if ($rand == 0 && isset($userList[$Resource->id]['attributes']) && isset($userList[$Resource->id]['attributes']->eduPersonPrincipalName)) {
+            $checkUserHandler->bindValue(self::SQL_EPPN, $userList[$Resource->id]['attributes']->eduPersonPrincipalName);
+            $checkUserHandler->execute();
+            if (! $checkUserHandler->fetch()) {
+              $addUserHandler->bindValue(self::SQL_EPPN, $userList[$Resource->id]['attributes']->eduPersonPrincipalName);
+              $addUserHandler->execute();
+            }
+          }
         }
       }
       return $userList;
@@ -226,6 +244,14 @@ class SCIM {
       printf('Unknown schema : %s', $idListArray->schemas[0]);
       return false;
     }
+  }
+
+  public function ePPNexists($eduPersonPrincipalName) {
+    $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN');
+    $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
+    $checkUserHandler->bindValue(self::SQL_EPPN, $eduPersonPrincipalName);
+    $checkUserHandler->execute();
+    return $checkUserHandler->fetch() ? true : false;
   }
 
   private function checkNutid($nutid, $userList) {

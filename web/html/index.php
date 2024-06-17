@@ -64,7 +64,7 @@ function showInviteFlow() {
   } else {
     $error = '';
   }
-  $html->showHeaders(_('SCIM migrate'));
+  $html->showHeaders(_('Connect - Activate'));
   printf('        <div class="numberList">%s
           <ol>
             <li><a href="https://eduid.se/register">%s</a></li>
@@ -107,7 +107,7 @@ function showMigrateFlow() {
   global $html, $invites, $config;
   $sessionID = $_COOKIE['PHPSESSID'];
 
-  $html->showHeaders(_('Connect - Migrate'));
+  $html->showHeaders(_('Connect - Activate'));
   $invite = $invites->checkInviteBySession($sessionID);
 
   if ($invite && $invite['status'] == 1) {

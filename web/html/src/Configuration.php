@@ -13,6 +13,7 @@ class Configuration {
   private $mode = 'Lab';
   private $db = false;
   private $orgName = '';
+  private $dbInstanceId = 0;
 
   public function __construct($startDB = true, $scope = false) {
     include __DIR__ . '/../config.php'; # NOSONAR
@@ -70,20 +71,21 @@ class Configuration {
       }
       $this->orgName = $instances[$this->scope]['orgName'];
     }
+    $this->checkInstanceExitInDB($this->scope);
   }
 
-  public function checkDBVersion() {
-    $dbVersionHandler = $this->db->query("SELECT value FROM params WHERE `instance`='' AND `id`='dbVersion'");
+  private function checkDBVersion() {
+    $dbVersionHandler = $this->db->query("SELECT value FROM params WHERE `id` = 'dbVersion'");
     if (! $dbVersion = $dbVersionHandler->fetch(PDO::FETCH_ASSOC)) {
       $dbVersion = 0;
     } else {
       $dbVersion=$dbVersion['value'];
     }
-    if ($dbVersion < 2) {
+    if ($dbVersion < 3) {
       if ($dbVersion < 1) {
         $this->db->query("INSERT INTO params (`instance`, `id`, `value`) VALUES ('', 'dbVersion', 1)");
       }
-      if ($this->db->query(
+      if ($dbVersion < 2 && $this->db->query(
         "ALTER TABLE invites ADD
           `id` int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY
           FIRST")) {
@@ -105,6 +107,40 @@ class Configuration {
             `hash` varchar(65) DEFAULT NULL");
         $this->db->query("UPDATE params SET value = 2 WHERE `instance`='' AND `id`='dbVersion'");
       }
+      # To ver 3
+      $this->db->query('CREATE TABLE `instances` (
+        `id` int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        `instance` varchar(30) DEFAULT NULL)');
+      $this->db->query("INSERT INTO `instances` (`id`, `instance`) VALUES (1, 'Admin')");
+      $this->db->query('CREATE TABLE `users` (
+        `instance_id` int(10) unsigned NOT NULL,
+        `ePPN` varchar(40) DEFAULT NULL,
+        CONSTRAINT `users_ibfk_1` FOREIGN KEY (`instance_id`) REFERENCES `instances` (`id`) ON DELETE CASCADE)');
+      $this->db->query('DELETE FROM `invites`');
+      $this->db->query('ALTER TABLE `invites`
+        CHANGE `instance` `instance_id` int(10) unsigned NOT NULL,
+        ADD FOREIGN KEY (`instance_id`)
+          REFERENCES `instances` (`id`)
+          ON DELETE CASCADE');
+      $this->db->query("DELETE FROM `params` WHERE `id` = 'token'");
+      $this->db->query("UPDATE params SET value = 3, `instance`='1' WHERE `instance`='' AND `id`='dbVersion'");
+      $this->db->query('ALTER TABLE `params`
+        CHANGE `instance` `instance_id` int(10) unsigned NOT NULL,
+        ADD FOREIGN KEY (`instance_id`)
+          REFERENCES `instances` (`id`)
+          ON DELETE CASCADE');
+    }
+  }
+
+  private function checkInstanceExitInDB($scope) {
+    $instanceHandler = $this->db->prepare('SELECT `id` FROM `instances` WHERE `instance` = :Instance');
+    $instanceHandler->execute(array('Instance' => $scope));
+    if ($instance = $instanceHandler->fetch(PDO::FETCH_ASSOC)) {
+      $this->dbInstanceId = $instance['id'];
+    } else {
+      $instanceAddHandler = $this->db->prepare('INSERT INTO `instances` SET `instance` = :Instance');
+      $instanceAddHandler->execute(array('Instance' => $scope));
+      $this->dbInstanceId = $this->db->lastInsertId();
     }
   }
 
@@ -134,6 +170,10 @@ class Configuration {
 
   public function getOrgName() {
     return $this->orgName;
+  }
+
+  public function getDbInstanceId() {
+    return $this->dbInstanceId;
   }
 
   public function forceMFA() {
