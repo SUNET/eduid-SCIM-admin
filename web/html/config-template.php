@@ -4,17 +4,18 @@ $dbUsername = "admin";
 $dbPassword = "adminpwd";
 $dbName = "scim";
 
-$authUrl = 'https://auth-test.sunet.se/transaction';  # URL to the auth server to get token
-$keyName = '<Name of Key>';                           # Naame of key in auth-server
+$authUrl = 'https://auth-test.sunet.se/';             # URL to the auth server to get token
+$keyName = '<Name of Key>';                           # Name of key in auth-server
 $authCert = "<full path in OS>/authcert.pem";
 $authKey = "<full path in OS>/authkey.pem";
 $apiUrl = "https://api.dev.eduid.se/scim/test/";      # URL to the SCIM API
 
 $smtpHost = 'smtp.xxx.se';
 $saslUser = 'update-connect@smtp1.xxxxx.se';
+$saslPassword = '<your SASL password>';               # NOSONAR
 $mailFrom = 'no-reply@eduid.se';
 
-$Mode = 'Lab'; # Lab or Prod
+$Mode = 'Lab';                                        # Lab or Prod
 
 # Array ('affiliation' => 'depening on affilation')
 $possibleAffiliations = array(
@@ -30,6 +31,8 @@ $possibleAffiliations = array(
 
 $instances = array (
   'sunet.se'=> array (
+    'orgName' => 'Sunet',
+    'forceMFA' => true,
     'sourceIdP' => 'https://idp.sunet.se/idp',
     'backendIdP' => 'https://login.idp.eduid.se/idp.xml',
     'allowedScopes' => array ('sunet.se'),
@@ -39,7 +42,6 @@ $instances = array (
       'eduPersonPrincipalName' => 'eduPersonPrincipalName',
       'eduPersonScopedAffiliation' => 'eduPersonScopedAffiliation',
       'mail' => 'mail',
-      'localMailAddress' => 'localMailAddress'
     ),
     'adminUsers' => array (
       # user => level. 0-9 = view users 10 > Edit users,  20 > Invite new users
