@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SCIM 1\n"
 "Report-Msgid-Bugs-To: bjorn@sunet.se\n"
-"POT-Creation-Date: 2024-05-31 17:17+0200\n"
-"PO-Revision-Date: 2024-05-31 17:20+0200\n"
+"POT-Creation-Date: 2024-06-17 21:59+0200\n"
+"PO-Revision-Date: 2024-06-17 22:16+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: sv_SE\n"
@@ -18,34 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.4.4\n"
 
-#: web/html/index.php:52
+#: web/html/index.php:62
 msgid "Wrong code"
 msgstr "Felaktig kod"
 
-#: web/html/index.php:57
-msgid "SCIM migrate"
-msgstr ""
+#: web/html/index.php:67 web/html/index.php:110
+msgid "Connect - Activate"
+msgstr "Connect - Aktivera"
 
-#: web/html/index.php:59 web/html/index.php:104 web/html/index.php:125
-msgid ""
-"To be able to make this connection, you need to have done the following:"
-msgstr ""
-"För att du kunna göra denna anslutning behöver du ha gjort följande om du "
-"inte redan gjort det:"
-
-#: web/html/index.php:60 web/html/index.php:105 web/html/index.php:126
-msgid "Create a personal identity on eduID."
-msgstr "Skapa en personlig identitet på eduID."
-
-#: web/html/index.php:61 web/html/index.php:106 web/html/index.php:127
-msgid "Verify your identity in eduID."
-msgstr "Verifiera din identitet i eduID."
-
-#: web/html/index.php:62 web/html/index.php:107 web/html/index.php:128
-msgid "Add a security key to eduID for safer login."
-msgstr "Lägg till en säkerhetsnyckel i eduID för säkrare inloggning."
-
-#: web/html/index.php:64
+#: web/html/index.php:86
 msgid ""
 "When you have a personal identity in eduID, proceed by entering the one-time "
 "code and click the button."
@@ -53,50 +34,35 @@ msgstr ""
 "När du har en personlig identitet i eduID går du vidare genom att fylla i "
 "engångskoden och klicka på knappen."
 
-#: web/html/index.php:73
+#: web/html/index.php:102
 msgid "Invite code"
 msgstr "Inbjudningskod"
 
-#: web/html/index.php:77
+#: web/html/index.php:102
 msgid "Next"
 msgstr "Nästa"
 
-#: web/html/index.php:88
-msgid "Connect - Migrate"
-msgstr ""
+#: web/html/index.php:115
+msgid "You've started the activation of your organisation identity in eduID."
+msgstr "Du har startat en aktivering av ditt organisationsidentitet i eduID."
 
-#: web/html/index.php:93
-msgid ""
-"You've started the migration from the old login service to the eduID "
-"organisation login service."
-msgstr ""
-"Du har påbörjat migrering en från organisationens gamla inloggningstjänst "
-"till organisationens inloggningstjänst i eduID."
+#: web/html/index.php:116
+msgid "The following data will be added to your account:"
+msgstr "Följande uppgifter kommer att läggas till på ditt konto:"
 
-#: web/html/index.php:94
-msgid "The following data will be migrated:"
-msgstr "Följande uppgifter kommer att migreras:"
+#: web/html/index.php:123
+msgid "Activate account"
+msgstr "Aktivera konto"
 
-#: web/html/index.php:101
-msgid "Finalize migration"
-msgstr "Slutför migreringen"
-
-#: web/html/index.php:109
-msgid ""
-"When you have a personal identity in eduID, proceed by click the button."
-msgstr ""
-"När du har en personlig identitet i eduID går du vidare genom att klicka på "
-"knappen."
-
-#: web/html/index.php:112
+#: web/html/index.php:145
 msgid "Start new migration from old IdP"
 msgstr "Påbörja migrering från din gamla IdP"
 
-#: web/html/index.php:119
+#: web/html/index.php:153 web/html/index.php:185
 msgid "Connect - Onboard"
-msgstr ""
+msgstr "Connect - Onboard"
 
-#: web/html/index.php:121
+#: web/html/index.php:155
 #, php-format
 msgid ""
 "%s uses eduID for logging in to national and international web services. To "
@@ -108,7 +74,7 @@ msgstr ""
 "personliga eduID-identitet till din organisation. Detta gör du genom att "
 "följa instruktionerna nedan."
 
-#: web/html/index.php:130
+#: web/html/index.php:176
 msgid ""
 "When you have completed the above steps, proceed and click one of the "
 "buttons below. If you have received an invitation code via email from an "
@@ -120,111 +86,192 @@ msgstr ""
 "post använder du det alternativet, annars använder du inloggning via "
 "organisationens gamla inloggningstjänst."
 
-#: web/html/index.php:133
+#: web/html/index.php:177
 msgid "Migrate from Old IdP"
 msgstr "Migrera från din gamla IdP"
 
-#: web/html/index.php:135
+#: web/html/index.php:178
 msgid "Onboard with Invite-code"
 msgstr "Anslut med inbjudningskod"
 
-#: web/html/index.php:141
-msgid "Connect - Onboarded"
-msgstr ""
-
-#: web/html/index.php:142
-msgid "You are now onborded :-)"
+#: web/html/index.php:186
+msgid "You are now onboard :-)"
 msgstr "Ditt konto är nu skapat."
 
-#: web/html/migrate/index.php:44
+#: web/html/index.php:193
+msgid "Connect - Missing instance"
+msgstr "Connect - Saknad instans"
+
+#: web/html/index.php:194
+#, php-format
+msgid "instance['%s'] is missing in config-file. Contact admin"
+msgstr "instance[‘%s’] saknas i config-filen. Kontakta admin"
+
+#: web/html/admin/index.php:73
+#, php-format
+msgid ""
+"Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a "
+"href=\"%s\">here</a> to logout."
+msgstr ""
+"Loggade du in med fel IdP ?<br> Du försöker med  <b>%s</b>.<br>Klicka <a "
+"href=“%s”>här</a> för att logga ut."
+
+#: web/html/migrate/index.php:25
+#, php-format
+msgid "%s have already have an account."
+msgstr "%s har redan ett konto."
+
+#: web/html/migrate/index.php:27
+#, php-format
+msgid ""
+"%s have already have an invite, please ask your admin for a resend of invite-"
+"code."
+msgstr ""
+"%s har redan en inbjudan, vänligen kontakta din administratör och be om en "
+"omsändning av inbjudningskoden."
+
+#: web/html/migrate/index.php:52
 msgid "Error while migrating"
 msgstr "Fel vid migreringen"
 
-#: web/html/migrate/index.php:75
-msgid "Account needs to be at least AL2."
-msgstr "Kontot måste vara minsta AL2."
+#: web/html/migrate/index.php:84
+msgid "Account needs to be at verified."
+msgstr "Kontot måste verifierat."
 
-#: web/html/migrate/index.php:78
-msgid "Error while migrating (Got no ePPN or wrong IdP)"
-msgstr ""
+#: web/html/migrate/index.php:87
+msgid "Error while adding account (Got no ePPN or wrong IdP)"
+msgstr "Fel när vi skulle lägga till kontot (Saknar ePPN eller felaktig IdP)"
 
-#: web/html/migrate/index.php:92
-msgid "Error while migrating (Could not update SCIM)"
-msgstr ""
+#: web/html/migrate/index.php:101
+msgid "Error while adding account (Could not update SCIM)"
+msgstr "Fel när vi skulle lägga till kontot (Kunde inte uppdatera SCIM:en)"
 
-#: web/html/migrate/index.php:99
+#: web/html/migrate/index.php:108
 msgid ""
 "Some attributes did not match. Adding your request to queue for manual "
-"approval"
+"approval. Please contact your admin to activate your account."
 msgstr ""
-"Vissa attribut stämde inte överens. Lägger din begäran för manuell granskning"
+"Vissa attribut stämde inte överens. Lägger din begäran för manuell "
+"granskning. Vänligen kontakta din administratör för att aktivera ditt konto."
 
-#: web/html/migrate/index.php:105 web/html/user/index.php:19
-#: web/html/user/index.php:106
+#: web/html/migrate/index.php:114 web/html/user/index.php:20
+#: web/html/user/index.php:107
 msgid "eduID Connect Self-service"
-msgstr ""
+msgstr "eduID Connect självservice"
 
-#: web/html/src/HTML.php:36
+#: web/html/migrate/index.php:119
+msgid "Back"
+msgstr "Backa"
+
+#: web/html/src/HTML.php:42
 msgid "Activate your organisation identity in eduID"
 msgstr "Aktivera din organisationsidentitet i eduID"
 
-#: web/html/user/index.php:21
-msgid "Could not find user in SCIM.<br>Please contact your admin."
+#: web/html/user/index.php:22
+msgid ""
+"Could not find your account in our user database.<br>Please contact your "
+"admin."
 msgstr ""
+"Kunde inte hitta dit konto i vår användardatabas.<br>Vänligen kontakta din "
+"administratör."
 
-#: web/html/user/index.php:24
+#: web/html/user/index.php:25
 msgid "User or IdP is not at"
-msgstr ""
+msgstr "Användare eller IdP är inte på"
 
-#: web/html/user/index.php:55
-msgid "Error while update recovery info (Could not update SCIM)"
+#: web/html/user/index.php:56
+msgid "Error while update recovery info (Could not update database)"
 msgstr ""
-
-#: web/html/user/index.php:67
-msgid "User Attributes"
-msgstr ""
+"Något gick fel med uppdateringen av återställningsinfon (Kunde inte "
+"uppdatera databasen)"
 
 #: web/html/user/index.php:68
+msgid "User Attributes"
+msgstr "Användarattribut"
+
+#: web/html/user/index.php:69
 msgid ""
 "When you log into a service via your organization identity provider most "
 "personal data is retrieved from your eduID account but the organization "
 "profile contains the organizational information."
 msgstr ""
+"När du loggar in via din organisations identitesutgivare, den mesta "
+"informationen hämtas från ditt eduID konto, men organisationens profil "
+"innehåller organisationens information."
 
-#: web/html/user/index.php:69
+#: web/html/user/index.php:70
 msgid "To update the personal data in your eduID account please go to the"
 msgstr ""
+"För att uppdatera den personliga informationen på ditt eduID konto, vänligen "
+"gå till"
 
-#: web/html/user/index.php:70 web/html/user/index.php:95
+#: web/html/user/index.php:71 web/html/user/index.php:96
 msgid "eduID Dashboard"
-msgstr ""
+msgstr "eduID Dashboard"
 
-#: web/html/user/index.php:71
+#: web/html/user/index.php:72
 msgid ""
 "and to update the organizational profile please contact your home "
 "organization service desk or IT support."
 msgstr ""
-
-#: web/html/user/index.php:92
-msgid "Recovery info"
-msgstr ""
+"och för att uppdatera organisationens information, vänligen kontakta din "
+"organisations service Desk eller IT support."
 
 #: web/html/user/index.php:93
+msgid "Recovery info"
+msgstr "Återställningsinformation"
+
+#: web/html/user/index.php:94
 msgid ""
 "The recovery info is only used to be able to reconnect the organization "
 "profile to you as a person if you need to change what eduID account is used "
 "for the profile."
 msgstr ""
+"Återställningsinformation används enbart för att kunna koppla om profilen "
+"till dig om du behöver byta vilket eduID konto som skall användas för din "
+"profil."
 
-#: web/html/user/index.php:94
+#: web/html/user/index.php:95
 msgid "To update the recovery info first update the information in your"
-msgstr ""
+msgstr "För att uppdatera återställningsinformationen, uppdatera på eduID i"
 
-#: web/html/user/index.php:96
+#: web/html/user/index.php:97
 msgid ""
 "and thereafter automatically update them in this service by logging in again."
 msgstr ""
+"och logga in här igen för att automatiskt uppdatera dem i denna tjänsten."
 
-#: web/html/user/index.php:107
+#: web/html/user/index.php:108
 msgid "Did not get any ePPN from IdP!"
-msgstr ""
+msgstr "Fick inget ePPN från IdP:n!"
+
+#~ msgid ""
+#~ "To be able to make this connection, you need to have done the following:"
+#~ msgstr ""
+#~ "För att du kunna göra denna anslutning behöver du ha gjort följande om du "
+#~ "inte redan gjort det:"
+
+#~ msgid "Create a personal identity on eduID."
+#~ msgstr "Skapa en personlig identitet på eduID."
+
+#~ msgid "Verify your identity in eduID."
+#~ msgstr "Verifiera din identitet i eduID."
+
+#~ msgid "Add a security key to eduID for safer login."
+#~ msgstr "Lägg till en säkerhetsnyckel i eduID för säkrare inloggning."
+
+#~ msgid ""
+#~ "You've started the migration from the old login service to the eduID "
+#~ "organisation login service."
+#~ msgstr ""
+#~ "Du har påbörjat migrering en från organisationens gamla inloggningstjänst "
+#~ "till organisationens inloggningstjänst i eduID."
+
+#~ msgid "Finalize migration"
+#~ msgstr "Slutför migreringen"
+
+#~ msgid ""
+#~ "When you have a personal identity in eduID, proceed by click the button."
+#~ msgstr ""
+#~ "När du har en personlig identitet i eduID går du vidare genom att klicka "
+#~ "på knappen."
