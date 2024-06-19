@@ -1,10 +1,6 @@
 <?php
 require_once 'vendor/autoload.php';
 
-const INFO_CONNECT = 'To be able to make this connection, you need to have done the following:';
-const CREATE_EDUID = 'Create a personal identity on eduID.';
-const VERIFY_EDUID = 'Verify your identity in eduID.';
-const ADD_KEY_EDUID = 'Add a security key to eduID for safer login.';
 const HTML_LI_PROFILE = '            <li><a href="https://eduid.se/profile/">%s</a></li>%s';
 
 $config = new scimAdmin\Configuration();
@@ -41,10 +37,20 @@ if ($instance = $config->getInstance()) {
         showSuccess();
         break;
       default :
-        showStartPage();
+        if ( $instance['sourceIdP'] == '') {
+          $html->setExtraURLPart('&action=showInviteFlow');
+          showInviteFlow();
+        } else {
+          showStartPage();
+        }
     }
   } else {
-    showStartPage();
+    if ( $instance['sourceIdP'] == '') {
+      $html->setExtraURLPart('&action=showInviteFlow');
+      showInviteFlow();
+    } else {
+      showStartPage();
+    }
   }
 } else {
   showMissingInstance();
@@ -69,13 +75,13 @@ function showInviteFlow() {
           <ol>
             <li><a href="https://eduid.se/register">%s</a></li>
             <li><a href="https://eduid.se/profile/">%s</a></li>%s',
-    _(INFO_CONNECT),
-    _(CREATE_EDUID),
-    _(VERIFY_EDUID),
+    _('To be able to make this connection, you need to have done the following:'),
+    _('Create a personal identity on eduID.'),
+    _('Verify your identity in eduID.'),
     "\n");
     if ($config->forceMFA()) {
       printf(HTML_LI_PROFILE,
-        _(ADD_KEY_EDUID), "\n");
+        _('Add a security key to eduID for safer login.'), "\n");
     }
     printf('          </ol>
           <br>
@@ -126,13 +132,13 @@ function showMigrateFlow() {
           <ol>
             <li><a href="https://eduid.se/register">%s</a></li>
             <li><a href="https://eduid.se/profile/">%s</a></li>%s',
-    _(INFO_CONNECT),
-    _(CREATE_EDUID),
-    _(VERIFY_EDUID),
+    _('To be able to make this connection, you need to have done the following:'),
+    _('Create a personal identity on eduID.'),
+    _('Verify your identity in eduID.'),
     "\n");
     if ($config->forceMFA()) {
       printf(HTML_LI_PROFILE,
-        _(ADD_KEY_EDUID), "\n");
+        _('Add a security key to eduID for safer login.'), "\n");
     }
     printf('          </ol>
           <br>
@@ -141,7 +147,7 @@ function showMigrateFlow() {
         <div class="buttons">
           <a class="btn btn-primary" href="?action=startMigrate">%s</a>
         </div>%s',
-      ('When you have a personal identity in eduID, proceed by click the button.'),
+      _('When you have a personal identity in eduID, proceed by click the button.'),
       _('Start new migration from old IdP'),
       "\n");
   }
@@ -159,23 +165,23 @@ function showStartPage() {
           <ol>
             <li><a href="https://eduid.se/register">%s</a></li>
             <li><a href="https://eduid.se/profile/">%s</a></li>%s',
-    _(INFO_CONNECT),
-    _(CREATE_EDUID),
-    _(VERIFY_EDUID),
+    _('To be able to make this connection, you need to have done the following:'),
+    _('Create a personal identity on eduID.'),
+    _('Verify your identity in eduID.'),
     "\n");
   if ($config->forceMFA()) {
     printf(HTML_LI_PROFILE,
-      _(ADD_KEY_EDUID), "\n");
+      _('Add a security key to eduID for safer login.'), "\n");
   }
   printf('          </ol>
           <br>
           %s
         </div>
-        <div class="buttons"><a class="btn btn-primary" href="?action=showMigrateFlow">%s</a></div>
-        <div class="buttons"><a class="btn btn-primary" href="?action=showInviteFlow">%s</a></div>%s',
+        <div class="buttons"><a class="btn btn-primary" href="?action=showInviteFlow">%s</a></div>
+        <div class="buttons"><a class="btn btn-primary" href="?action=showMigrateFlow">%s</a></div>%s',
     _('When you have completed the above steps, proceed and click one of the buttons below. If you have received an invitation code via email from an administrator, use that option; otherwise, use login via the organisation\’s old login service.'),
-    _("Migrate from Old IdP"),
     _('Onboard with Invite-code'),
+    _("Migrate from Old IdP"),
     "\n");
   $html->showFooter(false);
 }

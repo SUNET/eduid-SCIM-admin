@@ -10,6 +10,8 @@ $html = new scimAdmin\HTML($config->mode());
 
 $scim = new scimAdmin\SCIM();
 
+$localize = new scimAdmin\Localize();
+
 $errors = '';
 $errorURL = isset($_SERVER['Meta-errorURL']) ?
   '<a href="' . $_SERVER['Meta-errorURL'] . '">Mer information</a><br>' : '<br>';
@@ -19,12 +21,12 @@ $errorURL = str_replace(array('ERRORURL_TS', 'ERRORURL_RP', 'ERRORURL_TID'),
 if (isset($_SERVER['Meta-Assurance-Certification'])) {
   $AssuranceCertificationFound = false;
   foreach (explode(';',$_SERVER['Meta-Assurance-Certification']) as $AssuranceCertification) {
-    if ($AssuranceCertification == 'http://www.swamid.se/policy/assurance/al1') { # NOSONAR
+    if ($AssuranceCertification == 'http://www.swamid.se/policy/assurance/al3') { # NOSONAR
       $AssuranceCertificationFound = true;
     }
   }
   if (! $AssuranceCertificationFound) {
-    $errors .= sprintf('%s has no AssuranceCertification (http://www.swamid.se/policy/assurance/al1) ',
+    $errors .= sprintf('%s has no AssuranceCertification (http://www.swamid.se/policy/assurance/al3) ',
       $_SERVER['Shib-Identity-Provider']);
   }
 }
@@ -48,6 +50,22 @@ if (isset($_SERVER['displayName'])) {
   }
 } else {
   $fullName = '';
+}
+
+if (isset($_SERVER['eduPersonAssurance'])) {
+  $acceptedAssurance = false;
+  foreach (explode(';', $_SERVER['eduPersonAssurance']) as $subAssurance) {
+    if ($subAssurance == 'http://www.swamid.se/policy/assurance/al3') {
+      $acceptedAssurance = true;
+    }
+  }
+  if (! $acceptedAssurance) {
+    $errors .= _('Account must be at least AL3!');
+  }
+} else {
+  $errors .= _('Missing eduPersonAssurance in SAML response ') .
+    str_replace(array('ERRORURL_CODE', 'ERRORURL_CTX'),
+    array('IDENTIFICATION_FAILURE', 'eduPersonAssurance'), $errorURL);
 }
 
 if ($config->scopeConfigured()) {
@@ -128,7 +146,7 @@ if (isset($_POST['action'])) {
 } elseif (isset($_GET['action'])) {
   switch ($_GET['action']) {
     case 'editUser' :
-      $actionURL='&action=deleteInvite';
+      $html->setExtraURLPart('&action=editUser');
       $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
       if ( $scim->getAdminAccess() > 9 && $id) {
         editUser($id);
@@ -141,6 +159,7 @@ if (isset($_POST['action'])) {
       }
       break;
     case 'listUsers' :
+      $html->setExtraURLPart('&action=listUsers');
       $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
       showMenu();
       listUsers($id);
@@ -151,6 +170,7 @@ if (isset($_POST['action'])) {
     case 'editInvite' :
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
       if ( $scim->getAdminAccess() > 19 && $id) {
+        $html->setExtraURLPart('&action=editInvite&id=' . $id);
         editInvite($id);
       } else {
         showMenu(2);
@@ -163,6 +183,7 @@ if (isset($_POST['action'])) {
     case 'resendInvite' :
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
       if ( $scim->getAdminAccess() > 19 && $id) {
+        $html->setExtraURLPart('&action=resendInvite&id=' . $id);
         resendInvite($id);
       } else {
         showMenu(2);
@@ -173,6 +194,7 @@ if (isset($_POST['action'])) {
       }
       break;
     case 'listInvites' :
+      $html->setExtraURLPart('&action=listInvites');
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
       showMenu(2);
       if ( $scim->getAdminAccess() > 19 ) {
@@ -187,6 +209,7 @@ if (isset($_POST['action'])) {
       showMenu(2);
       if ( $scim->getAdminAccess() > 19 ) {
         if ($id) {
+          $html->setExtraURLPart('&action=approveInvite&id=' . $id);
           approveInvite($id);
         }
         listUsers('', true);
@@ -196,6 +219,7 @@ if (isset($_POST['action'])) {
       }
       break;
     case 'addInvite' :
+      $html->setExtraURLPart('&action=addInvite');
       if ( $scim->getAdminAccess() > 19) {
         editInvite(0);
       } else {
@@ -209,6 +233,7 @@ if (isset($_POST['action'])) {
     case 'deleteInvite' :
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
       if ( $scim->getAdminAccess() > 19) {
+        $html->setExtraURLPart('&action=deleteInvite&id=' . $id);
         deleteInvite($id);
       } else {
         showMenu(2);
@@ -274,8 +299,9 @@ function showUser($user, $id) {
 }
 
 function editUser($id) {
-  global $scim;
+  global $scim, $html;
 
+  $html->setExtraURLPart('&action=editUser&id=' . $id);
   $userArray = $scim->getId($id);
   printf('        <form method="POST">
           <input type="hidden" name="action" value="saveUser">
@@ -587,7 +613,7 @@ function editInvite($id) {
   if ($id > 0) {
     $invite = $invites->getInvite($id);
   } else {
-    $invite = array ('inviteInfo' => '{}', 'attributes' => '{}');
+    $invite = array ('inviteInfo' => '{}', 'attributes' => '{}', 'lang' => '');
   }
   $inviteInfo = json_decode($invite['inviteInfo']);
   printf('        <form method="POST">
@@ -595,16 +621,23 @@ function editInvite($id) {
           <input type="hidden" name="id" value="%s">
           <table id="entities-table" class="table table-striped table-bordered">
             <tbody>
-              <tr><th colspan="2">Invite Info</th></tr>
-              <tr><th>givenName</th><td><input type="text" name="givenName" value="%s"></td></tr>
-              <tr><th>sn</th><td><input type="text" name="sn" value="%s"></td></tr>
-              <tr><th>invite mail</th><td><input type="text" name="mail" value="%s"></td></tr>
-              <tr><th>personNIN</th><td><input type="text" name="personNIN" value="%s"></td></tr>%s',
+              <tr><th colspan="2">%s</th></tr>
+              <tr><th>%s</th><td><input type="text" name="givenName" value="%s"></td></tr>
+              <tr><th>%s</th><td><input type="text" name="sn" value="%s"></td></tr>
+              <tr><th>%s</th><td><input type="text" name="mail" value="%s"></td></tr>
+              <tr><th>%s</th><td><input type="text" name="personNIN" value="%s"></td></tr>
+              <tr><th>%s</th><td><select name="lang">
+                <option value="sv">%s</option>
+                <option value="en"%s>%s</option>
+              </select></td></tr>%s',
       htmlspecialchars($id),
-      isset($inviteInfo->givenName) ? $inviteInfo->givenName : '',
-      isset($inviteInfo->sn) ? $inviteInfo->sn : '',
-      isset($inviteInfo->mail) ? $inviteInfo->mail : '',
-      isset($inviteInfo->personNIN) ? $inviteInfo->personNIN : '',
+      _('Invite Info'),
+      _('GivenName'), isset($inviteInfo->givenName) ? $inviteInfo->givenName : '',
+      _('SirName'), isset($inviteInfo->sn) ? $inviteInfo->sn : '',
+      _('Invite mail'), isset($inviteInfo->mail) ? $inviteInfo->mail : '',
+      _('Social number'), isset($inviteInfo->personNIN) ? $inviteInfo->personNIN : '',
+      _('Language for invite'), _('Swedish'),
+      $invite['lang'] == 'en' ? ' selected' : '', _('English'),
       "\n");
 
   printf('              <tr><th colspan="2">SAML Attributes</th></tr>%s', "\n");
@@ -637,7 +670,7 @@ function resendInvite($id) {
     $invites->sendNewInviteCode($id);
     $invite = $invites->getInvite($id);
     $inviteInfo = json_decode($invite['inviteInfo']);
-    $result = 'New code sent to ' . $inviteInfo->mail;
+    $result = _('New code sent to') . ' ' . $inviteInfo->mail;
   }
   showMenu(2);
   listUsers('', true);
@@ -654,6 +687,7 @@ function saveInvite($id) {
   $inviteArray['sn'] = isset($_POST['sn']) ? $_POST['sn'] : '';
   $inviteArray['mail'] = isset($_POST['mail']) ? $_POST['mail'] : '';
   $inviteArray['personNIN'] = isset($_POST['personNIN']) ? $_POST['personNIN'] : '';
+  $lang = (isset($_POST['lang']) && $_POST['lang'] == 'en') ? 'en' : 'sv';
   if (isset($_POST['saml'])) {
     foreach ($_POST['saml'] as $key => $value) {
       $value = $key == 'eduPersonScopedAffiliation' ?
@@ -662,7 +696,7 @@ function saveInvite($id) {
       $attributeArray[$key] = $value;
     }
   }
-  $invites->updateInviteAttributesById($id, $attributeArray, $inviteArray);
+  $invites->updateInviteAttributesById($id, $attributeArray, $inviteArray, $lang);
 }
 
 function approveInvite($id) {

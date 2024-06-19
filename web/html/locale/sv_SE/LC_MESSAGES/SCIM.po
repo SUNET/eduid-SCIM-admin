@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SCIM 1\n"
 "Report-Msgid-Bugs-To: bjorn@sunet.se\n"
-"POT-Creation-Date: 2024-06-17 21:59+0200\n"
-"PO-Revision-Date: 2024-06-17 22:16+0200\n"
+"POT-Creation-Date: 2024-06-19 00:06+0200\n"
+"PO-Revision-Date: 2024-06-19 00:10+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: sv_SE\n"
@@ -18,15 +18,38 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.4.4\n"
 
-#: web/html/index.php:62
+#: web/html/index.php:68
 msgid "Wrong code"
 msgstr "Felaktig kod"
 
-#: web/html/index.php:67 web/html/index.php:110
+#: web/html/index.php:73 web/html/index.php:116
 msgid "Connect - Activate"
 msgstr "Connect - Aktivera"
 
-#: web/html/index.php:86
+#: web/html/index.php:78 web/html/index.php:135 web/html/index.php:168
+#: web/html/src/Invites.php:262 web/html/src/Invites.php:293
+msgid ""
+"To be able to make this connection, you need to have done the following:"
+msgstr ""
+"För att du kunna göra denna anslutning behöver du ha gjort följande om du "
+"inte redan gjort det:"
+
+#: web/html/index.php:79 web/html/index.php:136 web/html/index.php:169
+#: web/html/src/Invites.php:263 web/html/src/Invites.php:294
+msgid "Create a personal identity on eduID."
+msgstr "Skapa en personlig identitet på eduID."
+
+#: web/html/index.php:80 web/html/index.php:137 web/html/index.php:170
+#: web/html/src/Invites.php:264 web/html/src/Invites.php:295
+msgid "Verify your identity in eduID."
+msgstr "Verifiera din identitet i eduID."
+
+#: web/html/index.php:84 web/html/index.php:141 web/html/index.php:174
+#: web/html/src/Invites.php:268 web/html/src/Invites.php:299
+msgid "Add a security key to eduID for safer login."
+msgstr "Lägg till en säkerhetsnyckel i eduID för säkrare inloggning."
+
+#: web/html/index.php:92
 msgid ""
 "When you have a personal identity in eduID, proceed by entering the one-time "
 "code and click the button."
@@ -34,35 +57,42 @@ msgstr ""
 "När du har en personlig identitet i eduID går du vidare genom att fylla i "
 "engångskoden och klicka på knappen."
 
-#: web/html/index.php:102
+#: web/html/index.php:108
 msgid "Invite code"
 msgstr "Inbjudningskod"
 
-#: web/html/index.php:102
+#: web/html/index.php:108
 msgid "Next"
 msgstr "Nästa"
 
-#: web/html/index.php:115
+#: web/html/index.php:121
 msgid "You've started the activation of your organisation identity in eduID."
 msgstr "Du har startat en aktivering av ditt organisationsidentitet i eduID."
 
-#: web/html/index.php:116
+#: web/html/index.php:122
 msgid "The following data will be added to your account:"
 msgstr "Följande uppgifter kommer att läggas till på ditt konto:"
 
-#: web/html/index.php:123
+#: web/html/index.php:129
 msgid "Activate account"
 msgstr "Aktivera konto"
 
-#: web/html/index.php:145
+#: web/html/index.php:150
+msgid ""
+"When you have a personal identity in eduID, proceed by click the button."
+msgstr ""
+"När du har en personlig identitet i eduID går du vidare genom att klicka på "
+"knappen."
+
+#: web/html/index.php:151
 msgid "Start new migration from old IdP"
 msgstr "Påbörja migrering från din gamla IdP"
 
-#: web/html/index.php:153 web/html/index.php:185
+#: web/html/index.php:159 web/html/index.php:191
 msgid "Connect - Onboard"
 msgstr "Connect - Onboard"
 
-#: web/html/index.php:155
+#: web/html/index.php:161
 #, php-format
 msgid ""
 "%s uses eduID for logging in to national and international web services. To "
@@ -74,7 +104,7 @@ msgstr ""
 "personliga eduID-identitet till din organisation. Detta gör du genom att "
 "följa instruktionerna nedan."
 
-#: web/html/index.php:176
+#: web/html/index.php:182
 msgid ""
 "When you have completed the above steps, proceed and click one of the "
 "buttons below. If you have received an invitation code via email from an "
@@ -86,28 +116,36 @@ msgstr ""
 "post använder du det alternativet, annars använder du inloggning via "
 "organisationens gamla inloggningstjänst."
 
-#: web/html/index.php:177
-msgid "Migrate from Old IdP"
-msgstr "Migrera från din gamla IdP"
-
-#: web/html/index.php:178
+#: web/html/index.php:183
 msgid "Onboard with Invite-code"
 msgstr "Anslut med inbjudningskod"
 
-#: web/html/index.php:186
+#: web/html/index.php:184
+msgid "Migrate from Old IdP"
+msgstr "Migrera från din gamla IdP"
+
+#: web/html/index.php:192
 msgid "You are now onboard :-)"
 msgstr "Ditt konto är nu skapat."
 
-#: web/html/index.php:193
+#: web/html/index.php:199
 msgid "Connect - Missing instance"
 msgstr "Connect - Saknad instans"
 
-#: web/html/index.php:194
+#: web/html/index.php:200
 #, php-format
 msgid "instance['%s'] is missing in config-file. Contact admin"
 msgstr "instance[‘%s’] saknas i config-filen. Kontakta admin"
 
-#: web/html/admin/index.php:73
+#: web/html/admin/index.php:61
+msgid "Account must be at least AL3!"
+msgstr "Kontot måste vara minst AL3!"
+
+#: web/html/admin/index.php:64
+msgid "Missing eduPersonAssurance in SAML response "
+msgstr "Saknar eduPersonAssurance i SAML svaret "
+
+#: web/html/admin/index.php:89
 #, php-format
 msgid ""
 "Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a "
@@ -115,6 +153,42 @@ msgid ""
 msgstr ""
 "Loggade du in med fel IdP ?<br> Du försöker med  <b>%s</b>.<br>Klicka <a "
 "href=“%s”>här</a> för att logga ut."
+
+#: web/html/admin/index.php:632
+msgid "Invite Info"
+msgstr "Inbjudningsinformation"
+
+#: web/html/admin/index.php:633
+msgid "GivenName"
+msgstr "Förnamn"
+
+#: web/html/admin/index.php:634
+msgid "SirName"
+msgstr "Efternamn"
+
+#: web/html/admin/index.php:635
+msgid "Invite mail"
+msgstr "Inbjudningsmail"
+
+#: web/html/admin/index.php:636
+msgid "Social number"
+msgstr "Personnummer"
+
+#: web/html/admin/index.php:637
+msgid "Language for invite"
+msgstr "Språk för inbjudan"
+
+#: web/html/admin/index.php:637
+msgid "Swedish"
+msgstr "Svenska"
+
+#: web/html/admin/index.php:638
+msgid "English"
+msgstr "Engelska"
+
+#: web/html/admin/index.php:671
+msgid "New code sent to"
+msgstr "Ny kod skickad till"
 
 #: web/html/migrate/index.php:25
 #, php-format
@@ -166,6 +240,56 @@ msgstr "Backa"
 #: web/html/src/HTML.php:42
 msgid "Activate your organisation identity in eduID"
 msgstr "Aktivera din organisationsidentitet i eduID"
+
+#: web/html/src/Invites.php:243
+msgid "Connect - Admin"
+msgstr "Connect - Admin"
+
+#: web/html/src/Invites.php:259 web/html/src/Invites.php:290
+msgid "Hi."
+msgstr "Hej."
+
+#: web/html/src/Invites.php:261
+msgid ""
+"uses eduID for login into national and international web-services. To be "
+"able to use this service you need to connect your personal eduID-account to "
+"your organisation. This is done by following the instructions below."
+msgstr ""
+"använder eduID för inloggning i nationella och internationella webbtjänster. "
+"För att du ska kunna logga in i dessa behöver du ansluta ditt personliga "
+"eduID-identitet till din organisation. Detta gör du genom att följa "
+"instruktionerna nedan."
+
+#: web/html/src/Invites.php:277 web/html/src/Invites.php:307
+msgid "When you have a personal identity in eduID, proceed to this web-page"
+msgstr "När du har en personlig identitet i eduID går du vidare till webbsidan"
+
+#: web/html/src/Invites.php:279 web/html/src/Invites.php:309
+msgid " enter the follwing code and press the button."
+msgstr ", fyller i nedanstående inbjudningskod och klickar på knappen."
+
+#: web/html/src/Invites.php:280 web/html/src/Invites.php:310
+msgid "Invitecode:"
+msgstr "Inbjudningskod:"
+
+#: web/html/src/Invites.php:282 web/html/src/Invites.php:312
+msgid "Welcome"
+msgstr "Välkommen"
+
+#: web/html/src/Invites.php:292
+msgid ""
+"uses eduID for login into national and international web-services. To be "
+"able to use this service you need to connect yoour personal eduID-account to "
+"your organisation."
+msgstr ""
+"använder eduID för inloggning i nationella och internationella webbtjänster. "
+"För att du ska kunna logga in i dessa behöver du ansluta ditt personliga "
+"eduID-identitet till din organisation. Detta gör du genom att följa "
+"instruktionerna nedan."
+
+#: web/html/src/Invites.php:313
+msgid "Your invite code for eduID Connect"
+msgstr "Din inbjudningskod till eduID Connect"
 
 #: web/html/user/index.php:22
 msgid ""
@@ -246,21 +370,6 @@ msgid "Did not get any ePPN from IdP!"
 msgstr "Fick inget ePPN från IdP:n!"
 
 #~ msgid ""
-#~ "To be able to make this connection, you need to have done the following:"
-#~ msgstr ""
-#~ "För att du kunna göra denna anslutning behöver du ha gjort följande om du "
-#~ "inte redan gjort det:"
-
-#~ msgid "Create a personal identity on eduID."
-#~ msgstr "Skapa en personlig identitet på eduID."
-
-#~ msgid "Verify your identity in eduID."
-#~ msgstr "Verifiera din identitet i eduID."
-
-#~ msgid "Add a security key to eduID for safer login."
-#~ msgstr "Lägg till en säkerhetsnyckel i eduID för säkrare inloggning."
-
-#~ msgid ""
 #~ "You've started the migration from the old login service to the eduID "
 #~ "organisation login service."
 #~ msgstr ""
@@ -269,9 +378,3 @@ msgstr "Fick inget ePPN från IdP:n!"
 
 #~ msgid "Finalize migration"
 #~ msgstr "Slutför migreringen"
-
-#~ msgid ""
-#~ "When you have a personal identity in eduID, proceed by click the button."
-#~ msgstr ""
-#~ "När du har en personlig identitet i eduID går du vidare genom att klicka "
-#~ "på knappen."

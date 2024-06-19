@@ -4,11 +4,12 @@ namespace scimAdmin;
 use PDO;
 
 class Invites {
-  private $error = '';
   private $scope = '';
   private $sourceIdP = '';
   private $backendIdP = '';
   private $attributes2migrate = '';
+  private $forceMFA = false;
+  private $orgName = '';
 
   private $smtpHost = '';
   private $saslUser = '';
@@ -30,6 +31,7 @@ class Invites {
   const SQL_ATTRIBUTES =':Attributes';
   const SQL_INVITEINFO = ':InviteInfo';
   const SQL_HASH = ':Hash';
+  const SQL_LANG = ':Lang';
 
   const SWAMID_AL = 'http://www.swamid.se/policy/assurance/al'; # NOSONAR
 
@@ -37,10 +39,10 @@ class Invites {
     $config = new Configuration();
     $this->db = $config->getDb();
 
-    $this->error = '';
-
     if ($instance = $config->getInstance()) {
       $this->scope = $config->getScope();
+      $this->forceMFA = $config->forceMFA();
+      $this->orgName = $config->orgName();
       $this->sourceIdP = $instance['sourceIdP'];
       $this->backendIdP = $instance['backendIdP'];
       $this->attributes2migrate = $instance['attributes2migrate'];
@@ -207,6 +209,14 @@ class Invites {
     $inviteInfo = json_decode($invite['inviteInfo']);
     $code = hash_hmac('md5','HashCode',time()); // NOSONAR
 
+    if ($invite['lang'] == 'sv') {
+      setlocale(LC_MESSAGES, 'sv_SE');
+    } else {
+      setlocale(LC_MESSAGES, 'en');
+    }
+    bindtextdomain("SCIM", __DIR__ . '/../locale');
+    textdomain("SCIM");
+
     $updateHandler = $this->db->prepare('UPDATE invites
       SET `hash` = :Hash, `modified` = NOW(), `session` = ""
       WHERE `instance_id` = :Instance AND `id` = :Id');
@@ -230,34 +240,77 @@ class Invites {
     $mail->SMTPSecure = 'tls';
 
     //Recipients
-    $mail->setFrom($this->mailFrom, 'Connect - Admin');
+    $mail->setFrom($this->mailFrom, _('Connect - Admin'));
     $mail->addAddress($inviteInfo->mail);
     //Content
     $mail->isHTML(true);
-    $mail->Body = sprintf("<!DOCTYPE html>
-        <html lang=\"en\">
-          <head>
-            <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
-          </head>
-          <body>
-            <p>Hi.</p>
-            <p>This is a message from Update Connect for you to create your account at sunet.se.</p>
-            <p>Your code is <b>%s</b> .</p>
-            <p>Enter your code at <a href=\"%s/?action=showInviteFlow\">%s?action=showInviteFlow</a></p>
-            <p>--<br>
-            On behalf of SUNET - Swedish University Network</p>
-          </body>
-        </html>",
-        $code, $hostURL, $hostURL);
-    $mail->AltBody = sprintf("Hi.
-        \nThis is a message from Update Connect for you to create your account at sunet.se.
-        \nYour code is %s .
-        \nEnter your code at %s/?action=showInviteFlow
-        --
-        On behalf of SUNET - Swedish University Network",
-        $code, $hostURL);
+    $mail->Body = sprintf('      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        </head>
+        <body>
+          <p>%s</p>
+          <p>%s %s</p>
+          <div class="numberList">%s
+            <ol>
+              <li><a href="https://eduid.se/register">%s</a></li>
+              <li><a href="https://eduid.se/profile/">%s</a></li>%s',
+      _('Hi.'),
+      $this->orgName,
+      _('uses eduID for login into national and international web-services. To be able to use this service you need to connect your personal eduID-account to your organisation. This is done by following the instructions below.'),
+      _('To be able to make this connection, you need to have done the following:'),
+      _('Create a personal identity on eduID.'),
+      _('Verify your identity in eduID.'),
+      "\n");
+    if ($this->forceMFA) {
+      $mail->Body .= sprintf('              <li><a href="https://eduid.se/profile/">%s</a></li>%s',
+        _('Add a security key to eduID for safer login.'), "\n");
+    }
+    $mail->Body .= sprintf('            </ol>
+          </div>
+          <p>%s <a href="%s?action=showInviteFlow">%s?action=showInviteFlow</a>%s</p>
+          <p>%s <b>%s</b></p>
+          <p>%s</p>
+        </body>
+      </html>',
+      _('When you have a personal identity in eduID, proceed to this web-page'),
+      $hostURL, $hostURL,
+      _(' enter the follwing code and press the button.'),
+      _('Invitecode:'),
+      $code,
+      _('Welcome'));
+    $mail->AltBody = sprintf('%s
+      %s %s
 
-    $mail->Subject  = 'Your invite code for eduID Connect';
+      %s
+
+      1. %s, https://eduid.se/register
+      2. %s, https://eduid.se/profile/%s',
+      _('Hi.'),
+      $this->orgName,
+      _('uses eduID for login into national and international web-services. To be able to use this service you need to connect yoour personal eduID-account to your organisation.'),
+      _('To be able to make this connection, you need to have done the following:'),
+      _('Create a personal identity on eduID.'),
+      _('Verify your identity in eduID.'),
+      "\n");
+    if ($this->forceMFA) {
+      $mail->AltBody .= sprintf('      3. %s, https://eduid.se/profile/%s',
+        _('Add a security key to eduID for safer login.'), "\n");
+    }
+    $mail->AltBody .= sprintf('
+      %s %s?action=showInviteFlow%s
+
+      %s %s
+
+      %s',
+      _('When you have a personal identity in eduID, proceed to this web-page'),
+      $hostURL,
+      _(' enter the follwing code and press the button.'),
+      _('Invitecode:'),
+      $code,
+    _('Welcome'));
+    $mail->Subject  = _('Your invite code for eduID Connect');
 
     try {
       $mail->send();
@@ -267,7 +320,7 @@ class Invites {
     }
   }
 
-  public function updateInviteAttributesById($id, $attributes, $inviteInfo) {
+  public function updateInviteAttributesById($id, $attributes, $inviteInfo, $lang) {
     $invitesHandler = $this->db->prepare('SELECT *  FROM invites WHERE `id` = :Id AND `instance_id` = :Instance');
     $invitesHandler->bindParam(self::SQL_ID, $id);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
@@ -275,21 +328,23 @@ class Invites {
     if ($invitesHandler->fetch(PDO::FETCH_ASSOC)) {
       # session exists in DB
       $updateHandler = $this->db->prepare('UPDATE invites
-        SET `attributes` = :Attributes, `modified` = NOW(), status = 1, `inviteInfo` = :InviteInfo
+        SET `attributes` = :Attributes, `modified` = NOW(), status = 1, `inviteInfo` = :InviteInfo, `lang` = :Lang
         WHERE `id` = :Id AND `instance_id` = :Instance');
       $updateHandler->bindParam(self::SQL_ID, $id);
       $updateHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
       $updateHandler->bindValue(self::SQL_ATTRIBUTES, json_encode($attributes));
       $updateHandler->bindValue(self::SQL_INVITEINFO, json_encode($inviteInfo));
+      $updateHandler->bindValue(self::SQL_LANG, $lang);
       return $updateHandler->execute();
     } else {
       # No id exists, create a new
       $insertHandler = $this->db->prepare('INSERT INTO invites
-        (`instance_id`, `modified`, `attributes`, `status`, `inviteInfo`)
-        VALUES (:Instance, NOW(), :Attributes, 1, :InviteInfo)');
+        (`instance_id`, `modified`, `attributes`, `status`, `inviteInfo`, `lang`)
+        VALUES (:Instance, NOW(), :Attributes, 1, :InviteInfo, :Lang)');
       $insertHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
       $insertHandler->bindValue(self::SQL_ATTRIBUTES, json_encode($attributes));
       $insertHandler->bindValue(self::SQL_INVITEINFO, json_encode($inviteInfo));
+      $insertHandler->bindValue(self::SQL_LANG, $lang);
       if ($insertHandler->execute()) {
         $this->sendNewInviteCode($this->db->lastInsertId());
         return true;

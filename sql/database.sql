@@ -17,6 +17,7 @@ CREATE TABLE `invites` (
   `attributes` text DEFAULT NULL,
   `inviteInfo` text DEFAULT NULL,
   `migrateInfo` text DEFAULT NULL,
+  `lang` varchar(2) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `instance_id` (`instance_id`),
   CONSTRAINT `invites_ibfk_1` FOREIGN KEY (`instance_id`) REFERENCES `instances` (`id`) ON DELETE CASCADE

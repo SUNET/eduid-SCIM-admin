@@ -119,6 +119,7 @@ class Configuration {
       $this->db->query('DELETE FROM `invites`');
       $this->db->query('ALTER TABLE `invites`
         CHANGE `instance` `instance_id` int(10) unsigned NOT NULL,
+        ADD `lang` varchar(2) DEFAULT NULL,
         ADD FOREIGN KEY (`instance_id`)
           REFERENCES `instances` (`id`)
           ON DELETE CASCADE');
@@ -178,6 +179,10 @@ class Configuration {
 
   public function forceMFA() {
     return $this->instance['forceMFA'];
+  }
+
+  public function orgName() {
+    return $this->instance['orgName'];
   }
 
   public function mode() {
