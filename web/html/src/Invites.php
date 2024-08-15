@@ -269,14 +269,14 @@ class Invites {
     }
     $mail->Body .= sprintf('            </ol>
           </div>
-          <p>%s <a href="%s?action=showInviteFlow">%s?action=showInviteFlow</a>%s</p>
+          <p>%s <a href="%s?action=showInviteFlow">%s?action=showInviteFlow</a> %s</p>
           <p>%s <b>%s</b></p>
           <p>%s</p>
         </body>
       </html>',
       _('When you have a personal identity in eduID, proceed to this web-page'),
       $hostURL, $hostURL,
-      _(' enter the follwing code and press the button.'),
+      _('enter the follwing code and press the button.'),
       _('Invitecode:'),
       $code,
       _('Welcome'));
@@ -299,14 +299,14 @@ class Invites {
         _('Add a security key to eduID for safer login.'), "\n");
     }
     $mail->AltBody .= sprintf('
-      %s %s?action=showInviteFlow%s
+      %s %s?action=showInviteFlow %s
 
       %s %s
 
       %s',
       _('When you have a personal identity in eduID, proceed to this web-page'),
       $hostURL,
-      _(' enter the follwing code and press the button.'),
+      _('enter the follwing code and press the button.'),
       _('Invitecode:'),
       $code,
     _('Welcome'));

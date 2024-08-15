@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SCIM 1\n"
 "Report-Msgid-Bugs-To: bjorn@sunet.se\n"
-"POT-Creation-Date: 2024-06-19 00:06+0200\n"
-"PO-Revision-Date: 2024-06-19 00:10+0200\n"
+"POT-Creation-Date: 2024-06-24 11:36+0200\n"
+"PO-Revision-Date: 2024-06-24 11:36+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: sv_SE\n"
@@ -85,8 +85,8 @@ msgstr ""
 "knappen."
 
 #: web/html/index.php:151
-msgid "Start new migration from old IdP"
-msgstr "Påbörja migrering från din gamla IdP"
+msgid "Start onboarding with organisational login"
+msgstr "Påbörja aktivering med organisationsinloggning"
 
 #: web/html/index.php:159 web/html/index.php:191
 msgid "Connect - Onboard"
@@ -117,12 +117,12 @@ msgstr ""
 "organisationens gamla inloggningstjänst."
 
 #: web/html/index.php:183
-msgid "Onboard with Invite-code"
-msgstr "Anslut med inbjudningskod"
+msgid "Onboard with Invite code"
+msgstr "Aktivera med inbjudningskod"
 
 #: web/html/index.php:184
-msgid "Migrate from Old IdP"
-msgstr "Migrera från din gamla IdP"
+msgid "Onboard with organisational login"
+msgstr "Aktivera med organisationsinloggning"
 
 #: web/html/index.php:192
 msgid "You are now onboard :-)"
@@ -137,15 +137,15 @@ msgstr "Connect - Saknad instans"
 msgid "instance['%s'] is missing in config-file. Contact admin"
 msgstr "instance[‘%s’] saknas i config-filen. Kontakta admin"
 
-#: web/html/admin/index.php:61
+#: web/html/admin/index.php:63
 msgid "Account must be at least AL3!"
 msgstr "Kontot måste vara minst AL3!"
 
-#: web/html/admin/index.php:64
+#: web/html/admin/index.php:66
 msgid "Missing eduPersonAssurance in SAML response "
 msgstr "Saknar eduPersonAssurance i SAML svaret "
 
-#: web/html/admin/index.php:89
+#: web/html/admin/index.php:91
 #, php-format
 msgid ""
 "Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a "
@@ -154,39 +154,39 @@ msgstr ""
 "Loggade du in med fel IdP ?<br> Du försöker med  <b>%s</b>.<br>Klicka <a "
 "href=“%s”>här</a> för att logga ut."
 
-#: web/html/admin/index.php:632
+#: web/html/admin/index.php:634
 msgid "Invite Info"
 msgstr "Inbjudningsinformation"
 
-#: web/html/admin/index.php:633
+#: web/html/admin/index.php:635
 msgid "GivenName"
 msgstr "Förnamn"
 
-#: web/html/admin/index.php:634
+#: web/html/admin/index.php:636
 msgid "SirName"
 msgstr "Efternamn"
 
-#: web/html/admin/index.php:635
+#: web/html/admin/index.php:637
 msgid "Invite mail"
 msgstr "Inbjudningsmail"
 
-#: web/html/admin/index.php:636
+#: web/html/admin/index.php:638
 msgid "Social number"
 msgstr "Personnummer"
 
-#: web/html/admin/index.php:637
+#: web/html/admin/index.php:639
 msgid "Language for invite"
 msgstr "Språk för inbjudan"
 
-#: web/html/admin/index.php:637
+#: web/html/admin/index.php:639
 msgid "Swedish"
 msgstr "Svenska"
 
-#: web/html/admin/index.php:638
+#: web/html/admin/index.php:640
 msgid "English"
 msgstr "Engelska"
 
-#: web/html/admin/index.php:671
+#: web/html/admin/index.php:673
 msgid "New code sent to"
 msgstr "Ny kod skickad till"
 
@@ -222,18 +222,18 @@ msgstr "Fel när vi skulle lägga till kontot (Kunde inte uppdatera SCIM:en)"
 
 #: web/html/migrate/index.php:108
 msgid ""
-"Some attributes did not match. Adding your request to queue for manual "
-"approval. Please contact your admin to activate your account."
+"Automatic activation could not be performed. Activation needs to be verified "
+"by an administrator."
 msgstr ""
-"Vissa attribut stämde inte överens. Lägger din begäran för manuell "
-"granskning. Vänligen kontakta din administratör för att aktivera ditt konto."
+"Automatisk aktivering kunde inte genomföras. Aktivering måste granskas av "
+"administratör."
 
-#: web/html/migrate/index.php:114 web/html/user/index.php:20
+#: web/html/migrate/index.php:115 web/html/user/index.php:20
 #: web/html/user/index.php:107
 msgid "eduID Connect Self-service"
 msgstr "eduID Connect självservice"
 
-#: web/html/migrate/index.php:119
+#: web/html/migrate/index.php:120
 msgid "Back"
 msgstr "Backa"
 
@@ -265,7 +265,7 @@ msgid "When you have a personal identity in eduID, proceed to this web-page"
 msgstr "När du har en personlig identitet i eduID går du vidare till webbsidan"
 
 #: web/html/src/Invites.php:279 web/html/src/Invites.php:309
-msgid " enter the follwing code and press the button."
+msgid "enter the follwing code and press the button."
 msgstr ", fyller i nedanstående inbjudningskod och klickar på knappen."
 
 #: web/html/src/Invites.php:280 web/html/src/Invites.php:310
@@ -368,6 +368,23 @@ msgstr ""
 #: web/html/user/index.php:108
 msgid "Did not get any ePPN from IdP!"
 msgstr "Fick inget ePPN från IdP:n!"
+
+#~ msgid " enter the follwing code and press the button."
+#~ msgstr ", fyller i nedanstående inbjudningskod och klickar på knappen."
+
+#~ msgid ""
+#~ "Some attributes did not match. Adding your request to queue for manual "
+#~ "approval. Please contact your admin to activate your account."
+#~ msgstr ""
+#~ "Vissa attribut stämde inte överens. Lägger din begäran för manuell "
+#~ "granskning. Vänligen kontakta din administratör för att aktivera ditt "
+#~ "konto."
+
+#~ msgid "Start new migration from old IdP"
+#~ msgstr "Påbörja migrering från din gamla IdP"
+
+#~ msgid "Migrate from Old IdP"
+#~ msgstr "Migrera från din gamla IdP"
 
 #~ msgid ""
 #~ "You've started the migration from the old login service to the eduID "

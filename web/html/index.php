@@ -148,7 +148,7 @@ function showMigrateFlow() {
           <a class="btn btn-primary" href="?action=startMigrate">%s</a>
         </div>%s',
       _('When you have a personal identity in eduID, proceed by click the button.'),
-      _('Start new migration from old IdP'),
+      _('Start onboarding with organisational login'),
       "\n");
   }
   $html->showFooter(false);
@@ -180,8 +180,8 @@ function showStartPage() {
         <div class="buttons"><a class="btn btn-primary" href="?action=showInviteFlow">%s</a></div>
         <div class="buttons"><a class="btn btn-primary" href="?action=showMigrateFlow">%s</a></div>%s',
     _('When you have completed the above steps, proceed and click one of the buttons below. If you have received an invitation code via email from an administrator, use that option; otherwise, use login via the organisation\’s old login service.'),
-    _('Onboard with Invite-code'),
-    _("Migrate from Old IdP"),
+    _('Onboard with Invite code'),
+    _("Onboard with organisational login"),
     "\n");
   $html->showFooter(false);
 }

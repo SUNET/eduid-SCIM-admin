@@ -105,7 +105,7 @@ function migrate($migrateInfo, $attributes, $id) {
 function move2Manual($id,$migrateInfo) {
   global $invites;
   $invites->move2Manual($id,json_encode($migrateInfo));
-  showError(_('Some attributes did not match. Adding your request to queue for manual approval. Please contact your admin to activate your account.'));
+  showError(_('Automatic activation could not be performed. Activation needs to be verified by an administrator.'));
 }
 
 function showError($error, $exit = true) {

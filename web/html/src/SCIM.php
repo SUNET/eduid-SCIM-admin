@@ -63,7 +63,7 @@ class SCIM {
     }
   }
 
-  private function getToken() {
+  private function getToken($first = true) {
     $access = new \stdClass();
     $access->scope = $this->scope;
     $access->type = 'scim-api';
@@ -114,15 +114,18 @@ class SCIM {
           $tokenHandler->execute();
           $this->token = $tokenValue;
           break;
-        case 404 :
-          $result = json_decode($response);
-          if ($result->detail == 'User not found') {
-            return 'User didn\'t exists';
-          } else {
-            print_r($result);
-            exit;
-          }
-          break;
+          case 503 :
+            if ($first) {
+              sleep(3);
+              return $this->getToken(false);
+            } else {
+              print "Got 503!";
+              print "<pre>";
+              print_r($info);
+              print "</pre>";
+              exit;
+            }
+            break;
         default:
           print "<pre>";
           print_r($info);
@@ -186,7 +189,21 @@ class SCIM {
           case 200 :
           case 201 :
             return $response;
+            break;
+          case 503 :
+            if ($first) {
+              sleep(3);
+              return $this->request($method, $part, $data, $extraHeaders, false);
+            } else {
+              print "Got 503!";
+              print "<pre>";
+              print_r($info);
+              print "</pre>";
+              exit;
+            }
+            break;
           default:
+            print "Kalle";
             print "<pre>";
             print_r($info);
             print "</pre>";
@@ -330,7 +347,7 @@ class SCIM {
       array("options"=>array("regexp"=>"/^[a-z,0-9]{8}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{12}$/")));
   }
 
-  public function migrate ($migrateInfo, $attributes) {
+  public function migrate($migrateInfo, $attributes) {
     $migrateInfo = json_decode($migrateInfo);
     $attributes = json_decode($attributes);
 

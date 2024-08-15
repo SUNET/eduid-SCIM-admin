@@ -71,7 +71,7 @@ function showFatalProfileException() {
     global $errorURL;?>
     <h1>Unusable Identity Provider</h1>
     <p>The identity provider supplying your login credentials does not support the necessary capabilities.</p>
-    <p>To report this problem, please contact the IdP administrator. <?=htmlspecialchars($errorURL)?><br>
+    <p>To report this problem, please contact the IdP administrator. <?=$errorURL?><br>
     If your are the IdP administrator you can reach out to
     <a href="mailto:noc@sunet.se">noc@sunet.se</a>.
     </p>
