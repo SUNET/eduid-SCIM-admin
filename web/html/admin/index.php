@@ -88,10 +88,11 @@ if ($errors != '') {
       <div class="col">%s        <b>Errors:</b><br>%s        %s%s      </div>%s    </div>%s',
     "\n", "\n", "\n", str_ireplace("\n", "<br>", $errors), "\n", "\n","\n");
   printf('    <div class="row alert alert-info" role="info">%s      <div class="col">
-        ' . _('Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a href="https://%s/Shibboleth.sso/Logout?return=https://%s%s">here</a> to logout.') .'
+        ' . _('Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a href="%s">here</a> to logout.') .'
       </div>%s    </div>%s',
     "\n", $_SERVER['Shib-Identity-Provider'],
-    $_SERVER['SERVER_NAME'], $_SERVER['SERVER_NAME'], $_SERVER['REQUEST_URI'], "\n", "\n");
+    'https://' . $_SERVER['SERVER_NAME'] . '/Shibboleth.sso/Logout?return=https://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'],
+    "\n", "\n");
   $html->showFooter(false);
   exit;
 }
@@ -335,13 +336,13 @@ function editUser($id) {
   printf('            </tbody>
           </table>
           <div class="buttons">
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn btn-primary">%s</button>
           </div>
         </form>
         <div class="buttons">
-          <a href="?action=listUsers&id=%s"><button class="btn btn-secondary">Cancel</button></a>
+          <a href="?action=listUsers&id=%s"><button class="btn btn-secondary">%s</button></a>
         </div>%s',
-    htmlspecialchars($id), "\n");
+    _('Submit'), htmlspecialchars($id), _('Cancel'), "\n");
   if (isset($_GET['debug'])) {
     print "<pre>";
     print_r($userArray);
@@ -524,7 +525,7 @@ function listInvites($id = 0, $hidden = false) {
   foreach ($invites->getInvitesList() as $invite) {
     if ($invite['status'] != $oldStatus) {
       printf('            <tr><td colspan="3"><b>%s</b></td></tr>%s',
-        $invite['status'] == 1 ? 'Waiting for onboarding' : 'Waiting for approval', "\n");
+        $invite['status'] == 1 ? _('Waiting for onboarding') : _('Waiting for approval'), "\n");
       $oldStatus = $invite['status'];
     }
     showInvite($invite, $id);
@@ -549,16 +550,20 @@ function showInvite($invite, $id) {
     printf('            <tr class="content" style="display: %s;">
                 <td>
                   <a a href="?action=editInvite&id=%s">
-                    <button class="btn btn-primary btn-sm">edit invite</button>
+                    <button class="btn btn-primary btn-sm">%s</button>
                   </a><br>
                   <a a href="?action=resendInvite&id=%s">
-                    <button class="btn btn-primary btn-sm">resend invite</button>
+                    <button class="btn btn-primary btn-sm">%s</button>
                   </a><br>
                   <a a href="?action=deleteInvite&id=%s">
-                    <button class="btn btn-primary btn-sm">delete invite</button>
+                    <button class="btn btn-primary btn-sm">%s</button>
                   </a>
                 </td>
-                <td>Attributes : <ul>%s', $id == $invite['id'] ? 'table-row' : 'none', $invite['id'], $invite['id'], $invite['id'], "\n");
+                <td>Attributes : <ul>%s',
+        $id == $invite['id'] ? 'table-row' : 'none',
+        $invite['id'], _('Edit'),
+        $invite['id'], _('Resend'),
+        $invite['id'], _('Delete'), "\n");
     foreach(json_decode($invite['attributes']) as $key => $value) {
       $value = is_array($value) ? implode(", ", $value) : $value;
       printf (LI_ITEM, $key, $value, "\n");
@@ -573,10 +578,10 @@ function showInvite($invite, $id) {
     printf('            <tr class="content" style="display: %s;">
               <td>
                 <a a href="?action=approveInvite&id=%s">
-                  <button class="btn btn-primary btn-sm">approve invite</button>
+                  <button class="btn btn-primary btn-sm">%s</button>
                 </a><br>
                 <a a href="?action=editInvite&id=%s">
-                    <button class="btn btn-primary btn-sm">edit invite</button>
+                    <button class="btn btn-primary btn-sm">%s</button>
                 </a>
               </td>
               <td colspan="2">
@@ -608,8 +613,8 @@ function showInvite($invite, $id) {
               </td>
             </tr>%s',
       $id == $invite['id'] ? 'table-row' : 'none',
-      $invite['id'],
-      $invite['id'],
+      $invite['id'], _('Approve'),
+      $invite['id'], _('Edit'),
       $inviteInfo->personNIN,
       $migrateInfo->norEduPersonNIN == '' ? $migrateInfo->schacDateOfBirth: $migrateInfo->norEduPersonNIN,
       $inviteInfo->givenName, $migrateInfo->givenName,
@@ -668,15 +673,16 @@ function editInvite($id) {
       }
     }
   }
-  printf('            </tbody>%s          </table>
+  printf('            </tbody>
+          </table>
           <div class="buttons">
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn btn-primary">%s</button>
           </div>
         </form>
         <div class="buttons">
-          <a href="?action=listInvites&id=%s"><button class="btn btn-secondary">Cancel</button></a>
+          <a href="?action=listInvites&id=%s"><button class="btn btn-secondary">%s</button></a>
         </div>%s',
-    "\n", htmlspecialchars($id), "\n", "\n");
+    _('Submit'), htmlspecialchars($id), _('Cancel'), "\n");
 }
 
 function resendInvite($id) {
@@ -750,14 +756,15 @@ function deleteInvite($id)  {
       isset($inviteInfo->mail) ? $inviteInfo->mail : '',
       isset($inviteInfo->personNIN) ? $inviteInfo->personNIN : '',
       "\n");
-  printf('            </tbody>%s          </table>
-      <div class="buttons">
-        <button type="submit" class="btn btn-primary">Delete</button>
-      </div>
-    </form>
-    <div class="buttons">
-      <a href="?action=listInvites&id=%s"><button class="btn btn-secondary">Cancel</button></a>
-    </div>%s',
-    "\n", htmlspecialchars($id), "\n", "\n");
+  printf('            </tbody>
+          </table>
+          <div class="buttons">
+            <button type="submit" class="btn btn-primary">%s</button>
+          </div>
+        </form>
+        <div class="buttons">
+          <a href="?action=listInvites&id=%s"><button class="btn btn-secondary">%s</button></a>
+        </div>%s',
+    _('Delete'), htmlspecialchars($id), _('Cancel'), "\n");
 }
 

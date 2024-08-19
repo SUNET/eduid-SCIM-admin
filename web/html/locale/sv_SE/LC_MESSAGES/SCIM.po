@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SCIM 1\n"
 "Report-Msgid-Bugs-To: bjorn@sunet.se\n"
-"POT-Creation-Date: 2024-06-24 11:36+0200\n"
-"PO-Revision-Date: 2024-06-24 11:36+0200\n"
+"POT-Creation-Date: 2024-08-19 13:48+0200\n"
+"PO-Revision-Date: 2024-08-19 13:48+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: sv_SE\n"
@@ -27,7 +27,7 @@ msgid "Connect - Activate"
 msgstr "Connect - Aktivera"
 
 #: web/html/index.php:78 web/html/index.php:135 web/html/index.php:168
-#: web/html/src/Invites.php:262 web/html/src/Invites.php:293
+#: web/html/src/Invites.php:274 web/html/src/Invites.php:305
 msgid ""
 "To be able to make this connection, you need to have done the following:"
 msgstr ""
@@ -35,17 +35,17 @@ msgstr ""
 "inte redan gjort det:"
 
 #: web/html/index.php:79 web/html/index.php:136 web/html/index.php:169
-#: web/html/src/Invites.php:263 web/html/src/Invites.php:294
+#: web/html/src/Invites.php:275 web/html/src/Invites.php:306
 msgid "Create a personal identity on eduID."
 msgstr "Skapa en personlig identitet på eduID."
 
 #: web/html/index.php:80 web/html/index.php:137 web/html/index.php:170
-#: web/html/src/Invites.php:264 web/html/src/Invites.php:295
+#: web/html/src/Invites.php:276 web/html/src/Invites.php:307
 msgid "Verify your identity in eduID."
 msgstr "Verifiera din identitet i eduID."
 
 #: web/html/index.php:84 web/html/index.php:141 web/html/index.php:174
-#: web/html/src/Invites.php:268 web/html/src/Invites.php:299
+#: web/html/src/Invites.php:280 web/html/src/Invites.php:311
 msgid "Add a security key to eduID for safer login."
 msgstr "Lägg till en säkerhetsnyckel i eduID för säkrare inloggning."
 
@@ -154,73 +154,114 @@ msgstr ""
 "Loggade du in med fel IdP ?<br> Du försöker med  <b>%s</b>.<br>Klicka <a "
 "href=“%s”>här</a> för att logga ut."
 
-#: web/html/admin/index.php:634
+#: web/html/admin/index.php:345 web/html/admin/index.php:685
+msgid "Submit"
+msgstr "Skicka"
+
+#: web/html/admin/index.php:345 web/html/admin/index.php:685
+#: web/html/admin/index.php:768
+msgid "Cancel"
+msgstr "Ångra"
+
+#: web/html/admin/index.php:528
+msgid "Waiting for onboarding"
+msgstr "Väntar på aktivering"
+
+#: web/html/admin/index.php:528
+msgid "Waiting for approval"
+msgstr "Väntar på godkännande"
+
+#: web/html/admin/index.php:564 web/html/admin/index.php:617
+msgid "Edit"
+msgstr "Redigera"
+
+#: web/html/admin/index.php:565
+msgid "Resend"
+msgstr "Skicka om"
+
+#: web/html/admin/index.php:566 web/html/admin/index.php:768
+msgid "Delete"
+msgstr "Radera"
+
+#: web/html/admin/index.php:616
+msgid "Approve"
+msgstr "Godkänn"
+
+#: web/html/admin/index.php:636
+msgid ""
+"You are editing an invite waiting for approval. If you submit it will be "
+"converted back to waiting for onboarding!"
+msgstr ""
+"Du redigerar en inbjudan som väntar på godkännande. Om du skickar kommer "
+"denna att bli konverterad till väntar på aktivering!"
+
+#: web/html/admin/index.php:654
 msgid "Invite Info"
 msgstr "Inbjudningsinformation"
 
-#: web/html/admin/index.php:635
+#: web/html/admin/index.php:655
 msgid "GivenName"
 msgstr "Förnamn"
 
-#: web/html/admin/index.php:636
+#: web/html/admin/index.php:656
 msgid "SirName"
 msgstr "Efternamn"
 
-#: web/html/admin/index.php:637
+#: web/html/admin/index.php:657
 msgid "Invite mail"
 msgstr "Inbjudningsmail"
 
-#: web/html/admin/index.php:638
+#: web/html/admin/index.php:658
 msgid "Social number"
 msgstr "Personnummer"
 
-#: web/html/admin/index.php:639
+#: web/html/admin/index.php:659
 msgid "Language for invite"
 msgstr "Språk för inbjudan"
 
-#: web/html/admin/index.php:639
+#: web/html/admin/index.php:659
 msgid "Swedish"
 msgstr "Svenska"
 
-#: web/html/admin/index.php:640
+#: web/html/admin/index.php:660
 msgid "English"
 msgstr "Engelska"
 
-#: web/html/admin/index.php:673
+#: web/html/admin/index.php:694
 msgid "New code sent to"
 msgstr "Ny kod skickad till"
 
-#: web/html/migrate/index.php:25
+#: web/html/migrate/index.php:26
 #, php-format
 msgid "%s have already have an account."
 msgstr "%s har redan ett konto."
 
-#: web/html/migrate/index.php:27
+#: web/html/migrate/index.php:29
 #, php-format
 msgid ""
-"%s have already have an invite, please ask your admin for a resend of invite-"
-"code."
+"%s already have an invite waiting for approval, please ask your admin for "
+"approval."
 msgstr ""
-"%s har redan en inbjudan, vänligen kontakta din administratör och be om en "
-"omsändning av inbjudningskoden."
+"%s har redan en inbjudan som väntar på godkännande, vänligen kontakta din "
+"administratör och be denna att godkänna dig."
 
-#: web/html/migrate/index.php:52
+#: web/html/migrate/index.php:61
 msgid "Error while migrating"
 msgstr "Fel vid migreringen"
 
-#: web/html/migrate/index.php:84
+#: web/html/migrate/index.php:93
 msgid "Account needs to be at verified."
 msgstr "Kontot måste verifierat."
 
-#: web/html/migrate/index.php:87
+#: web/html/migrate/index.php:96
 msgid "Error while adding account (Got no ePPN or wrong IdP)"
 msgstr "Fel när vi skulle lägga till kontot (Saknar ePPN eller felaktig IdP)"
 
-#: web/html/migrate/index.php:101
+#: web/html/migrate/index.php:110
 msgid "Error while adding account (Could not update SCIM)"
 msgstr "Fel när vi skulle lägga till kontot (Kunde inte uppdatera SCIM:en)"
 
-#: web/html/migrate/index.php:108
+#: web/html/migrate/index.php:117
 msgid ""
 "Automatic activation could not be performed. Activation needs to be verified "
 "by an administrator."
@@ -228,28 +269,28 @@ msgstr ""
 "Automatisk aktivering kunde inte genomföras. Aktivering måste granskas av "
 "administratör."
 
-#: web/html/migrate/index.php:115 web/html/user/index.php:20
+#: web/html/migrate/index.php:123 web/html/user/index.php:20
 #: web/html/user/index.php:107
 msgid "eduID Connect Self-service"
 msgstr "eduID Connect självservice"
 
-#: web/html/migrate/index.php:120
+#: web/html/migrate/index.php:128
 msgid "Back"
 msgstr "Backa"
 
-#: web/html/src/HTML.php:42
+#: web/html/src/HTML.php:17
 msgid "Activate your organisation identity in eduID"
 msgstr "Aktivera din organisationsidentitet i eduID"
 
-#: web/html/src/Invites.php:243
+#: web/html/src/Invites.php:255
 msgid "Connect - Admin"
 msgstr "Connect - Admin"
 
-#: web/html/src/Invites.php:259 web/html/src/Invites.php:290
+#: web/html/src/Invites.php:271 web/html/src/Invites.php:302
 msgid "Hi."
 msgstr "Hej."
 
-#: web/html/src/Invites.php:261
+#: web/html/src/Invites.php:273
 msgid ""
 "uses eduID for login into national and international web-services. To be "
 "able to use this service you need to connect your personal eduID-account to "
@@ -260,23 +301,23 @@ msgstr ""
 "eduID-identitet till din organisation. Detta gör du genom att följa "
 "instruktionerna nedan."
 
-#: web/html/src/Invites.php:277 web/html/src/Invites.php:307
+#: web/html/src/Invites.php:289 web/html/src/Invites.php:319
 msgid "When you have a personal identity in eduID, proceed to this web-page"
 msgstr "När du har en personlig identitet i eduID går du vidare till webbsidan"
 
-#: web/html/src/Invites.php:279 web/html/src/Invites.php:309
+#: web/html/src/Invites.php:291 web/html/src/Invites.php:321
 msgid "enter the follwing code and press the button."
 msgstr ", fyller i nedanstående inbjudningskod och klickar på knappen."
 
-#: web/html/src/Invites.php:280 web/html/src/Invites.php:310
+#: web/html/src/Invites.php:292 web/html/src/Invites.php:322
 msgid "Invitecode:"
 msgstr "Inbjudningskod:"
 
-#: web/html/src/Invites.php:282 web/html/src/Invites.php:312
+#: web/html/src/Invites.php:294 web/html/src/Invites.php:324
 msgid "Welcome"
 msgstr "Välkommen"
 
-#: web/html/src/Invites.php:292
+#: web/html/src/Invites.php:304
 msgid ""
 "uses eduID for login into national and international web-services. To be "
 "able to use this service you need to connect yoour personal eduID-account to "
@@ -287,7 +328,7 @@ msgstr ""
 "eduID-identitet till din organisation. Detta gör du genom att följa "
 "instruktionerna nedan."
 
-#: web/html/src/Invites.php:313
+#: web/html/src/Invites.php:325
 msgid "Your invite code for eduID Connect"
 msgstr "Din inbjudningskod till eduID Connect"
 
@@ -368,6 +409,9 @@ msgstr ""
 #: web/html/user/index.php:108
 msgid "Did not get any ePPN from IdP!"
 msgstr "Fick inget ePPN från IdP:n!"
+
+#~ msgid "Edit invite"
+#~ msgstr "Redigera invite"
 
 #~ msgid " enter the follwing code and press the button."
 #~ msgstr ", fyller i nedanstående inbjudningskod och klickar på knappen."
