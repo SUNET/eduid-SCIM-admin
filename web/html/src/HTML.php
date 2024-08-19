@@ -7,12 +7,14 @@ class HTML {
   private $extraURL  = '';
   private $mode  = '';
   private $scope = '';
+  private $tagLine = '';
 
-  public function __construct($mode='Prod') {
+  public function __construct($mode='Prod', $tagLine = '') {
     $this->displayName = '';
     $this->extraURL = '';
     $this->mode = $mode;
     $this->scope = str_replace('/','',$_SERVER['CONTEXT_PREFIX']);
+    $this->tagLine = $tagLine == '' ? _('Activate your organisation identity in eduID') : $tagLine;
   }
 
   ###
@@ -39,7 +41,7 @@ class HTML {
         <div><?=$this->displayName?></div>
       </header>
       <div class="horizontal-content-margin">
-        <h1 class="tagline"><?= _('Activate your organisation identity in eduID')?></h1>
+        <h1 class="tagline"><?= $this->tagLine?></h1>
       </div>
     </section>
 

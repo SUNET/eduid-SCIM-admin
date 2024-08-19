@@ -6,7 +6,7 @@ require_once '../vendor/autoload.php';
 
 $config = new scimAdmin\Configuration();
 
-$html = new scimAdmin\HTML($config->mode());
+$html = new scimAdmin\HTML($config->mode(), 'Admin of your organisations identities.');
 
 $scim = new scimAdmin\SCIM();
 
@@ -88,10 +88,10 @@ if ($errors != '') {
       <div class="col">%s        <b>Errors:</b><br>%s        %s%s      </div>%s    </div>%s',
     "\n", "\n", "\n", str_ireplace("\n", "<br>", $errors), "\n", "\n","\n");
   printf('    <div class="row alert alert-info" role="info">%s      <div class="col">
-        ' . _('Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a href="%s">here</a> to logout.') .'
+        ' . _('Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a href="https://%s/Shibboleth.sso/Logout?return=https://%s%s">here</a> to logout.') .'
       </div>%s    </div>%s',
-     "\n", $_SERVER['Shib-Identity-Provider'],
-     'https://'. $_SERVER['SERVER_NAME'] . '/Shibboleth.sso/Logout', "\n", "\n");
+    "\n", $_SERVER['Shib-Identity-Provider'],
+    $_SERVER['SERVER_NAME'], $_SERVER['SERVER_NAME'], $_SERVER['REQUEST_URI'], "\n", "\n");
   $html->showFooter(false);
   exit;
 }
@@ -510,7 +510,7 @@ function showMenu($show = 1) {
   print "\n        <br>\n        <br>\n";
 }
 
-function listInvites ($id = 0, $hidden = false) {
+function listInvites($id = 0, $hidden = false) {
   global $invites;
   printf('        <table id="list-invites-table" class="table table-striped table-bordered list-invites"%s>
           <thead>
@@ -520,7 +520,13 @@ function listInvites ($id = 0, $hidden = false) {
             <tr><td colspan="3">
               <a a href="?action=addInvite"><button class="btn btn-primary btn-sm">Add Invite</button></a>
             </td></tr>%s', $hidden ? ' hidden' : '', "\n");
+  $oldStatus = 0;
   foreach ($invites->getInvitesList() as $invite) {
+    if ($invite['status'] != $oldStatus) {
+      printf('            <tr><td colspan="3"><b>%s</b></td></tr>%s',
+        $invite['status'] == 1 ? 'Waiting for onboarding' : 'Waiting for approval', "\n");
+      $oldStatus = $invite['status'];
+    }
     showInvite($invite, $id);
   }
   printf('          </tbody>%s       </table>%s', "\n", "\n");
@@ -565,8 +571,13 @@ function showInvite($invite, $id) {
     printf('              </ul></td>%s            </tr>%s', "\n", "\n");
   } else {
     printf('            <tr class="content" style="display: %s;">
-              <td><a a href="?action=approveInvite&id=%s">
-                <button class="btn btn-primary btn-sm">approve invite</button></a>
+              <td>
+                <a a href="?action=approveInvite&id=%s">
+                  <button class="btn btn-primary btn-sm">approve invite</button>
+                </a><br>
+                <a a href="?action=editInvite&id=%s">
+                    <button class="btn btn-primary btn-sm">edit invite</button>
+                </a>
               </td>
               <td colspan="2">
                 <div class="row">
@@ -598,6 +609,7 @@ function showInvite($invite, $id) {
             </tr>%s',
       $id == $invite['id'] ? 'table-row' : 'none',
       $invite['id'],
+      $invite['id'],
       $inviteInfo->personNIN,
       $migrateInfo->norEduPersonNIN == '' ? $migrateInfo->schacDateOfBirth: $migrateInfo->norEduPersonNIN,
       $inviteInfo->givenName, $migrateInfo->givenName,
@@ -614,6 +626,9 @@ function editInvite($id) {
     $invite = $invites->getInvite($id);
   } else {
     $invite = array ('inviteInfo' => '{}', 'attributes' => '{}', 'lang' => '');
+  }
+  if ($invite['status'] == 2) {
+    printf('        <div class="row alert alert-danger">%s</div>%s', _('You are editing an invite waiting for approval. If you submit it will be converted back to waiting for onboarding!'), "\n");
   }
   $inviteInfo = json_decode($invite['inviteInfo']);
   printf('        <form method="POST">

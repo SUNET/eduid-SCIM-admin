@@ -11,7 +11,7 @@ class Configuration {
   private $scim = false;
   private $smtp = false;
   private $mode = 'Lab';
-  private $db = false;
+  private $db;
   private $orgName = '';
   private $dbInstanceId = 0;
 

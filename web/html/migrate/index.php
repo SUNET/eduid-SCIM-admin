@@ -16,6 +16,7 @@ $localize = new scimAdmin\Localize();
 $sessionID = $_COOKIE['PHPSESSID'];
 
 if (isset($_GET['source'])) {
+  $inviteExist = false;
   $html->setExtraURLPart('&source');
   if ($attributes = $invites->checkSourceData()) {
     $inviteInfo = $invites->getUserDataFromIdP();
@@ -23,28 +24,36 @@ if (isset($_GET['source'])) {
     if (isset($inviteInfo['eduPersonPrincipalName'])) {
       if ($scim->ePPNexists($inviteInfo['eduPersonPrincipalName'])) {
         showError(sprintf(_('%s have already have an account.'), $inviteInfo['eduPersonPrincipalName']));
-      } elseif ($invites->ePPNexists($inviteInfo['eduPersonPrincipalName'])) {
-        showError(sprintf(_('%s have already have an invite, please ask your admin for a resend of invite-code.'), $inviteInfo['eduPersonPrincipalName']));
+      } elseif ($status = $invites->ePPNexists($inviteInfo['eduPersonPrincipalName'])) {
+        if ($status == 2) {
+          showError(sprintf(_('%s already have an invite waiting for approval, please ask your admin for approval.'), $inviteInfo['eduPersonPrincipalName']));
+        } else {
+          $inviteExist = true;
+        }
       }
     }
-    $attributes2Remove = array(
-      'eduPersonPrincipalName', 'mailLocalAddress', 'norEduPersonNIN', 'schacDateOfBirth', 'eduPersonAssurance');
-    #Remove unused parts and restructure
-    if (strstr($inviteInfo['eduPersonAssurance'], SWAMID_AL2)) {
-      # The info we got is on AL2 level
-      $inviteInfo['personNIN'] = $inviteInfo['norEduPersonNIN'] = ''
-        ? $inviteInfo['schacDateOfBirth'] : $inviteInfo['norEduPersonNIN'];
+    if ($inviteExist) {
+      $invites->updateInviteSession($sessionID);
     } else {
-      #Don't add full trust to attributes
-      $inviteInfo['personNIN'] = '';
-    }
-
-    foreach ( $attributes2Remove as $part) {
-      if (isset($inviteInfo[$part])) {
-        unset($inviteInfo[$part]);
+      $attributes2Remove = array(
+        'eduPersonPrincipalName', 'mailLocalAddress', 'norEduPersonNIN', 'schacDateOfBirth', 'eduPersonAssurance');
+      #Remove unused parts and restructure
+      if (strstr($inviteInfo['eduPersonAssurance'], SWAMID_AL2)) {
+        # The info we got is on AL2 level
+        $inviteInfo['personNIN'] = $inviteInfo['norEduPersonNIN'] = ''
+          ? $inviteInfo['schacDateOfBirth'] : $inviteInfo['norEduPersonNIN'];
+      } else {
+        #Don't add full trust to attributes
+        $inviteInfo['personNIN'] = '';
       }
+
+      foreach ( $attributes2Remove as $part) {
+        if (isset($inviteInfo[$part])) {
+          unset($inviteInfo[$part]);
+        }
+      }
+      $invites->updateInviteAttributes($sessionID, $attributes, $inviteInfo);
     }
-    $invites->updateInviteAttributes($sessionID, $attributes, $inviteInfo);
     $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
     $redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=showMigrateFlow';
     header('Location: ' . $redirectURL);

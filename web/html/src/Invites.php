@@ -7,9 +7,10 @@ class Invites {
   private $scope = '';
   private $sourceIdP = '';
   private $backendIdP = '';
-  private $attributes2migrate = '';
+  private $attributes2migrate = array();
   private $forceMFA = false;
   private $orgName = '';
+  private $ePPN_id = 0;
 
   private $smtpHost = '';
   private $saslUser = '';
@@ -97,7 +98,7 @@ class Invites {
 
   public function startMigrateFromSourceIdP() {
     $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
-    $redirectURL = sprintf('%s/Shibboleth.sso/Login?entityID=%s&target=%s',
+    $redirectURL = sprintf('%s/Shibboleth.sso/Login?entityID=%s&target=%s&forceAuthn=true',
       $hostURL, $this->sourceIdP, urlencode($hostURL . '/' . $this->scope . '/migrate/?source'));
     header('Location: ' . $redirectURL);
   }
@@ -163,14 +164,15 @@ class Invites {
 
   public function ePPNexists($eduPersonPrincipalName) {
     $inviteHandler = $this->db->prepare(
-      'SELECT `attributes`
+      'SELECT `id`, `status`, `attributes`
       FROM `invites`
       WHERE `instance_id` = :Instance');
     $inviteHandler->execute(array(self::SQL_INSTANCE => $this->dbInstanceId));
     while ($invite = $inviteHandler->fetch(PDO::FETCH_ASSOC)) {
       $json = json_decode($invite['attributes']);
       if (isset($json->eduPersonPrincipalName) && $json->eduPersonPrincipalName == $eduPersonPrincipalName) {
-        return true;
+        $this->ePPN_id = $invite['id'];
+        return $invite['status'];
       }
     }
     return false;
@@ -202,6 +204,16 @@ class Invites {
       $insertHandler->bindValue(self::SQL_INVITEINFO, json_encode($inviteInfo));
       return $insertHandler->execute();
     }
+  }
+
+  public function updateInviteSession($session) {
+    $updateHandler = $this->db->prepare('UPDATE invites
+      SET `modified` = NOW(),  `session` = :Session
+      WHERE `id`= :Id AND status = 1 AND `instance_id` = :Instance');
+    $updateHandler->bindParam(self::SQL_SESSION, $session);
+    $updateHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
+    $updateHandler->bindValue(self::SQL_ID, $this->ePPN_id);
+    return $updateHandler->execute();
   }
 
   public function sendNewInviteCode($id) {
