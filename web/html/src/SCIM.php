@@ -11,7 +11,7 @@ class SCIM {
   private $certFile = '';
   private $keyFile = '';
   private $apiURL = '';
-  private $attributes2migrate = '';
+  private $attributes2migrate = array();
   private $allowedScopes = '';
   private $possibleAffiliations = '';
   private $adminUsers = array();
@@ -396,6 +396,19 @@ class SCIM {
     $userArray->name->givenName = $migrateInfo->givenName;
     $userArray->name->familyName = $migrateInfo->sn;
     $userArray->name->formatted = $migrateInfo->givenName . ' ' . $migrateInfo->sn;
+
+    $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN');
+    $addUserHandler = $this->db->prepare('INSERT INTO `users` (`instance_id`, `ePPN`) VALUES (:Instance, :EPPN)');
+    $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
+    $addUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
+    if (isset($attributes->eduPersonPrincipalName)) {
+      $checkUserHandler->bindValue(self::SQL_EPPN, $attributes->eduPersonPrincipalName);
+      $checkUserHandler->execute();
+      if (! $checkUserHandler->fetch()) {
+        $addUserHandler->bindValue(self::SQL_EPPN, $attributes->eduPersonPrincipalName);
+        $addUserHandler->execute();
+      }
+    }
 
     return $this->updateId($id,json_encode($userArray),$version);
   }
