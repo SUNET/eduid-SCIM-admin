@@ -12,7 +12,7 @@ class SCIM {
   private $keyFile = '';
   private $apiURL = '';
   private $attributes2migrate = array();
-  private $allowedScopes = '';
+  private $allowedScopes = array();
   private $possibleAffiliations = '';
   private $adminUsers = array();
   private $adminAccess = 0;
@@ -326,8 +326,34 @@ class SCIM {
     return $this->allowedScopes;
   }
 
+  public function validScope($string) {
+    $stringA = explode('@', $string, 2);
+    if (count($stringA) > 1 && in_array($stringA[1], $this->allowedScopes)) {
+      return true;
+    }
+    return false;
+  }
+
   public function getPossibleAffiliations() {
     return $this->possibleAffiliations;
+  }
+
+  public function expandePSA($ePSA) {
+    do {
+      $added = false;
+      foreach ($ePSA as $affiliation) {
+        $affiliationArray = explode('@', $affiliation);
+        $checkedAffiliation = $affiliationArray[0];
+        $checkedScope = '@' . $affiliationArray[1];
+        if ($this->possibleAffiliations[$checkedAffiliation] <> '' &&
+          ! in_array($this->possibleAffiliations[$checkedAffiliation].$checkedScope, $ePSA)) {
+          # Add dependent affiliation
+          $added = true;
+          $ePSA[] = $this->possibleAffiliations[$checkedAffiliation].$checkedScope;
+        }
+      }
+    } while ($added);
+    return $ePSA;
   }
 
   public function checkAccess($adminUser) {

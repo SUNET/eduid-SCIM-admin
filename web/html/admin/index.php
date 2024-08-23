@@ -441,7 +441,7 @@ function saveUser($id) {
 
     foreach ($_POST['saml'] as $key => $value) {
       $value = $key == 'eduPersonScopedAffiliation' ?
-        parseEduPersonScopedAffiliation($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations()) :
+        parseEduPersonScopedAffiliation($value) :
         $value;
       if ($value == '') {
         if (isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->$key)) {
@@ -480,30 +480,16 @@ function showEduPersonScopedAffiliationInput($values, $allowedScopes, $possibleA
   printf ('              </td></tr>%s', "\n");
 }
 
-function parseEduPersonScopedAffiliation($value, $allowedScopes, $possibleAffiliations) {
+function parseEduPersonScopedAffiliation($value) {
+  global $scim;
   $returnArray = array();
   foreach ($value as $affiliation => $on) {
     $affiliationArray = explode('@', $affiliation);
-    if (in_array($affiliationArray[1], $allowedScopes)) {
+    if (in_array($affiliationArray[1], $scim->getAllowedScopes())) {
       $returnArray[] = $affiliation;
     }
   }
-
-  do {
-    $added = false;
-    foreach ($returnArray as $affiliation) {
-      $affiliationArray = explode('@', $affiliation);
-      $checkedAffiliation = $affiliationArray[0];
-      $checkedScope = '@' . $affiliationArray[1];
-      if ($possibleAffiliations[$checkedAffiliation] <> '' &&
-        ! in_array($possibleAffiliations[$checkedAffiliation].$checkedScope, $returnArray)) {
-        # Add dependent affiliation
-        $added = true;
-        $returnArray[] = $possibleAffiliations[$checkedAffiliation].$checkedScope;
-      }
-    }
-  } while ($added);
-  return $returnArray;
+  return $scim->expandePSA($returnArray);
 }
 
 function showMenu($show = 1) {
@@ -726,7 +712,7 @@ function saveInvite($id) {
   if (isset($_POST['saml'])) {
     foreach ($_POST['saml'] as $key => $value) {
       $value = $key == 'eduPersonScopedAffiliation' ?
-        parseEduPersonScopedAffiliation($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations()) :
+        parseEduPersonScopedAffiliation($value) :
         $value;
       $attributeArray[$key] = $value;
     }
