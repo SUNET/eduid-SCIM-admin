@@ -83,7 +83,7 @@ if ($config->scopeConfigured()) {
 }
 
 if ($errors != '') {
-  $html->showHeaders('Metadata SWAMID - Problem');
+  $html->showHeaders('SCIM Admin - Problem');
   printf('%s    <div class="row alert alert-danger" role="alert">
       <div class="col">%s        <b>Errors:</b><br>%s        %s%s      </div>%s    </div>%s',
     "\n", "\n", "\n", str_ireplace("\n", "<br>", $errors), "\n", "\n","\n");
@@ -104,45 +104,51 @@ $html->setDisplayName($displayName);
 $html->showHeaders('SCIM Admin');
 
 if (isset($_POST['action'])) {
-  $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
   switch ($_POST['action']) {
     case 'saveUser' :
+      $id = isset($_POST['id']) ? $scim->validateID($_GET['id']) : false;
       if ( $scim->getAdminAccess() > 19 ) {
         if ($id) {
           saveUser($id);
         }
         showMenu();
-        listUsers($id);
-        listInvites($id, true);
+        listUsers($id, true);
+        listInvites();
       } else {
         showMenu();
-        listUsers($id);
+        listUsers($id, true);;
       }
       break;
     case 'saveInvite' :
+      $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
       if ( $scim->getAdminAccess() > 19 && ($id == 0 || $id)) {
         saveInvite($id);
       }
       showMenu(2);
-      listUsers('', true);
       if ( $scim->getAdminAccess() > 19 ) {
-        listInvites($id);
+        listUsers();
+        listInvites($id, true);
+      } else {
+        listUsers('', true);
       }
       break;
     case 'deleteInvite' :
+      $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
+      showMenu(2);
       if ( $scim->getAdminAccess() > 19 ) {
         if ($id) {
           $invites->removeInvite($id);
         }
-        showMenu();
-        listUsers($id, true);
-        listInvites($id);
+        listUsers();
+        listInvites($id, true);
       } else {
-        showMenu();
-        listUsers($id);
+        listUsers('', true);
       }
       break;
     default:
+      if ($scim->getAdminAccess() > 29) {
+        printf('Missing what to do with action = %s in POST', $_POST['action']);
+      }
   }
 } elseif (isset($_GET['action'])) {
   switch ($_GET['action']) {
@@ -153,9 +159,9 @@ if (isset($_POST['action'])) {
         editUser($id);
       } else {
         showMenu();
-        listUsers($id);
+        listUsers($id, true);
         if ( $scim->getAdminAccess() > 19 ) {
-          listInvites($id, true);
+          listInvites();
         }
       }
       break;
@@ -163,9 +169,9 @@ if (isset($_POST['action'])) {
       $html->setExtraURLPart('&action=listUsers');
       $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
       showMenu();
-      listUsers($id);
+      listUsers($id, true);
       if ( $scim->getAdminAccess() > 19 ) {
-        listInvites($id, true);
+        listInvites();
       }
       break;
     case 'editInvite' :
@@ -175,9 +181,11 @@ if (isset($_POST['action'])) {
         editInvite($id);
       } else {
         showMenu(2);
-        listUsers('', true);
         if ( $scim->getAdminAccess() > 19 ) {
-          listInvites($id);
+          listUsers();
+          listInvites($id, true);
+        } else {
+          listUsers('', true);
         }
       }
       break;
@@ -188,9 +196,11 @@ if (isset($_POST['action'])) {
         resendInvite($id);
       } else {
         showMenu(2);
-        listUsers('', true);
         if ( $scim->getAdminAccess() > 19 ) {
-          listInvites($id);
+          listUsers();
+          listInvites($id, true);
+        } else {
+          listUsers('', true);
         }
       }
       break;
@@ -199,10 +209,10 @@ if (isset($_POST['action'])) {
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
       showMenu(2);
       if ( $scim->getAdminAccess() > 19 ) {
-        listUsers('', true);
-        listInvites($id);
+        listUsers();
+        listInvites($id, true);
       } else {
-        listUsers('');
+        listUsers('', true);
       }
       break;
     case 'approveInvite' :
@@ -213,10 +223,10 @@ if (isset($_POST['action'])) {
           $html->setExtraURLPart('&action=approveInvite&id=' . $id);
           approveInvite($id);
         }
-        listUsers('', true);
-        listInvites($id);
+        listUsers();
+        listInvites($id, true);
       } else {
-        listUsers('');
+        listUsers('', true);
       }
       break;
     case 'addInvite' :
@@ -225,9 +235,11 @@ if (isset($_POST['action'])) {
         editInvite(0);
       } else {
         showMenu(2);
-        listUsers('', true);
         if ( $scim->getAdminAccess() > 19 ) {
-          listInvites($id);
+          listUsers();
+          listInvites($id, true);
+        } else {
+          listUsers('', true);
         }
       }
       break;
@@ -238,39 +250,41 @@ if (isset($_POST['action'])) {
         deleteInvite($id);
       } else {
         showMenu(2);
-        listUsers('', true);
         if ( $scim->getAdminAccess() > 19 ) {
-          listInvites($id);
+          listUsers();
+          listInvites($id, true);
+        } else {
+          listUsers('', true);
         }
       }
       break;
     default:
       # listUsers
       showMenu();
-      listUsers();
+      listUsers('', true);
       if ( $scim->getAdminAccess() > 19 ) {
-        listInvites(0, true);
+        listInvites();
       }
       break;
   }
 } else {
   showMenu();
-  listUsers();
+  listUsers('', true);
   if ( $scim->getAdminAccess() > 19 ) {
-    listInvites(0, true);
+    listInvites();
   }
 }
 print "        <br>\n";
 $html->showFooter(true);
 
-function listUsers($id='0-0', $hidden = false) {
+function listUsers($id='0-0', $shown = false) {
   global $scim;
   $users = $scim->getAllUsers();
   printf('        <table id="list-users-table" class="table table-striped table-bordered list-users"%s>
           <thead>
-            <tr><th>externalId</th><th>Name</th><th>Profile</th><th>Linked account</th></tr>
+            <tr><th>ePPN</th><th>Name</th><th>eduID</tr>
           </thead>
-          <tbody>%s', $hidden ? ' hidden' : '', "\n");
+          <tbody>%s', $shown ? '' : ' hidden', "\n");
   foreach ($users as $user) {
     showUser($user, $id);
   }
@@ -282,13 +296,11 @@ function showUser($user, $id) {
               <td>%s</td>
               <td>%s</td>
               <td>%s</td>
-              <td>%s</td>
             </tr>
             <tr class="content" style="display: %s;">
               <td><a a href="?action=editUser&id=%s"><button class="btn btn-primary btn-sm">edit user</button></a></td>
               <td colspan="3"><ul>%s',
-    $user['externalId'], $user['externalId'], $user['externalId'], $user['fullName'],
-    $user['profile'] ? 'X' : '', $user['linked_accounts'] ? 'X' : '',
+    $user['externalId'], $user['externalId'], "Fixas!!! inkl sort", $user['fullName'], $user['externalId'],
     $id == $user['id'] ? 'table-row' : 'none', $user['id'], "\n");
   if ($user['profile']) {
     foreach($user['attributes'] as $key => $value) {
@@ -511,7 +523,7 @@ function showMenu($show = 1) {
   print "\n        <br>\n        <br>\n";
 }
 
-function listInvites($id = 0, $hidden = false) {
+function listInvites($id = 0, $show = false) {
   global $invites;
   printf('        <table id="list-invites-table" class="table table-striped table-bordered list-invites"%s>
           <thead>
@@ -519,8 +531,8 @@ function listInvites($id = 0, $hidden = false) {
           </thead>
           <tbody>
             <tr><td colspan="3">
-              <a a href="?action=addInvite"><button class="btn btn-primary btn-sm">Add Invite</button></a>
-            </td></tr>%s', $hidden ? ' hidden' : '', "\n");
+              <a a href="?action=addInvite"><button class="btn btn-primary btn-sm">%s</button></a>
+            </td></tr>%s', $show ? '' : ' hidden', _('Add Invite'), _('Add multiple Invites'), "\n");
   $oldStatus = 0;
   foreach ($invites->getInvitesList() as $invite) {
     if ($invite['status'] != $oldStatus) {
@@ -630,7 +642,7 @@ function editInvite($id) {
   if ($id > 0) {
     $invite = $invites->getInvite($id);
   } else {
-    $invite = array ('inviteInfo' => '{}', 'attributes' => '{}', 'lang' => '');
+    $invite = array ('status' => 0, 'inviteInfo' => '{}', 'attributes' => '{}', 'lang' => '');
   }
   if ($invite['status'] == 2) {
     printf('        <div class="row alert alert-danger">%s</div>%s', _('You are editing an invite waiting for approval. If you submit it will be converted back to waiting for onboarding!'), "\n");
@@ -694,14 +706,16 @@ function resendInvite($id) {
     $result = _('New code sent to') . ' ' . $inviteInfo->mail;
   }
   showMenu(2);
-  listUsers('', true);
   if ( $scim->getAdminAccess() > 19 ) {
-    listInvites($id);
+    listUsers();
+    listInvites($id, true);
+  } else {
+    listUsers('', true);
   }
 }
 
 function saveInvite($id) {
-  global $scim, $invites;
+  global $invites;
   $inviteArray = array();
   $attributeArray = array();
   $inviteArray['givenName'] = isset($_POST['givenName']) ? $_POST['givenName'] : '';
