@@ -114,7 +114,7 @@ function migrate($migrateInfo, $attributes, $id) {
 function move2Manual($id,$migrateInfo) {
   global $invites;
   $invites->move2Manual($id,json_encode($migrateInfo));
-  showError(_('Automatic activation could not be performed. Activation needs to be verified by an administrator.'));
+  showError(_('Automatic matchning of registered user information could not be completed. Contact the organisation user administrator to complete the account activation. Please close the window.'));
 }
 
 function showError($error, $exit = true) {

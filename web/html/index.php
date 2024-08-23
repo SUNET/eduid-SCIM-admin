@@ -189,7 +189,7 @@ function showStartPage() {
 function showSuccess() {
   global $html;
   $html->showHeaders(_('Connect - Onboard'));
-  print _('You are now onboard :-)');
+  print _("Your account is now activated and ready to use when you're logging into services. Please choose your home organisation when you're logging in. Please close the window.");
   print '<br>';
   $html->showFooter(array(),false);
 }

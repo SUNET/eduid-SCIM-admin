@@ -6,7 +6,7 @@ require_once '../vendor/autoload.php';
 
 $config = new scimAdmin\Configuration();
 
-$html = new scimAdmin\HTML($config->mode(), _('Admin of your organisations identities.'));
+$html = new scimAdmin\HTML($config->mode(), _('Administration of your organisation identities.'));
 
 $scim = new scimAdmin\SCIM();
 
