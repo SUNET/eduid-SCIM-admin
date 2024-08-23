@@ -6,7 +6,7 @@ require_once '../vendor/autoload.php';
 
 $config = new scimAdmin\Configuration();
 
-$html = new scimAdmin\HTML($config->mode(), 'Admin of your organisations identities.');
+$html = new scimAdmin\HTML($config->mode(), _('Admin of your organisations identities.'));
 
 $scim = new scimAdmin\SCIM();
 
@@ -651,9 +651,9 @@ function editInvite($id) {
       htmlspecialchars($id),
       _('Invite Info'),
       _('GivenName'), isset($inviteInfo->givenName) ? $inviteInfo->givenName : '',
-      _('SirName'), isset($inviteInfo->sn) ? $inviteInfo->sn : '',
+      _('SurName'), isset($inviteInfo->sn) ? $inviteInfo->sn : '',
       _('Invite mail'), isset($inviteInfo->mail) ? $inviteInfo->mail : '',
-      _('Social number'), isset($inviteInfo->personNIN) ? $inviteInfo->personNIN : '',
+      _('Swedish national identity number'), isset($inviteInfo->personNIN) ? $inviteInfo->personNIN : '',
       _('Language for invite'), _('Swedish'),
       $invite['lang'] == 'en' ? ' selected' : '', _('English'),
       "\n");

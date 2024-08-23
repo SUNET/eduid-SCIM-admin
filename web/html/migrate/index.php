@@ -23,7 +23,7 @@ if (isset($_GET['source'])) {
 
     if (isset($inviteInfo['eduPersonPrincipalName'])) {
       if ($scim->ePPNexists($inviteInfo['eduPersonPrincipalName'])) {
-        showError(sprintf(_('%s have already have an account.'), $inviteInfo['eduPersonPrincipalName']));
+        showError(sprintf(_('%s already have an account.'), $inviteInfo['eduPersonPrincipalName']));
       } elseif ($status = $invites->ePPNexists($inviteInfo['eduPersonPrincipalName'])) {
         if ($status == 2) {
           showError(sprintf(_('%s already have an invite waiting for approval, please ask your admin for approval.'), $inviteInfo['eduPersonPrincipalName']));
@@ -58,7 +58,7 @@ if (isset($_GET['source'])) {
     $redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=showMigrateFlow';
     header('Location: ' . $redirectURL);
   } else {
-    showError(_('Error while migrating'));
+    showError(_('Error while migrating! Please close your browser and try again.'));
   }
 } elseif (isset($_GET['backend'])) {
   $html->setExtraURLPart('&backend');
@@ -90,7 +90,7 @@ if (isset($_GET['source'])) {
         move2Manual($inviteData['id'],$migrateInfo);
       }
     } else {
-      showError(_('Account needs to be at verified.'));
+      showError(_('eduID account needs to be at verified.'));
     }
   } else {
     showError(_('Error while adding account (Got no ePPN or wrong IdP)'));

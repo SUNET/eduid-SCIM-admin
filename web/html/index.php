@@ -65,7 +65,7 @@ function showInviteFlow() {
       showMigrateFlow();
       exit;
     } else {
-      $error = _('Wrong code');
+      $error = _('Error wrong code was supplied, please try again');
     }
   } else {
     $error = '';

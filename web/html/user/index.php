@@ -6,7 +6,7 @@ require_once '../vendor/autoload.php';
 
 $config = new scimAdmin\Configuration();
 
-$html = new scimAdmin\HTML($config->mode());
+$html = new scimAdmin\HTML($config->mode(), _('User profile'));
 
 $scim = new scimAdmin\SCIM();
 
@@ -22,7 +22,7 @@ if ($invites->checkCorrectBackendIdP()) {
       showError(_('Could not find your account in our user database.<br>Please contact your admin.'));
     }
     if (! $invites->checkALLevel(2)) {
-      showError(_('User or IdP is not at') . ' http://www.swamid.se/policy/assurance/al2.'); # NOSONAR
+      showError(_('eduID account needs to be at verified.'));
     }
     $userArray = $scim->getId($id);
     $version = $userArray->meta->version;
