@@ -91,7 +91,7 @@ if ($errors != '') {
         ' . _('Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a href="%s">here</a> to logout.') .'
       </div>%s    </div>%s',
     "\n", $_SERVER['Shib-Identity-Provider'],
-    'https://' . $_SERVER['SERVER_NAME'] . '/Shibboleth.sso/Logout?return=https://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'],
+    'https://' . $_SERVER['SERVER_NAME'] . '/Shibboleth.sso/Logout?return=' . urlencode('https://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI']),
     "\n", "\n");
   $html->showFooter(false);
   exit;
@@ -280,6 +280,7 @@ $html->showFooter(true);
 function listUsers($id='0-0', $shown = false) {
   global $scim;
   $users = $scim->getAllUsers();
+  uasort($users, 'sortFullName');
   printf('        <table id="list-users-table" class="table table-striped table-bordered list-users"%s>
           <thead>
             <tr><th>ePPN</th><th>Name</th><th>eduID</tr>
@@ -289,6 +290,12 @@ function listUsers($id='0-0', $shown = false) {
     showUser($user, $id);
   }
   printf('          <tbody>%s        </table>%s', "\n", "\n");
+}
+function sortFullName($a, $b) {
+  if ($a['fullName'] == $b['fullName']) {
+    return 0;
+  }
+  return ($a['fullName'] < $b['fullName']) ? -1 : 1;
 }
 
 function showUser($user, $id) {
@@ -300,7 +307,9 @@ function showUser($user, $id) {
             <tr class="content" style="display: %s;">
               <td><a a href="?action=editUser&id=%s"><button class="btn btn-primary btn-sm">edit user</button></a></td>
               <td colspan="3"><ul>%s',
-    $user['externalId'], $user['externalId'], "Fixas!!! inkl sort", $user['fullName'], $user['externalId'],
+    $user['externalId'], $user['externalId'],
+    isset($user['attributes']->eduPersonPrincipalName) ? $user['attributes']->eduPersonPrincipalName : 'Saknas',
+    $user['fullName'], $user['externalId'],
     $id == $user['id'] ? 'table-row' : 'none', $user['id'], "\n");
   if ($user['profile']) {
     foreach($user['attributes'] as $key => $value) {

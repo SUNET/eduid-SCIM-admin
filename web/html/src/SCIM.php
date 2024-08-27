@@ -203,7 +203,6 @@ class SCIM {
             }
             break;
           default:
-            print "Kalle";
             print "<pre>";
             print_r($info);
             print "</pre>";
@@ -227,40 +226,47 @@ class SCIM {
       $addUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
     }
     $userList = array();
-    $idList = $this->request('POST',
-      self::SCIM_USERS.'.search','{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
-      "filter": "meta.lastModified ge \"1900-01-01\"", "startIndex": 1, "count": 100}');
-    $idListArray = json_decode($idList);
-    if (isset($idListArray->schemas) &&
-      $idListArray->schemas[0] == 'urn:ietf:params:scim:api:messages:2.0:ListResponse' ) {
-      foreach ($idListArray->Resources as $Resource) {
-        $user = $this->request('GET', self::SCIM_USERS.$Resource->id, '');
-        $userArray = json_decode($user);
-        $userList[$Resource->id] = array('id' => $Resource->id,
-          'externalId' => $userArray->externalId,
-          'fullName' => '', 'attributes' => '',
-          'profile' => false, 'linked_accounts' => false);
-        if (isset($userArray->name->formatted)) {
-          $userList[$Resource->id]['fullName'] = $userArray->name->formatted;
-        }
-        if (isset ($userArray->{self::SCIM_NUTID_SCHEMA})) {
-          $userList[$Resource->id] = $this->checkNutid(
-            $userArray->{self::SCIM_NUTID_SCHEMA},$userList[$Resource->id]);
-          if ($rand == 0 && isset($userList[$Resource->id]['attributes']) && isset($userList[$Resource->id]['attributes']->eduPersonPrincipalName)) {
-            $checkUserHandler->bindValue(self::SQL_EPPN, $userList[$Resource->id]['attributes']->eduPersonPrincipalName);
-            $checkUserHandler->execute();
-            if (! $checkUserHandler->fetch()) {
-              $addUserHandler->bindValue(self::SQL_EPPN, $userList[$Resource->id]['attributes']->eduPersonPrincipalName);
-              $addUserHandler->execute();
+    $totalResults = 500;
+    $index = 1;
+    while ($index < $totalResults) {
+      $idList = $this->request('POST',
+        self::SCIM_USERS.'.search','{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
+        "filter": "meta.lastModified ge \"1900-01-01\"", "startIndex": '. $index .', "count": 100}');
+        $index += 100;
+
+      $idListArray = json_decode($idList);
+      if (isset($idListArray->schemas) &&
+        $idListArray->schemas[0] == 'urn:ietf:params:scim:api:messages:2.0:ListResponse' ) {
+        $totalResults = $idListArray->totalResults;
+        foreach ($idListArray->Resources as $Resource) {
+          $user = $this->request('GET', self::SCIM_USERS.$Resource->id, '');
+          $userArray = json_decode($user);
+          $userList[$Resource->id] = array('id' => $Resource->id,
+            'externalId' => $userArray->externalId,
+            'fullName' => '', 'attributes' => '',
+            'profile' => false, 'linked_accounts' => false);
+          if (isset($userArray->name->formatted)) {
+            $userList[$Resource->id]['fullName'] = $userArray->name->formatted;
+          }
+          if (isset ($userArray->{self::SCIM_NUTID_SCHEMA})) {
+            $userList[$Resource->id] = $this->checkNutid(
+              $userArray->{self::SCIM_NUTID_SCHEMA},$userList[$Resource->id]);
+            if ($rand == 0 && isset($userList[$Resource->id]['attributes']) && isset($userList[$Resource->id]['attributes']->eduPersonPrincipalName)) {
+              $checkUserHandler->bindValue(self::SQL_EPPN, $userList[$Resource->id]['attributes']->eduPersonPrincipalName);
+              $checkUserHandler->execute();
+              if (! $checkUserHandler->fetch()) {
+                $addUserHandler->bindValue(self::SQL_EPPN, $userList[$Resource->id]['attributes']->eduPersonPrincipalName);
+                $addUserHandler->execute();
+              }
             }
           }
         }
+      } else {
+        printf('Unknown schema : %s', $idListArray->schemas[0]);
+        return false;
       }
-      return $userList;
-    } else {
-      printf('Unknown schema : %s', $idListArray->schemas[0]);
-      return false;
     }
+    return $userList;
   }
 
   public function ePPNexists($eduPersonPrincipalName) {
