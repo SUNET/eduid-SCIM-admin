@@ -153,6 +153,10 @@ class SCIM {
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         break;
+      case 'DELETE' :
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        break;
       default :
         # GET
         curl_setopt($ch, CURLOPT_POST, 0);
@@ -188,9 +192,12 @@ class SCIM {
         switch ($info['http_code']) {
           case 200 :
           case 201 :
+          case 204 :
+            // User removed
             return $response;
             break;
           case 503 :
+            // Timeout at server
             if ($first) {
               sleep(3);
               return $this->request($method, $part, $data, $extraHeaders, false);
@@ -293,6 +300,10 @@ class SCIM {
   public function getId($id) {
     $user = $this->request('GET', self::SCIM_USERS.$id, '');
     return json_decode($user);
+  }
+
+  public function removeUser($id, $version) {
+    return $this->request('DELETE', self::SCIM_USERS.$id, '', array('if-match: ' . $version));
   }
 
   public function getIdFromExternalId($externalId) {

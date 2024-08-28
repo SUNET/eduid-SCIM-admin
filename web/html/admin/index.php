@@ -119,16 +119,51 @@ if (isset($_POST['action'])) {
         listUsers($id, true);;
       }
       break;
+    case 'removeUser' :
+      $id = isset($_POST['id']) ? $scim->validateID($_GET['id']) : false;
+      if ( $scim->getAdminAccess() > 19 ) {
+        if ($id) {
+          $user = $scim->getId($id);
+          $version = $user->meta->version;
+          $scim->removeUser($id,$version);
+        }
+        showMenu();
+        listUsers($id, true);
+        listInvites();
+      } else {
+        showMenu();
+        listUsers($id, true);;
+      }
+      break;
     case 'saveInvite' :
       $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
-      if ( $scim->getAdminAccess() > 19 && ($id == 0 || $id)) {
-        saveInvite($id);
-      }
-      showMenu(2);
+      $parseErrors = '';
       if ( $scim->getAdminAccess() > 19 ) {
-        listUsers();
-        listInvites($id, true);
+        if(isset($_POST['saml']['eduPersonPrincipalName'])) {
+          $ePPN = $_POST['saml']['eduPersonPrincipalName'];
+          if ($scim->ePPNexists($ePPN)) {
+            $parseErrors .= sprintf(_('%s already have an account.'), $ePPN);
+          } elseif ($invites->ePPNexists($ePPN)) {
+            $parseErrors .= $invites->getInviteePPNid() == $id ? '' :
+              sprintf(_('%s already have an invite.'), $ePPN);
+          }
+          if (! $scim->validScope($ePPN)) {
+              $parseErrors .= sprintf(_('%s has an invalid scope.'), $ePPN);
+          }
+        }
+        if ($parseErrors == '' ) {
+          if ($id == 0 || $id) {
+            saveInvite($id);
+          }
+          showMenu(2);
+          listUsers();
+          listInvites($id, true);
+        } else {
+          $html->setExtraURLPart('&action=editInvite&id=' . $id);
+          editInvite($id, $parseErrors);
+        }
       } else {
+        showMenu();
         listUsers('', true);
       }
       break;
@@ -142,6 +177,15 @@ if (isset($_POST['action'])) {
         listUsers();
         listInvites($id, true);
       } else {
+        listUsers('', true);
+      }
+      break;
+    case 'addMultiInvite' :
+      $html->setExtraURLPart('&action=addMultiInvite');
+      if ( $scim->getAdminAccess() > 19) {
+        multiInvite();
+      } else {
+        showMenu(2);
         listUsers('', true);
       }
       break;
@@ -172,6 +216,17 @@ if (isset($_POST['action'])) {
       listUsers($id, true);
       if ( $scim->getAdminAccess() > 19 ) {
         listInvites();
+      }
+      break;
+    case 'removeUser' :
+      $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
+      if ( $scim->getAdminAccess() > 19 ) {
+        if ($id) {
+          removeUser($id);
+        }
+      } else {
+        showMenu();
+        listUsers($id, true);
       }
       break;
     case 'editInvite' :
@@ -243,6 +298,15 @@ if (isset($_POST['action'])) {
         }
       }
       break;
+    case 'addMultiInvite' :
+      $html->setExtraURLPart('&action=addMultiInvite');
+      if ( $scim->getAdminAccess() > 19) {
+        multiInvite();
+      } else {
+        showMenu(2);
+        listUsers('', true);
+      }
+      break;
     case 'deleteInvite' :
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
       if ( $scim->getAdminAccess() > 19) {
@@ -305,12 +369,18 @@ function showUser($user, $id) {
               <td>%s</td>
             </tr>
             <tr class="content" style="display: %s;">
-              <td><a a href="?action=editUser&id=%s"><button class="btn btn-primary btn-sm">edit user</button></a></td>
+              <td>
+                <a a href="?action=editUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a><br>
+                <a a href="?action=removeUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a>
+              </td>
               <td colspan="3"><ul>%s',
     $user['externalId'], $user['externalId'],
     isset($user['attributes']->eduPersonPrincipalName) ? $user['attributes']->eduPersonPrincipalName : 'Saknas',
     $user['fullName'], $user['externalId'],
-    $id == $user['id'] ? 'table-row' : 'none', $user['id'], "\n");
+    $id == $user['id'] ? 'table-row' : 'none',
+    $user['id'], _('Edit'),
+    $user['id'], _('Remove'),
+    "\n");
   if ($user['profile']) {
     foreach($user['attributes'] as $key => $value) {
       $value = is_array($value) ? implode(", ", $value) : $value;
@@ -464,6 +534,36 @@ function saveUser($id) {
   }
 }
 
+function removeUser($id) {
+  global $scim;
+  $user = $scim->getId($id);
+  printf('        <form method="POST">
+          <input type="hidden" name="action" value="removeUser">
+          <input type="hidden" name="id" value="%s">
+          <table id="entities-table" class="table table-striped table-bordered">
+            <tbody>
+              <tr><th colspan="2">User Info</th></tr>
+              <tr><th>Name</th><td>%s</td></tr>
+              <tr><th>ePPN</th><td>%s</td></tr>
+              <tr><th>Mail</th><td>%s</td></tr>
+            </tbody>
+          </table>
+          <div class="buttons">
+            <button type="submit" class="btn btn-primary">%s</button>
+          </div>
+        </form>
+        <div class="buttons">
+          <a href="?action=listUsers&id=%s"><button class="btn btn-secondary">%s</button></a>
+        </div>%s',
+    $user->id,
+    isset($user->name->formatted) ? $user->name->formatted : '',
+    isset($user->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName) ?
+      $user->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName : '',
+    isset($user->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->mail) ?
+      $user->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->mail : '',
+    _('Delete'), htmlspecialchars($id), _('Cancel'), "\n");
+}
+
 function showEduPersonScopedAffiliationInput($values, $allowedScopes, $possibleAffiliations) {
   foreach ($allowedScopes as $scope) {
     $existingAffiliation[$scope] = array();
@@ -527,6 +627,7 @@ function listInvites($id = 0, $show = false) {
           <tbody>
             <tr><td colspan="3">
               <a a href="?action=addInvite"><button class="btn btn-primary btn-sm">%s</button></a>
+              <a a href="?action=addMultiInvite"><button class="btn btn-primary btn-sm">%s</button></a>
             </td></tr>%s', $show ? '' : ' hidden', _('Add Invite'), _('Add multiple Invites'), "\n");
   $oldStatus = 0;
   foreach ($invites->getInvitesList() as $invite) {
@@ -631,7 +732,7 @@ function showInvite($invite, $id) {
     }
 }
 
-function editInvite($id) {
+function editInvite($id, $error = '') {
   global $scim, $invites;
 
   if ($id > 0) {
@@ -643,6 +744,9 @@ function editInvite($id) {
     printf('        <div class="row alert alert-danger">%s</div>%s', _('You are editing an invite waiting for approval. If you submit it will be converted back to waiting for onboarding!'), "\n");
   }
   $inviteInfo = json_decode($invite['inviteInfo']);
+  if ($error != '' ) {
+    printf('        <div class="row alert-danger" role="alert">%s</div>%s', $error, "\n");
+  }
   printf('        <form method="POST">
           <input type="hidden" name="action" value="saveInvite">
           <input type="hidden" name="id" value="%s">
@@ -777,3 +881,134 @@ function deleteInvite($id)  {
     _('Delete'), htmlspecialchars($id), _('Cancel'), "\n");
 }
 
+function multiInvite() {
+  global $scim, $invites;
+  $placeHolder = _('GivenName') . ';' . _('SurName') . ';' . _('Invite mail') . ';' . _('Swedish national identity number') . '/' . _('Birthdate') . ';sv/en';
+  $attributes2Migrate = $scim->getAttributes2migrate();
+  foreach ( $attributes2Migrate as $SCIM) {
+    $placeHolder .= ';' . $SCIM;
+  }
+
+  printf('        <form id="create-invite-form" method="POST">
+          <input type="hidden" name="action" value="addMultiInvite">
+          <div class="buttons">
+            <button type="submit" name="validateInvites" class="btn btn-primary">%s</button>
+            <button type="submit" name="createInvites" class="btn btn-primary">%s</button>
+          </div>
+          <input type="checkbox" name="birthDate"%s> %s<br>
+          <input type="checkbox" name="sendMail"%s> %s -
+          %s <select name="lang">
+            <option value="sv">%s</option>
+            <option value="en"%s>%s</option>
+          </select>
+          <textarea id="inviteData" name="inviteData" rows="4" cols="100" placeholder="%s">%s</textarea>
+        </form>
+        <div class="buttons"><a href="./?action=listInvites"><button class="btn btn-secondary">%s</button></a></div>%s',
+    _('Validate Invites'), _('Create Invites'),
+    isset($_POST['birthDate']) ? ' checked' : '', _('Allow users without Swedish national identity number (requires Birthdate)'),
+    isset($_POST['sendMail']) ? ' checked' : '', _('Send out invite mail'),
+    _('Language for invite'), _('Swedish'),
+    (isset($_POST['lang']) && $_POST['lang'] == 'en') ? ' selected' : '', _('English'),
+    $placeHolder, isset ($_POST['inviteData']) ? $_POST['inviteData'] : '',
+    _('Cancel'), "\n");
+  if (isset($_POST['inviteData'])) {
+    foreach (explode("\n", $_POST['inviteData']) as $line) {
+      $params = explode(';', $line);
+      $parseErrors = '';
+      $fullInfo = '';
+      $inviteArray = array();
+      $attributeArray = array();
+
+      if (isset($params[0]) && strlen($params[0])) {
+        $fullInfo = $params[0];
+        $inviteArray['givenName'] = $params[0];
+      } else {
+        $parseErrors .= sprintf('%s %s. ', _('GivenName'), _('missing'));
+      }
+      if (isset($params[1]) && strlen($params[1])) {
+        $fullInfo .= ' ' . $params[1];
+        $inviteArray['sn'] = $params[1];
+      } else {
+        $parseErrors .= sprintf('%s %s. ', _('SurName'), _('missing'));
+      }
+      if (isset($params[2]) && strlen($params[2])) {
+        if ($invites->validateEmail($params[2])) {
+          $fullInfo .= ' (' . $params[2] . ')' ;
+          $inviteArray['mail'] = $params[2];
+        } else {
+          $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('have wrong format'));
+        }
+      } else {
+        $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('missing'));
+      }
+      if (isset($params[3]) && strlen($params[3])) {
+        if ($invites->validateSSN($params[3], isset($_POST['birthDate']))) {
+          $inviteArray['personNIN'] = $params[3];
+        } else {
+          $parseErrors .= sprintf('%s %s. ', _('Swedish national identity number'), _('have wrong format'));
+        }
+      } else {
+        $parseErrors .= sprintf('%s %s. ', _('Swedish national identity number'), _('missing'));
+      }
+      if (isset($params[4]) && strlen($params[4])) {
+        $lang = $params[4];
+        if (! ($lang == 'sv' || $lang == 'en')) {
+          $parseErrors .= sprintf('%s %s. ', _('Language'), _('should be sv or en'));
+        }
+      } else {
+        $parseErrors .= sprintf('%s %s. ', _('Language'), _('missing'));
+      }
+
+      $paramCounter = 4;
+      foreach ( $attributes2Migrate as $SCIM) {
+        $paramCounter++;
+        if (isset($params[$paramCounter]) && strlen($params[$paramCounter])) {
+          switch ($SCIM) {
+            case 'eduPersonPrincipalName' :
+              $ePPN = $params[$paramCounter];
+              if ($scim->ePPNexists($ePPN)) {
+                $parseErrors .= sprintf(_('%s already have an account.'), $ePPN);
+              } elseif ($invites->ePPNexists($ePPN)) {
+                $parseErrors .= sprintf(_('%s already have an invite.'), $ePPN);
+              }
+              if (! $scim->validScope($ePPN)) {
+                $parseErrors .= sprintf(_('%s has an invalid scope.'), $ePPN);
+              }
+              $attributeArray['eduPersonPrincipalName'] = $ePPN;
+              break;
+            case 'eduPersonScopedAffiliation' :
+              $ePSA = $params[$paramCounter];
+              if (! $scim->validScope($ePSA)) {
+                $parseErrors .= sprintf(_('%s has an invalid scope.'), $ePSA);
+              }
+              $attributeArray['eduPersonScopedAffiliation'] = $scim->expandePSA(array($ePSA));
+              break;
+            case 'mail' :
+              if ($invites->validateEmail($params[$paramCounter])) {
+                $attributeArray['mail'] = $params[$paramCounter];
+              } else {
+                $parseErrors .= sprintf('%s %s. ', _('Organisation mail'), _('have wrong format'));
+              }
+              break;
+            default :
+              $attributeArray[$SCIM] = $params[$paramCounter];
+          }
+        } else {
+          $parseErrors .= sprintf('%s %s %s. ', _('SAML value for'), $SCIM, _('missing'));
+        }
+
+      }
+
+      if ($parseErrors == '') {
+        if (isset($_POST['createInvites']) ){
+          printf('          <div class="row">%s %s</div>%s', $fullInfo, _('Invited'), "\n");
+          $invites->updateInviteAttributesById(0, $attributeArray, $inviteArray, $_POST['lang'], isset($_POST['sendMail']));
+        } else {
+          printf('          <div class="row">%s OK</div>%s', $fullInfo, "\n");
+        }
+      } else {
+        printf('          <div class="row alert-danger" role="alert">%s : %s</div>%s', $fullInfo, $parseErrors, "\n");
+      }
+    }
+  }
+}

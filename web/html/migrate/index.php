@@ -63,7 +63,7 @@ if (isset($_GET['source'])) {
 } elseif (isset($_GET['backend'])) {
   $html->setExtraURLPart('&backend');
   if ($migrateInfo = $invites->checkBackendData()) {
-    if (! $scim->getIdFromExternalId($migrateInfo['eduPersonPrincipalName'])) {
+    if ($scim->getIdFromExternalId($migrateInfo['eduPersonPrincipalName'])) {
       showError(sprintf(_('%s is already connected to an account.  If you need help contact your user administrator. Please close your browser.'),
         $migrateInfo['eduPersonPrincipalName']));
     }

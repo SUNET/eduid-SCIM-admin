@@ -332,7 +332,7 @@ class Invites {
     }
   }
 
-  public function updateInviteAttributesById($id, $attributes, $inviteInfo, $lang) {
+  public function updateInviteAttributesById($id, $attributes, $inviteInfo, $lang, $sendMail = true) {
     $invitesHandler = $this->db->prepare('SELECT *  FROM invites WHERE `id` = :Id AND `instance_id` = :Instance');
     $invitesHandler->bindParam(self::SQL_ID, $id);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
@@ -358,7 +358,9 @@ class Invites {
       $insertHandler->bindValue(self::SQL_INVITEINFO, json_encode($inviteInfo));
       $insertHandler->bindValue(self::SQL_LANG, $lang);
       if ($insertHandler->execute()) {
-        $this->sendNewInviteCode($this->db->lastInsertId());
+        if ($sendMail) {
+          $this->sendNewInviteCode($this->db->lastInsertId());
+        }
         return true;
       } else {
         return false;
@@ -416,11 +418,57 @@ class Invites {
     return $this->scope;
   }
 
+  public function getInviteePPNid() {
+    return $this->ePPN_id;
+  }
+
   public function redirectToNewIdP($page, $mfa = false) {
     $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
     $redirectURL = sprintf('%s/Shibboleth.sso/Login?entityID=%s&target=%s&forceAuthn=true%s',
       $hostURL, $this->backendIdP, urlencode($hostURL . '/' . $this->scope . '/' . $page),
       $mfa ? '&authnContextClassRef=https%3A%2F%2Frefeds.org%2Fprofile%2Fmfa' : '');
     header('Location: ' . $redirectURL);
+  }
+
+  public function validateEmail($string) {
+    $mailA = explode('@', $string);
+    if (isset($mailA[1]) && strlen($mailA[0])) {
+      # x exists set in x@yy.zz
+      $domainA = explode('.', $mailA[1]);
+      if (count($domainA) > 1 && strlen($domainA[count($domainA)-1]) > 1) {
+        ## yy and zz exists and zz is at least 2 chars
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public function validateSSN($ssn, $allowBirthDate = false) {
+    if (strlen($ssn) == 12 || (strlen($ssn) == 8 && $allowBirthDate)) {
+      $dateA = str_split($ssn,2);
+      if ($dateA[0] > 18 && $dateA[0] < 21 && $dateA[2] < 13 && $dateA[3] < 32) {
+        if ($allowBirthDate) {
+          return true;
+        } else {
+          $ssnA = str_split($ssn);
+          $checkValue = 0;
+          for ($pos = 2; $pos <= 10; $pos += 2) {
+            if ($ssnA[$pos] * 2 > 9) {
+              $checkValue += ($ssnA[$pos] * 2) - 9;
+            } else {
+              $checkValue += $ssnA[$pos] * 2;
+            }
+            #printf ('%d<br>', $checkValue);
+          }
+          for ($pos = 3; $pos <= 9; $pos += 2) {
+            $checkValue += $ssnA[$pos];
+            #printf ('%d<br>', $checkValue);
+          }
+          return (10 - ($checkValue %10))%10 == $ssnA[11];
+        }
+      }
+
+    }
+    return false;
   }
 }

@@ -36,8 +36,8 @@ $instances = array (
     'sourceIdP' => 'https://idp.sunet.se/idp',
     'backendIdP' => 'https://login.idp.eduid.se/idp.xml',
     'allowedScopes' => array ('sunet.se'),
-    # Array ('Shibb-name in apache' => 'name in satosa internal/SCIM')
 
+    # Array ('Shibb-name in apache' => 'name in satosa internal/SCIM')
     'attributes2migrate' => array (
       'eduPersonPrincipalName' => 'eduPersonPrincipalName',
       'eduPersonScopedAffiliation' => 'eduPersonScopedAffiliation',
