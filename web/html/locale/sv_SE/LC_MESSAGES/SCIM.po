@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SCIM 1\n"
 "Report-Msgid-Bugs-To: bjorn@sunet.se\n"
-"POT-Creation-Date: 2024-08-29 10:14+0200\n"
-"PO-Revision-Date: 2024-08-29 10:19+0200\n"
+"POT-Creation-Date: 2024-08-29 11:58+0200\n"
+"PO-Revision-Date: 2024-08-29 12:03+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: sv_SE\n"
@@ -164,84 +164,131 @@ msgstr ""
 "Loggade du in med fel IdP ?<br> Du försöker med <b>%s</b>.<br>Klicka <a "
 "href=\"%s\">här</a> för att logga ut."
 
-#: web/html/admin/index.php:145 web/html/admin/index.php:970
+#: web/html/admin/index.php:143 web/html/admin/index.php:810
+#: web/html/admin/index.php:930 web/html/admin/index.php:970
+msgid "GivenName"
+msgstr "Förnamn"
+
+#: web/html/admin/index.php:143 web/html/admin/index.php:146
+#: web/html/admin/index.php:149 web/html/admin/index.php:154
+#: web/html/admin/index.php:970 web/html/admin/index.php:976
+#: web/html/admin/index.php:986 web/html/admin/index.php:995
+#: web/html/admin/index.php:1003 web/html/admin/index.php:1041
+msgid "missing"
+msgstr "saknas"
+
+#: web/html/admin/index.php:146 web/html/admin/index.php:811
+#: web/html/admin/index.php:930 web/html/admin/index.php:976
+msgid "SurName"
+msgstr "Efternamn"
+
+#: web/html/admin/index.php:149 web/html/admin/index.php:151
+#: web/html/admin/index.php:812 web/html/admin/index.php:930
+#: web/html/admin/index.php:983 web/html/admin/index.php:986
+msgid "Invite mail"
+msgstr "Inbjudningsmail"
+
+#: web/html/admin/index.php:151 web/html/admin/index.php:156
+#: web/html/admin/index.php:173 web/html/admin/index.php:983
+#: web/html/admin/index.php:992 web/html/admin/index.php:1034
+msgid "have wrong format"
+msgstr "har felaktigt format"
+
+#: web/html/admin/index.php:154 web/html/admin/index.php:156
+#: web/html/admin/index.php:813 web/html/admin/index.php:930
+#: web/html/admin/index.php:992 web/html/admin/index.php:995
+msgid "Swedish national identity number"
+msgstr "Svenskt personnummer"
+
+#: web/html/admin/index.php:162 web/html/admin/index.php:1014
 #: web/html/migrate/index.php:26
 #, php-format
 msgid "%s already have an account."
 msgstr "%s har redan ett konto."
 
-#: web/html/admin/index.php:148 web/html/admin/index.php:972
+#: web/html/admin/index.php:165 web/html/admin/index.php:1016
 #, php-format
 msgid "%s already have an invite."
 msgstr "%s har redan en inbjudan."
 
-#: web/html/admin/index.php:151 web/html/admin/index.php:975
-#: web/html/admin/index.php:982
+#: web/html/admin/index.php:168 web/html/admin/index.php:1019
+#: web/html/admin/index.php:1026
 #, php-format
 msgid "%s has an invalid scope."
 msgstr "%s har ett felaktigt scope."
 
-#: web/html/admin/index.php:378
+#: web/html/admin/index.php:173 web/html/admin/index.php:1034
+msgid "Organisation mail"
+msgstr "Organisations mail"
+
+#: web/html/admin/index.php:403
 msgid "Missing"
 msgstr "Saknas"
 
-#: web/html/admin/index.php:381 web/html/admin/index.php:672
-#: web/html/admin/index.php:725
+#: web/html/admin/index.php:406 web/html/admin/index.php:697
+#: web/html/admin/index.php:750
 msgid "Edit"
 msgstr "Redigera"
 
-#: web/html/admin/index.php:382 web/html/admin/index.php:564
-#: web/html/admin/index.php:674 web/html/admin/index.php:881
+#: web/html/admin/index.php:407 web/html/admin/index.php:589
+#: web/html/admin/index.php:699 web/html/admin/index.php:925
 msgid "Delete"
 msgstr "Radera"
 
-#: web/html/admin/index.php:436 web/html/admin/index.php:796
+#: web/html/admin/index.php:461 web/html/admin/index.php:840
 msgid "Submit"
 msgstr "Skicka"
 
-#: web/html/admin/index.php:436 web/html/admin/index.php:564
-#: web/html/admin/index.php:796 web/html/admin/index.php:881
-#: web/html/admin/index.php:913
+#: web/html/admin/index.php:461 web/html/admin/index.php:589
+#: web/html/admin/index.php:840 web/html/admin/index.php:925
 msgid "Cancel"
 msgstr "Ångra"
 
-#: web/html/admin/index.php:609
+#: web/html/admin/index.php:634
 msgid "Select a list"
 msgstr "Välj en lista"
 
-#: web/html/admin/index.php:609
+#: web/html/admin/index.php:634
 msgid "Users"
 msgstr "Användare"
 
-#: web/html/admin/index.php:612
+#: web/html/admin/index.php:637
 msgid "Invites"
 msgstr "Inbjudningar"
 
-#: web/html/admin/index.php:631
+#: web/html/admin/index.php:657
+msgid "Last modified"
+msgstr "Senast ändrad"
+
+#: web/html/admin/index.php:657
+msgid "Name"
+msgstr "Namn"
+
+#: web/html/admin/index.php:657
 msgid "Add Invite"
 msgstr "Lägg till inbjudan"
 
-#: web/html/admin/index.php:631
+#: web/html/admin/index.php:657
 msgid "Add multiple Invites"
 msgstr "Lägg till multipla inbjudningar"
 
-#: web/html/admin/index.php:636
+#: web/html/admin/index.php:662
 msgid "Waiting for onboarding"
 msgstr "Väntar på aktivering"
 
-#: web/html/admin/index.php:636
+#: web/html/admin/index.php:662
 msgid "Waiting for approval"
 msgstr "Väntar på godkännande"
 
-#: web/html/admin/index.php:673
+#: web/html/admin/index.php:698
 msgid "Resend"
 msgstr "Skicka om"
 
-#: web/html/admin/index.php:724
+#: web/html/admin/index.php:749
 msgid "Approve"
 msgstr "Godkänn"
 
-#: web/html/admin/index.php:744
+#: web/html/admin/index.php:769
 msgid ""
 "You are editing an invite waiting for approval. If you submit it will be "
 "converted back to waiting for onboarding!"
@@ -249,95 +296,64 @@ msgstr ""
 "Du redigerar en inbjudan som väntar på godkännande. Om du skickar kommer "
 "denna att bli konverterad till väntar på aktivering!"
 
-#: web/html/admin/index.php:765
+#: web/html/admin/index.php:809
 msgid "Invite Info"
 msgstr "Inbjudningsinformation"
 
-#: web/html/admin/index.php:766 web/html/admin/index.php:886
-#: web/html/admin/index.php:926
-msgid "GivenName"
-msgstr "Förnamn"
-
-#: web/html/admin/index.php:767 web/html/admin/index.php:886
-#: web/html/admin/index.php:932
-msgid "SurName"
-msgstr "Efternamn"
-
-#: web/html/admin/index.php:768 web/html/admin/index.php:886
-#: web/html/admin/index.php:939 web/html/admin/index.php:942
-msgid "Invite mail"
-msgstr "Inbjudningsmail"
-
-#: web/html/admin/index.php:769 web/html/admin/index.php:886
-#: web/html/admin/index.php:948 web/html/admin/index.php:951
-msgid "Swedish national identity number"
-msgstr "Svenskt personnummer"
-
-#: web/html/admin/index.php:770 web/html/admin/index.php:910
+#: web/html/admin/index.php:814 web/html/admin/index.php:954
 msgid "Language for invite"
 msgstr "Språk för inbjudan"
 
-#: web/html/admin/index.php:770 web/html/admin/index.php:910
+#: web/html/admin/index.php:814 web/html/admin/index.php:954
 msgid "Swedish"
 msgstr "Svenska"
 
-#: web/html/admin/index.php:771 web/html/admin/index.php:911
+#: web/html/admin/index.php:815 web/html/admin/index.php:955
 msgid "English"
 msgstr "Engelska"
 
-#: web/html/admin/index.php:805
+#: web/html/admin/index.php:849
 msgid "New code sent to"
 msgstr "Ny kod skickad till"
 
-#: web/html/admin/index.php:886
+#: web/html/admin/index.php:930
 msgid "Birthdate"
 msgstr "Födelsedag"
 
-#: web/html/admin/index.php:907
+#: web/html/admin/index.php:951
 msgid "Validate Invites"
 msgstr "Validera inbjudningarna"
 
-#: web/html/admin/index.php:907
+#: web/html/admin/index.php:951
 msgid "Create Invites"
 msgstr "Skapa inbjudningar"
 
-#: web/html/admin/index.php:908
+#: web/html/admin/index.php:952
 msgid ""
 "Allow users without Swedish national identity number (requires Birthdate)"
 msgstr "Tillåta användare utan svenskt personnummer (kräver födelsedata)"
 
-#: web/html/admin/index.php:909
+#: web/html/admin/index.php:953
 msgid "Send out invite mail"
 msgstr "Skicka ut inbjudningsmail"
 
-#: web/html/admin/index.php:926 web/html/admin/index.php:932
-#: web/html/admin/index.php:942 web/html/admin/index.php:951
-#: web/html/admin/index.php:959 web/html/admin/index.php:997
-msgid "missing"
-msgstr "saknas"
+#: web/html/admin/index.php:957 web/html/migrate/index.php:132
+msgid "Back"
+msgstr "Backa"
 
-#: web/html/admin/index.php:939 web/html/admin/index.php:948
-#: web/html/admin/index.php:990
-msgid "have wrong format"
-msgstr "har felaktigt format"
-
-#: web/html/admin/index.php:956 web/html/admin/index.php:959
+#: web/html/admin/index.php:1000 web/html/admin/index.php:1003
 msgid "Language"
 msgstr "Språk"
 
-#: web/html/admin/index.php:956
+#: web/html/admin/index.php:1000
 msgid "should be sv or en"
 msgstr "skall vara sv eller en"
 
-#: web/html/admin/index.php:990
-msgid "Organisation mail"
-msgstr "Organisations mail"
-
-#: web/html/admin/index.php:997
+#: web/html/admin/index.php:1041
 msgid "SAML value for"
 msgstr "SAML värdet för"
 
-#: web/html/admin/index.php:1004
+#: web/html/admin/index.php:1048
 msgid "Invited"
 msgstr "Inbjuden"
 
@@ -389,10 +405,6 @@ msgstr ""
 #: web/html/user/index.php:107
 msgid "eduID Connect Self-service"
 msgstr "eduID Connect självservice"
-
-#: web/html/migrate/index.php:132
-msgid "Back"
-msgstr "Backa"
 
 #: web/html/src/HTML.php:17
 msgid "Activate your organisation identity in eduID"

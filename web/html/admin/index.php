@@ -140,37 +140,37 @@ if (isset($_POST['action'])) {
       $parseErrors = '';
       if ( $scim->getAdminAccess() > 19 ) {
         if (strlen($_POST['givenName']) == 0) {
-          $parseErrors .= sprintf('%s %s.<br>', _('GivenName'), _('missing'));
+          $parseErrors .= sprintf('%s %s.', _('GivenName'), _('missing')) . '<br>';
         }
         if (strlen($_POST['sn']) == 0) {
-          $parseErrors .= sprintf('%s %s.<br>', _('SurName'), _('missing'));
+          $parseErrors .= sprintf('%s %s. ', _('SurName'), _('missing')) . '<br>';
         }
         if (strlen($_POST['mail']) == 0) {
-          $parseErrors .= sprintf('%s %s.<br>', _('Invite mail'), _('missing'));
+          $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('missing')) . '<br>';
         } elseif (! $invites->validateEmail($_POST['mail'])) {
-          $parseErrors .= sprintf('%s %s.<br>', _('Invite mail'), _('have wrong format'));
+          $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('have wrong format')) . '<br>';
         }
         if (strlen($_POST['personNIN']) == 0) {
-          $parseErrors .= sprintf('%s %s.<br>', _('Swedish national identity number'), _('missing'));
+          $parseErrors .= sprintf('%s %s. ', _('Swedish national identity number'), _('missing')) . '<br>';
         } elseif (!$invites->validateSSN($_POST['personNIN'], true)) {
-          $parseErrors .= sprintf('%s %s.<br>', _('Swedish national identity number'), _('have wrong format'));
+          $parseErrors .= sprintf('%s %s. ', _('Swedish national identity number'), _('have wrong format')) . '<br>';
         }
         foreach ($_POST['saml'] as $part => $data) {
           switch($part) {
             case 'eduPersonPrincipalName' :
               if ($scim->ePPNexists($data)) {
-                $parseErrors .= sprintf(_('%s already have an account.<br>'), $data);
+                $parseErrors .= sprintf(_('%s already have an account.'), $data) . '<br>';
               } elseif ($invites->ePPNexists($data)) {
                 $parseErrors .= $invites->getInviteePPNid() == $id ? '' :
-                  sprintf(_('%s already have an invite.<br>'), $data);
+                  sprintf(_('%s already have an invite.'), $data) . '<br>';
               }
               if (! $scim->validScope($data)) {
-                  $parseErrors .= sprintf(_('%s has an invalid scope.<br>'), $data);
+                  $parseErrors .= sprintf(_('%s has an invalid scope.'), $data) . '<br>';
               }
               break;
             case 'mail' :
               if (! $invites->validateEmail($data)) {
-                $parseErrors .= sprintf('%s %s.<br>', _('Organisation mail'), _('have wrong format'));
+                $parseErrors .= sprintf('%s %s. ', _('Organisation mail'), _('have wrong format')) . '<br>';
               }
               break;
             default :
