@@ -6,7 +6,7 @@ require_once '../vendor/autoload.php';
 
 $config = new scimAdmin\Configuration();
 
-$html = new scimAdmin\HTML($config->mode(), _('User profile'));
+$html = new scimAdmin\HTML( _('User profile'));
 
 $scim = new scimAdmin\SCIM();
 

@@ -6,13 +6,14 @@ require_once '../vendor/autoload.php';
 
 $config = new scimAdmin\Configuration();
 
-$html = new scimAdmin\HTML($config->mode(), _('Administration of your organisation identities.'));
+$html = new scimAdmin\HTML(_('Administration of your organisation identities.'));
 
 $scim = new scimAdmin\SCIM();
 
 $localize = new scimAdmin\Localize();
 
 $errors = '';
+$collapse = false;
 $errorURL = isset($_SERVER['Meta-errorURL']) ?
   '<a href="' . $_SERVER['Meta-errorURL'] . '">Mer information</a><br>' : '<br>';
 $errorURL = str_replace(array('ERRORURL_TS', 'ERRORURL_RP', 'ERRORURL_TID'),
@@ -364,7 +365,7 @@ if (isset($_POST['action'])) {
   }
 }
 print "        <br>\n";
-$html->showFooter(true);
+$html->showFooter($collapse);
 
 function listUsers($id='0-0', $shown = false) {
   global $scim;
@@ -627,7 +628,8 @@ function parseEduPersonScopedAffiliation($value) {
 }
 
 function showMenu($show = 1) {
-  global $scim, $result;
+  global $scim, $result, $collapse;
+  $collapse = true;
   printf ('        <label for="select">%s</label>
         <div class="select">
           <select id="selectList">
@@ -946,15 +948,14 @@ function multiInvite() {
             <option value="en"%s>%s</option>
           </select>
           <textarea id="inviteData" name="inviteData" rows="4" cols="100" placeholder="%s">%s</textarea>
-        </form>
-        <div class="buttons"><a href="./?action=listInvites"><button class="btn btn-secondary">%s</button></a></div>%s',
+        </form>%s',
     _('Validate Invites'), _('Create Invites'),
     isset($_POST['birthDate']) ? ' checked' : '', _('Allow users without Swedish national identity number (requires Birthdate)'),
     isset($_POST['sendMail']) ? ' checked' : '', _('Send out invite mail'),
     _('Language for invite'), _('Swedish'),
     (isset($_POST['lang']) && $_POST['lang'] == 'en') ? ' selected' : '', _('English'),
     $placeHolder, isset ($_POST['inviteData']) ? $_POST['inviteData'] : '',
-    _('Back'), "\n");
+    "\n");
   if (isset($_POST['inviteData'])) {
     foreach (explode("\n", $_POST['inviteData']) as $line) {
       $params = explode(';', $line);
@@ -1045,14 +1046,16 @@ function multiInvite() {
 
       if ($parseErrors == '') {
         if (isset($_POST['createInvites']) ){
-          printf('          <div class="row">%s %s</div>%s', $fullInfo, _('Invited'), "\n");
+          printf('          <div class="row"><i class="fas fa-check"></i>%s %s</div>%s', $fullInfo, _('Invited'), "\n");
           $invites->updateInviteAttributesById(0, $attributeArray, $inviteArray, $_POST['lang'], isset($_POST['sendMail']));
         } else {
-          printf('          <div class="row">%s OK</div>%s', $fullInfo, "\n");
+          printf('          <div class="row"><i class="fas fa-check"></i>%s OK</div>%s', $fullInfo, "\n");
         }
       } else {
-        printf('          <div class="row alert-danger" role="alert">%s : %s</div>%s', $fullInfo, $parseErrors, "\n");
+        printf('          <div class="row alert-danger" role="alert"><i class="fas fa-exclamation"></i>%s : %s</div>%s', $fullInfo, $parseErrors, "\n");
+        printf('          <div class="row"><i class="fas fa-exclamation"></i>%s : %s</div>%s', $fullInfo, $parseErrors, "\n");
       }
     }
   }
+  printf('        <div class="buttons"><a href="./?action=listInvites"><button class="btn btn-secondary">%s</button></a></div>%s', _('Back'), "\n");
 }

@@ -477,6 +477,19 @@ table.list-invites tr th:last-child {
   border-radius: .25rem;
 }
 
+/* color for fontawesome icons */
+.fa-check {
+  color: green;
+}
+.fa-exclamation-triangle,
+.fa-clock {
+  color: orange;
+}
+.fa-exclamation,
+.fa-bell {
+  color: red;
+}
+
 /** Responsive **/
 @media (min-width: 414px) {
   .buttons {

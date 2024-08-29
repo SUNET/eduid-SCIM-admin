@@ -5,7 +5,7 @@ const HTML_LI_PROFILE = '            <li><a href="https://eduid.se/profile/">%s<
 
 $config = new scimAdmin\Configuration();
 
-$html = new scimAdmin\HTML($config->mode());
+$html = new scimAdmin\HTML();
 
 if ($instance = $config->getInstance()) {
   $scim = new scimAdmin\SCIM();

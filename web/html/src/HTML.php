@@ -29,6 +29,9 @@ class HTML {
     <title><?=$title?></title>
     <link rel="stylesheet" href="/<?=$this->scope?>/css/reset.css" type="text/css" media="all" />
     <link rel="stylesheet" href="/<?=$this->scope?>/css/index.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/<?=$this->scope?>/css/fontawesome.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/<?=$this->scope?>/css/solid.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/<?=$this->scope?>/css/regular.min.css" type="text/css" media="all" />
     <link rel="icon" href="/assets/favicon.ico" type="image/x-icon" />
   </head>
 
