@@ -139,16 +139,41 @@ if (isset($_POST['action'])) {
       $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
       $parseErrors = '';
       if ( $scim->getAdminAccess() > 19 ) {
-        if(isset($_POST['saml']['eduPersonPrincipalName'])) {
-          $ePPN = $_POST['saml']['eduPersonPrincipalName'];
-          if ($scim->ePPNexists($ePPN)) {
-            $parseErrors .= sprintf(_('%s already have an account.'), $ePPN);
-          } elseif ($invites->ePPNexists($ePPN)) {
-            $parseErrors .= $invites->getInviteePPNid() == $id ? '' :
-              sprintf(_('%s already have an invite.'), $ePPN);
-          }
-          if (! $scim->validScope($ePPN)) {
-              $parseErrors .= sprintf(_('%s has an invalid scope.'), $ePPN);
+        if (strlen($_POST['givenName']) == 0) {
+          $parseErrors .= sprintf('%s %s.<br>', _('GivenName'), _('missing'));
+        }
+        if (strlen($_POST['sn']) == 0) {
+          $parseErrors .= sprintf('%s %s.<br>', _('SurName'), _('missing'));
+        }
+        if (strlen($_POST['mail']) == 0) {
+          $parseErrors .= sprintf('%s %s.<br>', _('Invite mail'), _('missing'));
+        } elseif (! $invites->validateEmail($_POST['mail'])) {
+          $parseErrors .= sprintf('%s %s.<br>', _('Invite mail'), _('have wrong format'));
+        }
+        if (strlen($_POST['personNIN']) == 0) {
+          $parseErrors .= sprintf('%s %s.<br>', _('Swedish national identity number'), _('missing'));
+        } elseif (!$invites->validateSSN($_POST['personNIN'], true)) {
+          $parseErrors .= sprintf('%s %s.<br>', _('Swedish national identity number'), _('have wrong format'));
+        }
+        foreach ($_POST['saml'] as $part => $data) {
+          switch($part) {
+            case 'eduPersonPrincipalName' :
+              if ($scim->ePPNexists($data)) {
+                $parseErrors .= sprintf(_('%s already have an account.<br>'), $data);
+              } elseif ($invites->ePPNexists($data)) {
+                $parseErrors .= $invites->getInviteePPNid() == $id ? '' :
+                  sprintf(_('%s already have an invite.<br>'), $data);
+              }
+              if (! $scim->validScope($data)) {
+                  $parseErrors .= sprintf(_('%s has an invalid scope.<br>'), $data);
+              }
+              break;
+            case 'mail' :
+              if (! $invites->validateEmail($data)) {
+                $parseErrors .= sprintf('%s %s.<br>', _('Organisation mail'), _('have wrong format'));
+              }
+              break;
+            default :
           }
         }
         if ($parseErrors == '' ) {
@@ -375,11 +400,11 @@ function showUser($user, $id) {
               </td>
               <td colspan="3"><ul>%s',
     $user['externalId'], $user['externalId'],
-    isset($user['attributes']->eduPersonPrincipalName) ? $user['attributes']->eduPersonPrincipalName : 'Saknas',
+    isset($user['attributes']->eduPersonPrincipalName) ? $user['attributes']->eduPersonPrincipalName : _('Missing'),
     $user['fullName'], $user['externalId'],
     $id == $user['id'] ? 'table-row' : 'none',
     $user['id'], _('Edit'),
-    $user['id'], _('Remove'),
+    $user['id'], _('Delete'),
     "\n");
   if ($user['profile']) {
     foreach($user['attributes'] as $key => $value) {
@@ -603,13 +628,13 @@ function parseEduPersonScopedAffiliation($value) {
 
 function showMenu($show = 1) {
   global $scim, $result;
-  print '        <label for="select">Select a list</label>
+  printf ('        <label for="select">%s</label>
         <div class="select">
           <select id="selectList">
-            <option value="List Users">List Users</option>';
+            <option value="List Users">%s</option>', _('Select a list'), _('Users'));
   if ( $scim->getAdminAccess() > 19 ) {
     printf('
-            <option value="List invites"%s>List invites</option>', $show == 2 ? ' selected' : '');
+            <option value="List invites"%s>%s</option>', $show == 2 ? ' selected' : '', _('Invites'));
   }
   print '
           </select>
@@ -622,13 +647,14 @@ function listInvites($id = 0, $show = false) {
   global $invites;
   printf('        <table id="list-invites-table" class="table table-striped table-bordered list-invites"%s>
           <thead>
-            <tr><th>Active</th><th>Last modified</th><th>Name</th></tr>
+            <tr><th></th><th>%s</th><th>%s</th></tr>
           </thead>
           <tbody>
             <tr><td colspan="3">
               <a a href="?action=addInvite"><button class="btn btn-primary btn-sm">%s</button></a>
               <a a href="?action=addMultiInvite"><button class="btn btn-primary btn-sm">%s</button></a>
-            </td></tr>%s', $show ? '' : ' hidden', _('Add Invite'), _('Add multiple Invites'), "\n");
+            </td></tr>%s',
+    $show ? '' : ' hidden', _('Last modified'), _('Name'), _('Add Invite'), _('Add multiple Invites'), "\n");
   $oldStatus = 0;
   foreach ($invites->getInvitesList() as $invite) {
     if ($invite['status'] != $oldStatus) {
@@ -645,12 +671,11 @@ function showInvite($invite, $id) {
   $inviteInfo = json_decode($invite['inviteInfo']);
   $migrateInfo = json_decode($invite['migrateInfo']);
   printf('            <tr class="collapsible" data-id="%s" onclick="showId(\'%s\')">
-              <td>%s</td>
+              <td></td>
               <td>%s</td>
               <td>%s</td>
             </tr>%s',
     $invite['id'], $invite['id'],
-    $invite['session'] == '' ? '' : 'X',
     $invite['modified'],
     $inviteInfo->givenName . ' ' . $inviteInfo->sn,
     "\n");
@@ -744,6 +769,25 @@ function editInvite($id, $error = '') {
     printf('        <div class="row alert alert-danger">%s</div>%s', _('You are editing an invite waiting for approval. If you submit it will be converted back to waiting for onboarding!'), "\n");
   }
   $inviteInfo = json_decode($invite['inviteInfo']);
+  # If POST exists some error occurred, save posted data to be edited
+  if (isset($_POST['lang'])) {
+    $invite['lang'] = $_POST['lang'];
+  }
+  foreach (array('givenName', 'sn', 'mail', 'personNIN') as $part) {
+    if (isset($_POST[$part])) {
+      $inviteInfo->$part = $_POST[$part];
+    }
+  }
+  if (isset($_POST['saml'])) {
+    $attributeArray = array();
+    foreach ($_POST['saml'] as $key => $value) {
+      $value = $key == 'eduPersonScopedAffiliation' ?
+        parseEduPersonScopedAffiliation($value) :
+        $value;
+      $attributeArray[$key] = $value;
+    }
+    $invite['attributes'] = json_encode($attributeArray);
+  }
   if ($error != '' ) {
     printf('        <div class="row alert-danger" role="alert">%s</div>%s', $error, "\n");
   }
@@ -910,7 +954,7 @@ function multiInvite() {
     _('Language for invite'), _('Swedish'),
     (isset($_POST['lang']) && $_POST['lang'] == 'en') ? ' selected' : '', _('English'),
     $placeHolder, isset ($_POST['inviteData']) ? $_POST['inviteData'] : '',
-    _('Cancel'), "\n");
+    _('Back'), "\n");
   if (isset($_POST['inviteData'])) {
     foreach (explode("\n", $_POST['inviteData']) as $line) {
       $params = explode(';', $line);

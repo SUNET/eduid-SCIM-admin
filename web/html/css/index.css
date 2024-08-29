@@ -230,7 +230,6 @@ a.text-link:hover {
   outline: 0;
   border: none;
   cursor: pointer;
-  height: 3rem;
 }
 .btn:hover {
   transform: scale(0.95);
@@ -436,15 +435,15 @@ tbody tr:not(.content):hover {
 }
 
 table.list-invites tr th:nth-child(1) {
-  width: 10%;
+  width: 20%;
 }
 table.list-invites tr th:nth-child(2) {
-  width: 45%;
+  width: 40%;
   text-align: left;
   padding-left: 20px;
 }
 table.list-invites tr th:last-child {
-  width: 45%;
+  width: 40%;
   text-align: left;
   padding-left: 20px;
 }
