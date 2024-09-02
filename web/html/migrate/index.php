@@ -64,7 +64,7 @@ if (isset($_GET['source'])) {
   $html->setExtraURLPart('&backend');
   if ($migrateInfo = $invites->checkBackendData()) {
     if ($scim->getIdFromExternalId($migrateInfo['eduPersonPrincipalName'])) {
-      showError(sprintf(_('%s is already connected to an account.  If you need help contact your user administrator. Please close your browser.'),
+      showError(sprintf(_('%s is already connected to an account. If you need help contact your user administrator. Please close your browser.'),
         $migrateInfo['eduPersonPrincipalName']));
     }
     if ($invites->checkALLevel(2)) {
@@ -118,13 +118,17 @@ function migrate($migrateInfo, $attributes, $id) {
 function move2Manual($id,$migrateInfo) {
   global $invites;
   $invites->move2Manual($id,json_encode($migrateInfo));
-  showError(_('Automatic matchning of registered user information could not be completed. Contact the organisation user administrator to complete the account activation. Please close the window.'));
+  showError(
+    _('Automatic matching of registered user information could not be completed.
+    Contact the organisation user administrator to complete the account activation.
+    Please close the window.'),
+    true, _('Activation of account awaiting approval'));
 }
 
-function showError($error, $exit = true) {
+function showError($error, $exit = true, $tagline = '') {
   global $html, $config;
 
-  $html->showHeaders(_('eduID Connect Self-service'));
+  $html->showHeaders(_('eduID Connect Self-service'), $tagline);
   printf('        %s
         <div class="buttons">
           <a class="btn btn-primary" href="/%s/">%s</a>

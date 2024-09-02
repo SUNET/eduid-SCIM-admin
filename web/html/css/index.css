@@ -450,7 +450,7 @@ table.list-invites tr th:last-child {
 
 .row {
   display: flex;
-  flex-wrap: wrap;
+/*  flex-wrap: wrap;*/
 }
 
 .col3 {

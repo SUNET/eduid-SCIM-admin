@@ -193,6 +193,19 @@ if (isset($_POST['action'])) {
         listUsers('', true);
       }
       break;
+    case 'approveInvite' :
+      $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
+      showMenu(2);
+      if ( $scim->getAdminAccess() > 19 ) {
+        if ($id) {
+          approveInvite($id);
+        }
+        listUsers();
+        listInvites($id, true);
+      } else {
+        listUsers('', true);
+      }
+      break;
     case 'deleteInvite' :
       $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
       showMenu(2);
@@ -298,15 +311,17 @@ if (isset($_POST['action'])) {
       break;
     case 'approveInvite' :
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
-      showMenu(2);
       if ( $scim->getAdminAccess() > 19 ) {
         if ($id) {
           $html->setExtraURLPart('&action=approveInvite&id=' . $id);
-          approveInvite($id);
+          showApproveInviteForm($id);
+        } else {
+          showMenu(2);
+          listUsers();
+          listInvites($id, true);
         }
-        listUsers();
-        listInvites($id, true);
       } else {
+        showMenu();
         listUsers('', true);
       }
       break;
@@ -666,7 +681,7 @@ function listInvites($id = 0, $show = false) {
     }
     showInvite($invite, $id);
   }
-  printf('          </tbody>%s       </table>%s', "\n", "\n");
+  printf('          </tbody>%s        </table>%s', "\n", "\n");
 }
 
 function showInvite($invite, $id) {
@@ -890,6 +905,43 @@ function approveInvite($id) {
   }
 }
 
+function showApproveInviteForm ($id) {
+  global $invites;
+  $invite = $invites->getInvite($id);
+  $inviteInfo = json_decode($invite['inviteInfo']);
+  $migrateInfo = json_decode($invite['migrateInfo']);
+  printf('        <div>%s<br>%s</div>%s',
+    _("Please verify that it's the same person logged in from eduID that was invited."),
+    _("personNIN from eduID (12 numbers) should match what's shown on their identification documents OR birth date (8 numbers) + GivenName, SurName"),
+     "\n");
+  printf('        <form method="POST">
+          <input type="hidden" name="action" value="approveInvite">
+          <input type="hidden" name="id" value="%s">
+          <table id="entities-table" class="table table-striped table-bordered">
+            <tbody>
+              <tr><td></td><td>Invite data</td><td>From eduID</td></tr>
+              <tr><td>personNIN</td><td>%s</td><td>%s</td></tr>
+              <tr><td>%s</td><td>%s</td><td>%s</td></tr>
+              <tr><td>%s</td><td>%s</td><td>%s</td></tr>
+              <tr><td>mail</td><td>%s</td><td>%s<br>%s</td></tr>
+            </tbody>
+          </table>
+          <div class="buttons">
+            <button type="submit" class="btn btn-primary">%s</button>
+          </div>
+        </form>
+        <div class="buttons">
+          <a href="?action=listInvites&id=%s"><button class="btn btn-secondary">%s</button></a>
+        </div>%s',
+    $invite['id'],
+    $inviteInfo->personNIN,
+    $migrateInfo->norEduPersonNIN == '' ? $migrateInfo->schacDateOfBirth: $migrateInfo->norEduPersonNIN,
+    _('GivenName'), $inviteInfo->givenName, $migrateInfo->givenName,
+    _('SurName'), $inviteInfo->sn, $migrateInfo->sn,
+    $inviteInfo->mail, $migrateInfo->mail, implode('<br>',explode(';', $migrateInfo->mailLocalAddress)),
+    _('Approve'), $invite['id'], _('Cancel'), "\n");
+}
+
 function deleteInvite($id)  {
   global $invites;
 
@@ -1046,14 +1098,13 @@ function multiInvite() {
 
       if ($parseErrors == '') {
         if (isset($_POST['createInvites']) ){
-          printf('          <div class="row"><i class="fas fa-check"></i>%s %s</div>%s', $fullInfo, _('Invited'), "\n");
+          printf('          <div class="row"><i class="fas fa-check"></i> %s %s</div>%s', $fullInfo, _('Invited'), "\n");
           $invites->updateInviteAttributesById(0, $attributeArray, $inviteArray, $_POST['lang'], isset($_POST['sendMail']));
         } else {
-          printf('          <div class="row"><i class="fas fa-check"></i>%s OK</div>%s', $fullInfo, "\n");
+          printf('          <div class="row"><i class="fas fa-check"></i> %s OK</div>%s', $fullInfo, "\n");
         }
       } else {
-        printf('          <div class="row alert-danger" role="alert"><i class="fas fa-exclamation"></i>%s : %s</div>%s', $fullInfo, $parseErrors, "\n");
-        printf('          <div class="row"><i class="fas fa-exclamation"></i>%s : %s</div>%s', $fullInfo, $parseErrors, "\n");
+        printf('          <div class="row alert-danger" role="alert"><i class="fas fa-exclamation"></i> %s : %s</div>%s', $fullInfo, $parseErrors, "\n");
       }
     }
   }

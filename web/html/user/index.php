@@ -108,7 +108,7 @@ if ($invites->checkCorrectBackendIdP()) {
     showError(_('Did not get any ePPN from IdP!'));
   }
 } else {
-  $invites->redirectToNewIdP('/user', $config->forceMFA());
+  $invites->redirectToNewIdP('/user/', $config->forceMFA());
 }
 
 function showError($error, $exit = true) {
