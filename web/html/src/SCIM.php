@@ -320,17 +320,6 @@ class SCIM {
     }
   }
 
-  public function createIdFromExternalId($externalId) {
-    $request = sprintf('{"schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"], "externalId": "%s"}', $externalId);
-    $userInfo = $this->request('POST', self::SCIM_USERS, $request);
-    $userArray = json_decode($userInfo);
-    if (isset($userArray->id)) {
-      return $userArray->id;
-    } else {
-      return false;
-    }
-  }
-
   public function updateId($id, $data, $version) {
     return $this->request('PUT', self::SCIM_USERS.$id, $data, array('if-match: ' . $version));
   }
@@ -362,7 +351,8 @@ class SCIM {
         $affiliationArray = explode('@', $affiliation);
         $checkedAffiliation = $affiliationArray[0];
         $checkedScope = '@' . $affiliationArray[1];
-        if ($this->possibleAffiliations[$checkedAffiliation] <> '' &&
+        if (isset($this->possibleAffiliations[$checkedAffiliation]) &&
+          $this->possibleAffiliations[$checkedAffiliation] <> '' &&
           ! in_array($this->possibleAffiliations[$checkedAffiliation].$checkedScope, $ePSA)) {
           # Add dependent affiliation
           $added = true;
@@ -394,66 +384,43 @@ class SCIM {
     $migrateInfo = json_decode($migrateInfo);
     $attributes = json_decode($attributes);
 
-    $ePPN = $migrateInfo->eduPersonPrincipalName;
-    if ((! $id = $this->getIdFromExternalId($ePPN)) && (! $id = $this->createIdFromExternalId($ePPN))) {
-      print "Could not create user in SCIM";
-      exit;
-    }
-
-    $userArray = $this->getId($id);
-
-    $version = $userArray->meta->version;
-    unset($userArray->meta);
-
-    $schemaNutidFound = false;
-    foreach ($userArray->schemas as $schema) {
-      $schemaNutidFound = $schema == self::SCIM_NUTID_SCHEMA ? true : $schemaNutidFound;
-    }
-    if (! $schemaNutidFound) {$userArray->schemas[] = self::SCIM_NUTID_SCHEMA; }
-
-    if (! isset($userArray->{self::SCIM_NUTID_SCHEMA})) {
-      $userArray->{self::SCIM_NUTID_SCHEMA} = new \stdClass();
-    }
-    if (! isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles)) {
-      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles = new \stdClass();
-    }
-    if (! isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdps)) {
-      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp = new \stdClass();
-    }
-    if (! isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes)) {
-      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes = new \stdClass();
-    }
+    $userArray = new \stdClass();
+    $userArray->externalId = $migrateInfo->eduPersonPrincipalName;
+    $userArray->schemas[] = "urn:ietf:params:scim:schemas:core:2.0:User";
+    $userArray->schemas[] = self::SCIM_NUTID_SCHEMA;
+    $userArray->{self::SCIM_NUTID_SCHEMA} = new \stdClass();
+    $userArray->{self::SCIM_NUTID_SCHEMA}->profiles = new \stdClass();
+    $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp = new \stdClass();
+    $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes = new \stdClass();
 
     foreach ($attributes as $key => $value) {
       $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->$key = $value;
     }
 
-    if (! isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data)) {
-      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data = new \stdClass();
-    }
+    $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data = new \stdClass();
     $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo = $migrateInfo->norEduPersonNIN;
 
-    if (! isset($userArray->{'name'})) {
-      $userArray->name = new \stdClass();
-    }
+    $userArray->name = new \stdClass();
     $userArray->name->givenName = $migrateInfo->givenName;
     $userArray->name->familyName = $migrateInfo->sn;
     $userArray->name->formatted = $migrateInfo->givenName . ' ' . $migrateInfo->sn;
 
-    $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN');
-    $addUserHandler = $this->db->prepare('INSERT INTO `users` (`instance_id`, `ePPN`) VALUES (:Instance, :EPPN)');
-    $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
-    $addUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
-    if (isset($attributes->eduPersonPrincipalName)) {
-      $checkUserHandler->bindValue(self::SQL_EPPN, $attributes->eduPersonPrincipalName);
-      $checkUserHandler->execute();
-      if (! $checkUserHandler->fetch()) {
-        $addUserHandler->bindValue(self::SQL_EPPN, $attributes->eduPersonPrincipalName);
-        $addUserHandler->execute();
+    if ($userInfo = $this->request('POST', self::SCIM_USERS, json_encode($userArray))) {
+      $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN');
+      $addUserHandler = $this->db->prepare('INSERT INTO `users` (`instance_id`, `ePPN`) VALUES (:Instance, :EPPN)');
+      $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
+      $addUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
+      if (isset($attributes->eduPersonPrincipalName)) {
+        $checkUserHandler->bindValue(self::SQL_EPPN, $attributes->eduPersonPrincipalName);
+        $checkUserHandler->execute();
+        if (! $checkUserHandler->fetch()) {
+          $addUserHandler->bindValue(self::SQL_EPPN, $attributes->eduPersonPrincipalName);
+          $addUserHandler->execute();
+        }
       }
     }
 
-    return $this->updateId($id,json_encode($userArray),$version);
+    return $userInfo;
   }
 
   public function checkScopeExists($scope) {
