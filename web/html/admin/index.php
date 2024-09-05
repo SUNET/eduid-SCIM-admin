@@ -1,6 +1,8 @@
 <?php
 const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
 const LI_ITEM = '                <li>%s - %s</li>%s';
+const HTML_CHECKED = ' checked';
+const HTML_SELECTED = ' selected';
 
 require_once '../vendor/autoload.php';
 
@@ -160,13 +162,13 @@ if (isset($_POST['action'])) {
           switch($part) {
             case 'eduPersonPrincipalName' :
               if ($scim->ePPNexists($data)) {
-                $parseErrors .= sprintf(_('%s already have an account.'), $data) . '<br>';
+                $parseErrors .= sprintf(_('%s already have an account.'), htmlspecialchars($data)) . '<br>';
               } elseif ($invites->ePPNexists($data)) {
                 $parseErrors .= $invites->getInviteePPNid() == $id ? '' :
                   sprintf(_('%s already have an invite.'), $data) . '<br>';
               }
               if (! $scim->validScope($data)) {
-                  $parseErrors .= sprintf(_('%s has an invalid scope.'), $data) . '<br>';
+                  $parseErrors .= sprintf(_('%s has an invalid scope.'), htmlspecialchars($data)) . '<br>';
               }
               break;
             case 'mail' :
@@ -230,7 +232,7 @@ if (isset($_POST['action'])) {
       break;
     default:
       if ($scim->getAdminAccess() > 29) {
-        printf('Missing what to do with action = %s in POST', $_POST['action']);
+        printf('Missing what to do with action = %s in POST', htmlspecialchars($_POST['action']));
       }
   }
 } elseif (isset($_GET['action'])) {
@@ -623,7 +625,7 @@ function showEduPersonScopedAffiliationInput($values, $allowedScopes, $possibleA
     printf ('                <h5>Scope : %s</h5>%s', $scope, "\n");
     foreach ($possibleAffiliations as $affiliation => $depend) {
       printf ('                <input type="checkbox"%s name="saml[eduPersonScopedAffiliation][%s]"> %s<br>%s',
-        $existingAffiliation[$scope][$affiliation] ? ' checked' : '', $affiliation . '@' . $scope, $affiliation,
+        $existingAffiliation[$scope][$affiliation] ? HTML_CHECKED : '', $affiliation . '@' . $scope, $affiliation,
         "\n");
     }
   }
@@ -651,7 +653,7 @@ function showMenu($show = 1) {
             <option value="List Users">%s</option>', _('Select a list'), _('Users'));
   if ( $scim->getAdminAccess() > 19 ) {
     printf('
-            <option value="List invites"%s>%s</option>', $show == 2 ? ' selected' : '', _('Invites'));
+            <option value="List invites"%s>%s</option>', $show == 2 ? HTML_SELECTED : '', _('Invites'));
   }
   print '
           </select>
@@ -829,7 +831,7 @@ function editInvite($id, $error = '') {
       _('Invite mail'), isset($inviteInfo->mail) ? $inviteInfo->mail : '',
       _('Swedish national identity number'), isset($inviteInfo->personNIN) ? $inviteInfo->personNIN : '',
       _('Language for invite'), _('Swedish'),
-      $invite['lang'] == 'en' ? ' selected' : '', _('English'),
+      $invite['lang'] == 'en' ? HTML_SELECTED : '', _('English'),
       "\n");
 
   printf('              <tr><th colspan="2">SAML Attributes</th></tr>%s', "\n");
@@ -994,19 +996,13 @@ function multiInvite() {
             <button type="submit" name="createInvites" class="btn btn-primary">%s</button>
           </div>
           <input type="checkbox" name="birthDate"%s> %s<br>
-          <input type="checkbox" name="sendMail"%s> %s -
-          %s <select name="lang">
-            <option value="sv">%s</option>
-            <option value="en"%s>%s</option>
-          </select>
+          <input type="checkbox" name="sendMail"%s> %s
           <textarea id="inviteData" name="inviteData" rows="4" cols="100" placeholder="%s">%s</textarea>
         </form>%s',
     _('Validate Invites'), _('Create Invites'),
-    isset($_POST['birthDate']) ? ' checked' : '', _('Allow users without Swedish national identity number (requires Birthdate)'),
-    isset($_POST['sendMail']) ? ' checked' : '', _('Send out invite mail'),
-    _('Language for invite'), _('Swedish'),
-    (isset($_POST['lang']) && $_POST['lang'] == 'en') ? ' selected' : '', _('English'),
-    $placeHolder, isset ($_POST['inviteData']) ? $_POST['inviteData'] : '',
+    isset($_POST['birthDate']) ? HTML_CHECKED : '', _('Allow users without Swedish national identity number (requires Birthdate)'),
+    isset($_POST['sendMail']) ? HTML_CHECKED : '', _('Send out invite mail'),
+    $placeHolder, isset ($_POST['inviteData']) ? htmlspecialchars($_POST['inviteData']) : '',
     "\n");
   if (isset($_POST['inviteData'])) {
     foreach (explode("\n", $_POST['inviteData']) as $line) {
@@ -1017,20 +1013,20 @@ function multiInvite() {
       $attributeArray = array();
 
       if (isset($params[0]) && strlen($params[0])) {
-        $fullInfo = $params[0];
+        $fullInfo = htmlspecialchars($params[0]);
         $inviteArray['givenName'] = $params[0];
       } else {
         $parseErrors .= sprintf('%s %s. ', _('GivenName'), _('missing'));
       }
       if (isset($params[1]) && strlen($params[1])) {
-        $fullInfo .= ' ' . $params[1];
+        $fullInfo .= ' ' . htmlspecialchars($params[1]);
         $inviteArray['sn'] = $params[1];
       } else {
         $parseErrors .= sprintf('%s %s. ', _('SurName'), _('missing'));
       }
       if (isset($params[2]) && strlen($params[2])) {
         if ($invites->validateEmail($params[2])) {
-          $fullInfo .= ' (' . $params[2] . ')' ;
+          $fullInfo .= ' (' . htmlspecialchars($params[2]) . ')' ;
           $inviteArray['mail'] = $params[2];
         } else {
           $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('have wrong format'));
@@ -1099,7 +1095,7 @@ function multiInvite() {
       if ($parseErrors == '') {
         if (isset($_POST['createInvites']) ){
           printf('          <div class="row"><i class="fas fa-check"></i> %s %s</div>%s', $fullInfo, _('Invited'), "\n");
-          $invites->updateInviteAttributesById(0, $attributeArray, $inviteArray, $_POST['lang'], isset($_POST['sendMail']));
+          $invites->updateInviteAttributesById(0, $attributeArray, $inviteArray, $lang, isset($_POST['sendMail']));
         } else {
           printf('          <div class="row"><i class="fas fa-check"></i> %s OK</div>%s', $fullInfo, "\n");
         }
