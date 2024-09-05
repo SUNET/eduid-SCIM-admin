@@ -1012,95 +1012,97 @@ function multiInvite() {
       $inviteArray = array();
       $attributeArray = array();
 
-      if (isset($params[0]) && strlen($params[0])) {
-        $fullInfo = htmlspecialchars($params[0]);
-        $inviteArray['givenName'] = $params[0];
-      } else {
-        $parseErrors .= sprintf('%s %s. ', _('GivenName'), _('missing'));
-      }
-      if (isset($params[1]) && strlen($params[1])) {
-        $fullInfo .= ' ' . htmlspecialchars($params[1]);
-        $inviteArray['sn'] = $params[1];
-      } else {
-        $parseErrors .= sprintf('%s %s. ', _('SurName'), _('missing'));
-      }
-      if (isset($params[2]) && strlen($params[2])) {
-        if ($invites->validateEmail($params[2])) {
-          $fullInfo .= ' (' . htmlspecialchars($params[2]) . ')' ;
-          $inviteArray['mail'] = $params[2];
+      if (isset($params[0]) && strlen($params[0]) > 1) {
+        if (strlen($params[0])) {
+          $fullInfo = htmlspecialchars($params[0]);
+          $inviteArray['givenName'] = $params[0];
         } else {
-          $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('have wrong format'));
+          $parseErrors .= sprintf('%s %s. ', _('GivenName'), _('missing'));
         }
-      } else {
-        $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('missing'));
-      }
-      if (isset($params[3]) && strlen($params[3])) {
-        if ($invites->validateSSN($params[3], isset($_POST['birthDate']))) {
-          $inviteArray['personNIN'] = $params[3];
+        if (isset($params[1]) && strlen($params[1])) {
+          $fullInfo .= ' ' . htmlspecialchars($params[1]);
+          $inviteArray['sn'] = $params[1];
         } else {
-          $parseErrors .= sprintf('%s %s. ', _('Swedish national identity number'), _('have wrong format'));
+          $parseErrors .= sprintf('%s %s. ', _('SurName'), _('missing'));
         }
-      } else {
-        $parseErrors .= sprintf('%s %s. ', _('Swedish national identity number'), _('missing'));
-      }
-      if (isset($params[4]) && strlen($params[4])) {
-        $lang = $params[4];
-        if (! ($lang == 'sv' || $lang == 'en')) {
-          $parseErrors .= sprintf('%s %s. ', _('Language'), _('should be sv or en'));
-        }
-      } else {
-        $parseErrors .= sprintf('%s %s. ', _('Language'), _('missing'));
-      }
-
-      $paramCounter = 4;
-      foreach ( $attributes2Migrate as $SCIM) {
-        $paramCounter++;
-        if (isset($params[$paramCounter]) && strlen($params[$paramCounter])) {
-          switch ($SCIM) {
-            case 'eduPersonPrincipalName' :
-              $ePPN = $params[$paramCounter];
-              if ($scim->ePPNexists($ePPN)) {
-                $parseErrors .= sprintf(_('%s already have an account.'), htmlspecialchars($ePPN));
-              } elseif ($invites->ePPNexists($ePPN)) {
-                $parseErrors .= sprintf(_('%s already have an invite.'), htmlspecialchars($ePPN));
-              }
-              if (! $scim->validScope($ePPN)) {
-                $parseErrors .= sprintf(_('%s has an invalid scope.'), htmlspecialchars($ePPN));
-              }
-              $attributeArray['eduPersonPrincipalName'] = $ePPN;
-              break;
-            case 'eduPersonScopedAffiliation' :
-              $ePSA = $params[$paramCounter];
-              if (! $scim->validScope($ePSA)) {
-                $parseErrors .= sprintf(_('%s has an invalid scope.'), htmlspecialchars($ePSA));
-              }
-              $attributeArray['eduPersonScopedAffiliation'] = $scim->expandePSA(array($ePSA));
-              break;
-            case 'mail' :
-              if ($invites->validateEmail($params[$paramCounter])) {
-                $attributeArray['mail'] = $params[$paramCounter];
-              } else {
-                $parseErrors .= sprintf('%s %s. ', _('Organisation mail'), _('have wrong format'));
-              }
-              break;
-            default :
-              $attributeArray[$SCIM] = $params[$paramCounter];
+        if (isset($params[2]) && strlen($params[2])) {
+          if ($invites->validateEmail($params[2])) {
+            $fullInfo .= ' (' . htmlspecialchars($params[2]) . ')' ;
+            $inviteArray['mail'] = $params[2];
+          } else {
+            $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('have wrong format'));
           }
         } else {
-          $parseErrors .= sprintf('%s %s %s. ', _('SAML value for'), $SCIM, _('missing'));
+          $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('missing'));
         }
-
-      }
-
-      if ($parseErrors == '') {
-        if (isset($_POST['createInvites']) ){
-          printf('          <div class="row"><i class="fas fa-check"></i> %s %s</div>%s', $fullInfo, _('Invited'), "\n");
-          $invites->updateInviteAttributesById(0, $attributeArray, $inviteArray, $lang, isset($_POST['sendMail']));
+        if (isset($params[3]) && strlen($params[3])) {
+          if ($invites->validateSSN($params[3], isset($_POST['birthDate']))) {
+            $inviteArray['personNIN'] = $params[3];
+          } else {
+            $parseErrors .= sprintf('%s %s. ', _('Swedish national identity number'), _('have wrong format'));
+          }
         } else {
-          printf('          <div class="row"><i class="fas fa-check"></i> %s OK</div>%s', $fullInfo, "\n");
+          $parseErrors .= sprintf('%s %s. ', _('Swedish national identity number'), _('missing'));
         }
-      } else {
-        printf('          <div class="row alert-danger" role="alert"><i class="fas fa-exclamation"></i> %s : %s</div>%s', $fullInfo, $parseErrors, "\n");
+        if (isset($params[4]) && strlen($params[4])) {
+          $lang = $params[4];
+          if (! ($lang == 'sv' || $lang == 'en')) {
+            $parseErrors .= sprintf('%s %s. ', _('Language'), _('should be sv or en'));
+          }
+        } else {
+          $parseErrors .= sprintf('%s %s. ', _('Language'), _('missing'));
+        }
+
+        $paramCounter = 4;
+        foreach ( $attributes2Migrate as $SCIM) {
+          $paramCounter++;
+          if (isset($params[$paramCounter]) && strlen($params[$paramCounter])) {
+            switch ($SCIM) {
+              case 'eduPersonPrincipalName' :
+                $ePPN = $params[$paramCounter];
+                if ($scim->ePPNexists($ePPN)) {
+                  $parseErrors .= sprintf(_('%s already have an account.'), htmlspecialchars($ePPN));
+                } elseif ($invites->ePPNexists($ePPN)) {
+                  $parseErrors .= sprintf(_('%s already have an invite.'), htmlspecialchars($ePPN));
+                }
+                if (! $scim->validScope($ePPN)) {
+                  $parseErrors .= sprintf(_('%s has an invalid scope.'), htmlspecialchars($ePPN));
+                }
+                $attributeArray['eduPersonPrincipalName'] = $ePPN;
+                break;
+              case 'eduPersonScopedAffiliation' :
+                $ePSA = $params[$paramCounter];
+                if (! $scim->validScope($ePSA)) {
+                  $parseErrors .= sprintf(_('%s has an invalid scope.'), htmlspecialchars($ePSA));
+                }
+                $attributeArray['eduPersonScopedAffiliation'] = $scim->expandePSA(array($ePSA));
+                break;
+              case 'mail' :
+                if ($invites->validateEmail($params[$paramCounter])) {
+                  $attributeArray['mail'] = $params[$paramCounter];
+                } else {
+                  $parseErrors .= sprintf('%s %s. ', _('Organisation mail'), _('have wrong format'));
+                }
+                break;
+              default :
+                $attributeArray[$SCIM] = $params[$paramCounter];
+            }
+          } else {
+            $parseErrors .= sprintf('%s %s %s. ', _('SAML value for'), $SCIM, _('missing'));
+          }
+
+        }
+
+        if ($parseErrors == '') {
+          if (isset($_POST['createInvites']) ){
+            printf('          <div class="row"><i class="fas fa-check"></i> %s %s</div>%s', $fullInfo, _('Invited'), "\n");
+            $invites->updateInviteAttributesById(0, $attributeArray, $inviteArray, $lang, isset($_POST['sendMail']));
+          } else {
+            printf('          <div class="row"><i class="fas fa-check"></i> %s OK</div>%s', $fullInfo, "\n");
+          }
+        } else {
+          printf('          <div class="row alert-danger" role="alert"><i class="fas fa-exclamation"></i> %s : %s</div>%s', $fullInfo, $parseErrors, "\n");
+        }
       }
     }
   }
