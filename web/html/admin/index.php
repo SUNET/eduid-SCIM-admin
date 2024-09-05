@@ -165,7 +165,7 @@ if (isset($_POST['action'])) {
                 $parseErrors .= sprintf(_('%s already have an account.'), htmlspecialchars($data)) . '<br>';
               } elseif ($invites->ePPNexists($data)) {
                 $parseErrors .= $invites->getInviteePPNid() == $id ? '' :
-                  sprintf(_('%s already have an invite.'), $data) . '<br>';
+                  sprintf(_('%s already have an invite.'), htmlspecialchars($data)) . '<br>';
               }
               if (! $scim->validScope($data)) {
                   $parseErrors .= sprintf(_('%s has an invalid scope.'), htmlspecialchars($data)) . '<br>';
@@ -1060,19 +1060,19 @@ function multiInvite() {
             case 'eduPersonPrincipalName' :
               $ePPN = $params[$paramCounter];
               if ($scim->ePPNexists($ePPN)) {
-                $parseErrors .= sprintf(_('%s already have an account.'), $ePPN);
+                $parseErrors .= sprintf(_('%s already have an account.'), htmlspecialchars($ePPN));
               } elseif ($invites->ePPNexists($ePPN)) {
-                $parseErrors .= sprintf(_('%s already have an invite.'), $ePPN);
+                $parseErrors .= sprintf(_('%s already have an invite.'), htmlspecialchars($ePPN));
               }
               if (! $scim->validScope($ePPN)) {
-                $parseErrors .= sprintf(_('%s has an invalid scope.'), $ePPN);
+                $parseErrors .= sprintf(_('%s has an invalid scope.'), htmlspecialchars($ePPN));
               }
               $attributeArray['eduPersonPrincipalName'] = $ePPN;
               break;
             case 'eduPersonScopedAffiliation' :
               $ePSA = $params[$paramCounter];
               if (! $scim->validScope($ePSA)) {
-                $parseErrors .= sprintf(_('%s has an invalid scope.'), $ePSA);
+                $parseErrors .= sprintf(_('%s has an invalid scope.'), htmlspecialchars($ePSA));
               }
               $attributeArray['eduPersonScopedAffiliation'] = $scim->expandePSA(array($ePSA));
               break;
