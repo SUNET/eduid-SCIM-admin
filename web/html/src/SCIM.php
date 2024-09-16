@@ -198,11 +198,14 @@ class SCIM {
             break;
           case 503 :
             // Timeout at server
+          case 504 :
+            // Timeout at api.eduid.se
+            // Some other server ?
             if ($first) {
               sleep(3);
               return $this->request($method, $part, $data, $extraHeaders, false);
             } else {
-              print "Got 503!";
+              print "Got 503/504!";
               print "<pre>";
               print_r($info);
               print "</pre>";
