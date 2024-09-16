@@ -187,9 +187,9 @@ function showStartPage() {
 }
 
 function showSuccess() {
-  global $html;
+  global $html, $config;
   $html->showHeaders(_('Connect - Onboard'), _('Account is activated and ready to use'));
-  print _("Your account is now activated and ready to use when you're logging into services. Please choose your home organisation when you're logging in. Please close the window.");
+  printf(_("Your account is now activated and ready to use when you're logging into services. Please choose your home organisation (%s) when you're logging in. Please close the window."), $config->getScope());
   print '<br>';
   $html->showFooter(array(),false);
 }
