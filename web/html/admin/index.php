@@ -106,42 +106,35 @@ $displayName = '<div> Logged in as : <br> ' . $fullName . ' (' . $AdminUser .')<
 $html->setDisplayName($displayName);
 $html->showHeaders('SCIM Admin');
 
+$viewAccess = $scim->getAdminAccess() > 9;
+$editAccess = $scim->getAdminAccess() > 19;
+
 if (isset($_POST['action'])) {
   switch ($_POST['action']) {
     case 'saveUser' :
       $id = isset($_POST['id']) ? $scim->validateID($_GET['id']) : false;
-      if ( $scim->getAdminAccess() > 19 ) {
-        if ($id) {
+      if ( $editAccess && $id) {
           saveUser($id);
-        }
-        showMenu();
-        listUsers($id, true);
-        listInvites();
-      } else {
-        showMenu();
-        listUsers($id, true);;
       }
+      showMenu();
+      listUsers($id, true);
+      listInvites();
       break;
     case 'removeUser' :
       $id = isset($_POST['id']) ? $scim->validateID($_GET['id']) : false;
-      if ( $scim->getAdminAccess() > 19 ) {
-        if ($id) {
+      if ( $editAccess && $id) {
           $user = $scim->getId($id);
           $version = $user->meta->version;
           $scim->removeUser($id,$version);
-        }
-        showMenu();
-        listUsers($id, true);
-        listInvites();
-      } else {
-        showMenu();
-        listUsers($id, true);;
       }
+      showMenu();
+      listUsers($id, true);
+      listInvites();
       break;
     case 'saveInvite' :
       $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
       $parseErrors = '';
-      if ( $scim->getAdminAccess() > 19 ) {
+      if ( $editAccess ) {
         if (strlen($_POST['givenName']) == 0) {
           $parseErrors .= sprintf('%s %s.', _('GivenName'), _('missing')) . '<br>';
         }
@@ -191,43 +184,37 @@ if (isset($_POST['action'])) {
           editInvite($id, $parseErrors);
         }
       } else {
-        showMenu();
-        listUsers('', true);
+        showMenu(2);
+        listUsers();
+        listInvites($id, true);
       }
       break;
     case 'approveInvite' :
       $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
       showMenu(2);
-      if ( $scim->getAdminAccess() > 19 ) {
-        if ($id) {
+      if ( $editAccess && $id) {
           approveInvite($id);
-        }
-        listUsers();
-        listInvites($id, true);
-      } else {
-        listUsers('', true);
       }
+      listUsers();
+      listInvites($id, true);
       break;
     case 'deleteInvite' :
       $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
       showMenu(2);
-      if ( $scim->getAdminAccess() > 19 ) {
-        if ($id) {
+      if ( $editAccess && $id) {
           $invites->removeInvite($id);
-        }
-        listUsers();
-        listInvites($id, true);
-      } else {
-        listUsers('', true);
       }
+      listUsers();
+      listInvites($id, true);
       break;
     case 'addMultiInvite' :
       $html->setExtraURLPart('&action=addMultiInvite');
-      if ( $scim->getAdminAccess() > 19) {
+      if ( $editAccess) {
         multiInvite();
       } else {
         showMenu(2);
-        listUsers('', true);
+        listUsers('');
+        listInvites($id, true);
       }
       break;
     default:
@@ -240,14 +227,12 @@ if (isset($_POST['action'])) {
     case 'editUser' :
       $html->setExtraURLPart('&action=editUser');
       $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
-      if ( $scim->getAdminAccess() > 9 && $id) {
+      if ( $viewAccess && $id) {
         editUser($id);
       } else {
         showMenu();
         listUsers($id, true);
-        if ( $scim->getAdminAccess() > 19 ) {
-          listInvites();
-        }
+        listInvites();
       }
       break;
     case 'listUsers' :
@@ -255,137 +240,109 @@ if (isset($_POST['action'])) {
       $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
       showMenu();
       listUsers($id, true);
-      if ( $scim->getAdminAccess() > 19 ) {
-        listInvites();
-      }
+      listInvites();
       break;
     case 'removeUser' :
       $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
-      if ( $scim->getAdminAccess() > 19 ) {
+      if ( $editAccess ) {
         if ($id) {
           removeUser($id);
         }
       } else {
         showMenu();
         listUsers($id, true);
+        listInvites();
       }
       break;
     case 'editInvite' :
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
-      if ( $scim->getAdminAccess() > 19 && $id) {
+      if ( $viewAccess && $id) {
         $html->setExtraURLPart('&action=editInvite&id=' . $id);
         editInvite($id);
       } else {
         showMenu(2);
-        if ( $scim->getAdminAccess() > 19 ) {
-          listUsers();
-          listInvites($id, true);
-        } else {
-          listUsers('', true);
-        }
+        listUsers();
+        listInvites($id, true);
       }
       break;
     case 'resendInvite' :
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
-      if ( $scim->getAdminAccess() > 19 && $id) {
+      if ( $editAccess && $id) {
         $html->setExtraURLPart('&action=resendInvite&id=' . $id);
         resendInvite($id);
       } else {
         showMenu(2);
-        if ( $scim->getAdminAccess() > 19 ) {
-          listUsers();
-          listInvites($id, true);
-        } else {
-          listUsers('', true);
-        }
+        listUsers();
+        listInvites($id, true);
       }
       break;
     case 'listInvites' :
       $html->setExtraURLPart('&action=listInvites');
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
       showMenu(2);
-      if ( $scim->getAdminAccess() > 19 ) {
-        listUsers();
-        listInvites($id, true);
-      } else {
-        listUsers('', true);
-      }
+      listUsers();
+      listInvites($id, true);
       break;
     case 'approveInvite' :
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
-      if ( $scim->getAdminAccess() > 19 ) {
-        if ($id) {
-          $html->setExtraURLPart('&action=approveInvite&id=' . $id);
-          showApproveInviteForm($id);
-        } else {
-          showMenu(2);
-          listUsers();
-          listInvites($id, true);
-        }
+      if ( $editAccess && $id) {
+        $html->setExtraURLPart('&action=approveInvite&id=' . $id);
+        showApproveInviteForm($id);
       } else {
-        showMenu();
-        listUsers('', true);
+        showMenu(2);
+        listUsers();
+        listInvites($id, true);
       }
       break;
     case 'addInvite' :
       $html->setExtraURLPart('&action=addInvite');
-      if ( $scim->getAdminAccess() > 19) {
+      if ( $editAccess) {
         editInvite(0);
       } else {
         showMenu(2);
-        if ( $scim->getAdminAccess() > 19 ) {
-          listUsers();
-          listInvites($id, true);
-        } else {
-          listUsers('', true);
-        }
+        listUsers();
+        listInvites($id, true);
       }
       break;
     case 'addMultiInvite' :
       $html->setExtraURLPart('&action=addMultiInvite');
-      if ( $scim->getAdminAccess() > 19) {
+      if ( $editAccess) {
         multiInvite();
       } else {
         showMenu(2);
-        listUsers('', true);
+        listUsers();
+        listInvites($id, true);
       }
       break;
     case 'deleteInvite' :
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
-      if ( $scim->getAdminAccess() > 19) {
+      if ( $editAccess) {
         $html->setExtraURLPart('&action=deleteInvite&id=' . $id);
         deleteInvite($id);
       } else {
         showMenu(2);
-        if ( $scim->getAdminAccess() > 19 ) {
-          listUsers();
-          listInvites($id, true);
-        } else {
-          listUsers('', true);
-        }
+        listUsers();
+        listInvites($id, true);
       }
       break;
     default:
       # listUsers
       showMenu();
       listUsers('', true);
-      if ( $scim->getAdminAccess() > 19 ) {
-        listInvites();
-      }
+      listInvites();
       break;
   }
 } else {
   showMenu();
   listUsers('', true);
-  if ( $scim->getAdminAccess() > 19 ) {
-    listInvites();
-  }
+  listInvites();
 }
 print "        <br>\n";
 $html->showFooter($collapse);
 
 function listUsers($id='0-0', $shown = false) {
   global $scim;
+  $editAccess = $scim->getAdminAccess() > 19;
   $users = $scim->getAllUsers();
   uasort($users, 'sortFullName');
   printf('        <table id="list-users-table" class="table table-striped table-bordered list-users"%s>
@@ -394,7 +351,7 @@ function listUsers($id='0-0', $shown = false) {
           </thead>
           <tbody>%s', $shown ? '' : ' hidden', "\n");
   foreach ($users as $user) {
-    showUser($user, $id);
+    showUser($user, $id, $editAccess);
   }
   printf('          <tbody>%s        </table>%s', "\n", "\n");
 }
@@ -405,7 +362,7 @@ function sortFullName($a, $b) {
   return ($a['fullName'] < $b['fullName']) ? -1 : 1;
 }
 
-function showUser($user, $id) {
+function showUser($user, $id, $editAccess = false) {
   printf('            <tr class="collapsible" data-id="%s" onclick="showId(\'%s\')">
               <td>%s</td>
               <td>%s</td>
@@ -413,17 +370,19 @@ function showUser($user, $id) {
             </tr>
             <tr class="content" style="display: %s;">
               <td>
-                <a a href="?action=editUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a><br>
-                <a a href="?action=removeUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a>
-              </td>
-              <td colspan="3"><ul>%s',
+                <a a href="?action=editUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a>',
     $user['externalId'], $user['externalId'],
     isset($user['attributes']->eduPersonPrincipalName) ? $user['attributes']->eduPersonPrincipalName : _('Missing'),
     $user['fullName'], $user['externalId'],
     $id == $user['id'] ? 'table-row' : 'none',
-    $user['id'], _('Edit'),
-    $user['id'], _('Delete'),
-    "\n");
+    $user['id'], $editAccess ? _('Edit') : _('View'));
+  if ($editAccess) {
+    printf('<br>
+                <a a href="?action=removeUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a>',
+      $user['id'], _('Delete'));
+  }
+  printf('%s              </td>
+              <td colspan="3"><ul>%s', "\n", "\n");
   if ($user['profile']) {
     foreach($user['attributes'] as $key => $value) {
       $value = is_array($value) ? implode(", ", $value) : $value;
@@ -435,6 +394,8 @@ function showUser($user, $id) {
 
 function editUser($id) {
   global $scim, $html;
+
+  $editAccess = $scim->getAdminAccess() > 19;
 
   $html->setExtraURLPart('&action=editUser&id=' . $id);
   $userArray = $scim->getId($id);
@@ -460,23 +421,25 @@ function editUser($id) {
   foreach ($samlAttributes as $attribute => $found) {
     if (! $found) {
       if ($attribute == 'eduPersonScopedAffiliation') {
-        showEduPersonScopedAffiliationInput(array(), $scim->getAllowedScopes(), $scim->getPossibleAffiliations());
+        showEduPersonScopedAffiliationInput(array(), $scim->getAllowedScopes(), $scim->getPossibleAffiliations(), $editAccess);
       } else {
-        printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value=""></td></tr>%s',
-          $attribute, $attribute, "\n");
+        printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value=""%s></td></tr>%s',
+          $attribute, $attribute, $editAccess ? '' : ' readonly', "\n");
       }
     }
   }
   printf('            </tbody>
-          </table>
-          <div class="buttons">
+          </table>%s', "\n");
+  if ($editAccess) {
+    printf('          <div class="buttons">
             <button type="submit" class="btn btn-primary">%s</button>
-          </div>
-        </form>
+          </div>%s', _('Submit'), "\n");
+  }
+  printf('        </form>
         <div class="buttons">
           <a href="?action=listUsers&id=%s"><button class="btn btn-secondary">%s</button></a>
         </div>%s',
-    _('Submit'), htmlspecialchars($id), _('Cancel'), "\n");
+    htmlspecialchars($id), _('Back'), "\n");
   if (isset($_GET['debug'])) {
     print "<pre>";
     print_r($userArray);
@@ -487,6 +450,8 @@ function editUser($id) {
 function getSamlAttributesSCIM($userArray){
   global $scim;
 
+  $editAccess = $scim->getAdminAccess() > 19;
+
   # Set up a list of allowed/expected attributes to be able to show unused attribute in edit-form
   $samlAttributes = array();
   foreach ($scim->getAttributes2migrate() as $saml => $SCIM) {
@@ -496,14 +461,14 @@ function getSamlAttributesSCIM($userArray){
     foreach($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes
       as $key => $value) {
       if ($key == 'eduPersonScopedAffiliation') {
-        showEduPersonScopedAffiliationInput($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations());
+        showEduPersonScopedAffiliationInput($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations(), $editAccess);
       } elseif ($key == 'eduPersonPrincipalName') {
         printf ('              <tr><th>eduPersonPrincipalName</th><td>%s</td></tr>%s',
           $value, "\n");
       } else {
         $value = is_array($value) ? implode(", ", $value) : $value;
-        printf ('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"></td></tr>%s',
-          $key, $key, $value, "\n");
+        printf ('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"%s></td></tr>%s',
+          $key, $key, $value, $editAccess ? '' : ' readonly', "\n");
       }
       $samlAttributes[$key] = true;
     }
@@ -514,6 +479,7 @@ function getSamlAttributesSCIM($userArray){
 function getSamlAttributesDB($attributes){
   global $scim;
 
+  $editAccess = $scim->getAdminAccess() > 19;
   # Set up a list of allowed/expected attributes to be able to show unused attribute in edit-form
   $samlAttributes = array();
   foreach ($scim->getAttributes2migrate() as $saml => $SCIM) {
@@ -521,11 +487,11 @@ function getSamlAttributesDB($attributes){
   }
   foreach(json_decode($attributes) as $key => $value) {
     if ($key == 'eduPersonScopedAffiliation') {
-      showEduPersonScopedAffiliationInput($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations());
+      showEduPersonScopedAffiliationInput($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations(), $editAccess);
     } else {
       $value = is_array($value) ? implode(", ", $value) : $value;
-      printf ('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"></td></tr>%s',
-        $key, $key, $value, "\n");
+      printf ('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"%s></td></tr>%s',
+        $key, $key, $value, $editAccess ? '' : ' readonly', "\n");
     }
     $samlAttributes[$key] = true;
   }
@@ -607,7 +573,7 @@ function removeUser($id) {
     _('Delete'), htmlspecialchars($id), _('Cancel'), "\n");
 }
 
-function showEduPersonScopedAffiliationInput($values, $allowedScopes, $possibleAffiliations) {
+function showEduPersonScopedAffiliationInput($values, $allowedScopes, $possibleAffiliations, $editAccess) {
   foreach ($allowedScopes as $scope) {
     $existingAffiliation[$scope] = array();
     foreach ($possibleAffiliations as $affiliation => $depend) {
@@ -624,8 +590,8 @@ function showEduPersonScopedAffiliationInput($values, $allowedScopes, $possibleA
   foreach ($allowedScopes as $scope) {
     printf ('                <h5>Scope : %s</h5>%s', $scope, "\n");
     foreach ($possibleAffiliations as $affiliation => $depend) {
-      printf ('                <input type="checkbox"%s name="saml[eduPersonScopedAffiliation][%s]"> %s<br>%s',
-        $existingAffiliation[$scope][$affiliation] ? HTML_CHECKED : '', $affiliation . '@' . $scope, $affiliation,
+      printf ('                <input type="checkbox"%s name="saml[eduPersonScopedAffiliation][%s]"%s> %s<br>%s',
+        $existingAffiliation[$scope][$affiliation] ? HTML_CHECKED : '', $affiliation . '@' . $scope, $editAccess ? '' : ' disabled', $affiliation,
         "\n");
     }
   }
@@ -650,30 +616,34 @@ function showMenu($show = 1) {
   printf ('        <label for="select">%s</label>
         <div class="select">
           <select id="selectList">
-            <option value="List Users">%s</option>', _('Select a list'), _('Users'));
-  if ( $scim->getAdminAccess() > 19 ) {
-    printf('
-            <option value="List invites"%s>%s</option>', $show == 2 ? HTML_SELECTED : '', _('Invites'));
-  }
-  print '
+            <option value="List Users">%s</option>
+            <option value="List invites"%s>%s</option>
           </select>
-        </div>' . "\n";
+        </div>%s',
+    _('Select a list'),
+    _('Users') , $show == 2 ? HTML_SELECTED : '',
+    _('Invites'), "\n");
+
   printf('        <div class="result">%s</div>', $result);
   print "\n        <br>\n        <br>\n";
 }
 
 function listInvites($id = 0, $show = false) {
-  global $invites;
+  global $invites, $scim;
+  $editAccess = $scim->getAdminAccess() > 19;
   printf('        <table id="list-invites-table" class="table table-striped table-bordered list-invites"%s>
           <thead>
             <tr><th></th><th>%s</th><th>%s</th></tr>
           </thead>
-          <tbody>
-            <tr><td colspan="3">
+          <tbody>%s',
+    $show ? '' : ' hidden', _('Last modified'), _('Name'), "\n");
+  if ($editAccess) {
+    printf('            <tr><td colspan="3">
               <a a href="?action=addInvite"><button class="btn btn-primary btn-sm">%s</button></a>
               <a a href="?action=addMultiInvite"><button class="btn btn-primary btn-sm">%s</button></a>
             </td></tr>%s',
-    $show ? '' : ' hidden', _('Last modified'), _('Name'), _('Add Invite'), _('Add multiple Invites'), "\n");
+   _('Add Invite'), _('Add multiple Invites'), "\n");
+  }
   $oldStatus = 0;
   foreach ($invites->getInvitesList() as $invite) {
     if ($invite['status'] != $oldStatus) {
@@ -681,57 +651,64 @@ function listInvites($id = 0, $show = false) {
         $invite['status'] == 1 ? _('Waiting for onboarding') : _('Waiting for approval'), "\n");
       $oldStatus = $invite['status'];
     }
-    showInvite($invite, $id);
+    showInvite($invite, $id, $editAccess);
   }
   printf('          </tbody>%s        </table>%s', "\n", "\n");
 }
 
-function showInvite($invite, $id) {
+function showInvite($invite, $id, $editAccess) {
   $inviteInfo = json_decode($invite['inviteInfo']);
   $migrateInfo = json_decode($invite['migrateInfo']);
   printf('            <tr class="collapsible" data-id="%s" onclick="showId(\'%s\')">
               <td></td>
               <td>%s</td>
               <td>%s</td>
-            </tr>%s',
+            </tr>
+            <tr class="content" style="display: %s;">%s',
     $invite['id'], $invite['id'],
     $invite['modified'],
     $inviteInfo->givenName . ' ' . $inviteInfo->sn,
+    $id == $invite['id'] ? 'table-row' : 'none',
     "\n");
   if ($invite['status'] == 1) {
-    printf('            <tr class="content" style="display: %s;">
-                <td>
-                  <a a href="?action=editInvite&id=%s">
-                    <button class="btn btn-primary btn-sm">%s</button>
-                  </a><br>
-                  <a a href="?action=resendInvite&id=%s">
-                    <button class="btn btn-primary btn-sm">%s</button>
-                  </a><br>
-                  <a a href="?action=deleteInvite&id=%s">
-                    <button class="btn btn-primary btn-sm">%s</button>
-                  </a>
-                </td>
-                <td>Attributes : <ul>%s',
-        $id == $invite['id'] ? 'table-row' : 'none',
-        $invite['id'], _('Edit'),
+    printf('              <td>
+                <a a href="?action=editInvite&id=%s">
+                  <button class="btn btn-primary btn-sm">%s</button>
+                </a>',
+      $invite['id'], $editAccess ? _('Edit') : _('View'));
+    if ($editAccess) {
+      printf('<br>
+                <a a href="?action=resendInvite&id=%s">
+                  <button class="btn btn-primary btn-sm">%s</button>
+                </a><br>
+                <a a href="?action=deleteInvite&id=%s">
+                  <button class="btn btn-primary btn-sm">%s</button>
+                </a>',
         $invite['id'], _('Resend'),
-        $invite['id'], _('Delete'), "\n");
+        $invite['id'], _('Delete'));
+    }
+    printf('%s              </td>
+              <td>Attributes : <ul>%s', "\n", "\n");
     foreach(json_decode($invite['attributes']) as $key => $value) {
       $value = is_array($value) ? implode(", ", $value) : $value;
       printf (LI_ITEM, $key, $value, "\n");
     }
-    printf('              </ul></td>%s              <td>InviteInfo : <ul%s', "\n", "\n");
+    printf('              </ul></td>%s              <td>InviteInfo : <ul>%s', "\n", "\n");
     foreach($inviteInfo as $key => $value) {
       $value = is_array($value) ? implode(", ", $value) : $value;
       printf (LI_ITEM, $key, $value, "\n");
     }
     printf('              </ul></td>%s            </tr>%s', "\n", "\n");
   } else {
-    printf('            <tr class="content" style="display: %s;">
-              <td>
+    if ($editAccess) {
+      printf('              <td>
                 <a a href="?action=approveInvite&id=%s">
                   <button class="btn btn-primary btn-sm">%s</button>
                 </a><br>
+              </td>%s',
+        $invite['id'], _('Approve'), "\n");
+    }
+    printf('              <td>
                 <a a href="?action=editInvite&id=%s">
                     <button class="btn btn-primary btn-sm">%s</button>
                 </a>
@@ -764,9 +741,7 @@ function showInvite($invite, $id) {
                 </div>
               </td>
             </tr>%s',
-      $id == $invite['id'] ? 'table-row' : 'none',
-      $invite['id'], _('Approve'),
-      $invite['id'], _('Edit'),
+      $invite['id'], $editAccess ? _('Edit') : _('View'),
       $inviteInfo->personNIN,
       $migrateInfo->norEduPersonNIN == '' ? $migrateInfo->schacDateOfBirth: $migrateInfo->norEduPersonNIN,
       $inviteInfo->givenName, $migrateInfo->givenName,
@@ -779,12 +754,14 @@ function showInvite($invite, $id) {
 function editInvite($id, $error = '') {
   global $scim, $invites;
 
+  $editAccess = $scim->getAdminAccess() > 19;
+
   if ($id > 0) {
     $invite = $invites->getInvite($id);
   } else {
     $invite = array ('status' => 0, 'inviteInfo' => '{}', 'attributes' => '{}', 'lang' => '');
   }
-  if ($invite['status'] == 2) {
+  if ($invite['status'] == 2 && $editAccess) {
     printf('        <div class="row alert alert-danger">%s</div>%s', _('You are editing an invite waiting for approval. If you submit it will be converted back to waiting for onboarding!'), "\n");
   }
   $inviteInfo = json_decode($invite['inviteInfo']);
@@ -816,21 +793,21 @@ function editInvite($id, $error = '') {
           <table id="entities-table" class="table table-striped table-bordered">
             <tbody>
               <tr><th colspan="2">%s</th></tr>
-              <tr><th>%s</th><td><input type="text" name="givenName" value="%s"></td></tr>
-              <tr><th>%s</th><td><input type="text" name="sn" value="%s"></td></tr>
-              <tr><th>%s</th><td><input type="text" name="mail" value="%s"></td></tr>
-              <tr><th>%s</th><td><input type="text" name="personNIN" value="%s"></td></tr>
-              <tr><th>%s</th><td><select name="lang">
+              <tr><th>%s</th><td><input type="text" name="givenName" value="%s"%s></td></tr>
+              <tr><th>%s</th><td><input type="text" name="sn" value="%s"%s></td></tr>
+              <tr><th>%s</th><td><input type="text" name="mail" value="%s"%s></td></tr>
+              <tr><th>%s</th><td><input type="text" name="personNIN" value="%s"%s></td></tr>
+              <tr><th>%s</th><td><select name="lang"%s>
                 <option value="sv">%s</option>
                 <option value="en"%s>%s</option>
               </select></td></tr>%s',
       htmlspecialchars($id),
       _('Invite Info'),
-      _('GivenName'), isset($inviteInfo->givenName) ? $inviteInfo->givenName : '',
-      _('SurName'), isset($inviteInfo->sn) ? $inviteInfo->sn : '',
-      _('Invite mail'), isset($inviteInfo->mail) ? $inviteInfo->mail : '',
-      _('Swedish national identity number'), isset($inviteInfo->personNIN) ? $inviteInfo->personNIN : '',
-      _('Language for invite'), _('Swedish'),
+      _('GivenName'), isset($inviteInfo->givenName) ? $inviteInfo->givenName : '', $editAccess ? '' : ' readonly',
+      _('SurName'), isset($inviteInfo->sn) ? $inviteInfo->sn : '', $editAccess ? '' : ' readonly',
+      _('Invite mail'), isset($inviteInfo->mail) ? $inviteInfo->mail : '', $editAccess ? '' : ' readonly',
+      _('Swedish national identity number'), isset($inviteInfo->personNIN) ? $inviteInfo->personNIN : '', $editAccess ? '' : ' readonly',
+      _('Language for invite'), $editAccess ? '' : ' disabled', _('Swedish'),
       $invite['lang'] == 'en' ? HTML_SELECTED : '', _('English'),
       "\n");
 
@@ -840,23 +817,25 @@ function editInvite($id, $error = '') {
   foreach ($samlAttributes as $attribute => $found) {
     if (! $found) {
       if ($attribute == 'eduPersonScopedAffiliation') {
-        showEduPersonScopedAffiliationInput(array(), $scim->getAllowedScopes(), $scim->getPossibleAffiliations());
+        showEduPersonScopedAffiliationInput(array(), $scim->getAllowedScopes(), $scim->getPossibleAffiliations(), $editAccess);
       } else {
-        printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value=""></td></tr>%s',
-          $attribute, $attribute, "\n");
+        printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value=""%s></td></tr>%s',
+          $attribute, $attribute, $editAccess ? '' : ' readonly', "\n");
       }
     }
   }
   printf('            </tbody>
-          </table>
-          <div class="buttons">
+          </table>%s', "\n");
+  if ($editAccess) {
+    printf('          <div class="buttons">
             <button type="submit" class="btn btn-primary">%s</button>
-          </div>
-        </form>
+          </div>%s', _('Submit'), "\n");
+  }
+  printf('        </form>
         <div class="buttons">
           <a href="?action=listInvites&id=%s"><button class="btn btn-secondary">%s</button></a>
         </div>%s',
-    _('Submit'), htmlspecialchars($id), _('Cancel'), "\n");
+    htmlspecialchars($id), _('Back'), "\n");
 }
 
 function resendInvite($id) {
@@ -868,12 +847,8 @@ function resendInvite($id) {
     $result = _('New code sent to') . ' ' . $inviteInfo->mail;
   }
   showMenu(2);
-  if ( $scim->getAdminAccess() > 19 ) {
-    listUsers();
-    listInvites($id, true);
-  } else {
-    listUsers('', true);
-  }
+  listUsers();
+  listInvites($id, true);
 }
 
 function saveInvite($id) {
