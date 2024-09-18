@@ -71,7 +71,9 @@ class Configuration {
       }
       $this->orgName = $instances[$this->scope]['orgName'];
     }
-    $this->checkInstanceExitInDB($this->scope);
+    if ($startDB) {
+      $this->checkInstanceExitInDB($this->scope);
+    }
   }
 
   private function checkDBVersion() {
