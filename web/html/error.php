@@ -69,21 +69,22 @@ function showMetadataException() {?>
 
 function showFatalProfileException() {
     global $errorURL;?>
-    <h1>Unusable Identity Provider</h1>
-    <p>The identity provider supplying your login credentials does not support the necessary capabilities.</p>
-    <p>To report this problem, please contact the IdP administrator. <?=$errorURL?><br>
-    If your are the IdP administrator you can reach out to
-    <a href="mailto:noc@sunet.se">noc@sunet.se</a>.
-    </p>
-    <p>Please include the following error message in any email:</p>
-    <p class="error">Identity provider lookup failed at (<?=htmlspecialchars($_GET['requestURL'])?>)</p>
-    <p><strong>EntityID:</strong> <?=htmlspecialchars($_GET['entityID'])?></p>
-    <p><?=htmlspecialchars($_GET['errorType'])?>: <?=htmlspecialchars($_GET['errorText'])?></p><?php
-    print isset($_GET['statusCode']) ? "\n<p>statusCode : " . htmlspecialchars($_GET['statusCode']) . '</p>' : '';
-    print isset($_GET['statusCode2']) ? "
-      \n           <p>statusCode2 : " . htmlspecialchars($_GET['statusCode2']) . '</p>' : '';
+        <h1>Unusable Identity Provider</h1>
+        <p>The identity provider supplying your login credentials does not support the necessary capabilities.</p>
+        <p>To report this problem, please contact the IdP administrator. <?=$errorURL?><br>
+          If your are the IdP administrator you can reach out to
+          <a href="mailto:noc@sunet.se">noc@sunet.se</a>.
+        </p>
+        <p>Please include the following error message in any email:</p>
+        <p class="error">Identity provider lookup failed at (<?=htmlspecialchars($_GET['requestURL'])?>)</p>
+        <p><strong>EntityID:</strong> <?=htmlspecialchars($_GET['entityID'])?></p>
+        <p><?=htmlspecialchars($_GET['errorType'])?>: <?=htmlspecialchars($_GET['errorText'])?></p><?php
+    print isset($_GET['statusCode']) ?
+      "\n        <p>statusCode : " . htmlspecialchars($_GET['statusCode']) . '</p>' : '';
+    print isset($_GET['statusCode2']) ?
+      "\n        <p>statusCode2 : " . htmlspecialchars($_GET['statusCode2']) . '</p>' : '';
     print isset($_GET['statusMessage']) ?
-      "\n          <p>statusMessage : " . htmlspecialchars($_GET['statusMessage']) . '</p>' : '';
+      "\n        <p>statusMessage : " . htmlspecialchars($_GET['statusMessage']) . '</p>' : '';
  }
 
 function showInfo() { ?>
@@ -102,6 +103,7 @@ function showInfo() { ?>
 # Print footer on webpage
 ###
 function showFooter() { ?>
+
       </div>
     </section>
 
@@ -111,7 +113,6 @@ function showFooter() { ?>
           <div class="sunet-logo"></div>
         </a>
       </div>
-      <a class="text-link" href="./en/index.html">English</a>
     </footer>
   </body>
 </html>
