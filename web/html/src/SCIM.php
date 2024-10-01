@@ -206,17 +206,22 @@ class SCIM {
               return $this->request($method, $part, $data, $extraHeaders, false);
             } else {
               print "Got 503/504!";
-              print "<pre>";
-              print_r($info);
-              print "</pre>";
+              printf('        Something went wrong.
+              Contact admin and give them this info<ul>
+                <li>Method : %s</li>
+                <li>Part : %s</li>
+                <li>Response : %s</li>
+              </ul>', $method, $part, $response);
               exit;
             }
             break;
           default:
-            print "<pre>";
-            print_r($info);
-            print "</pre>";
-            print $response;
+            printf('        Something went wrong.
+            Contact admin and give them this info<ul>
+              <li>Method : %s</li>
+              <li>Part : %s</li>
+              <li>Response : %s</li>
+            </ul>', $method, $part, $response);
             exit;
             break;
         }
