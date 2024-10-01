@@ -121,7 +121,7 @@ if (isset($_POST['action'])) {
       listInvites();
       break;
     case 'removeUser' :
-      $id = isset($_POST['id']) ? $scim->validateID($_GET['id']) : false;
+      $id = isset($_POST['id']) ? $scim->validateID($_POST['id']) : false;
       if ( $editAccess && $id) {
           $user = $scim->getId($id);
           $version = $user->meta->version;
