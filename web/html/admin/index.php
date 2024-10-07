@@ -113,7 +113,7 @@ if (isset($_POST['action'])) {
   switch ($_POST['action']) {
     case 'saveUser' :
       $id = isset($_POST['id']) ? $scim->validateID($_GET['id']) : false;
-      if ( $editAccess && $id) {
+      if ( $editAccess && $id && isset($_POST['save'])) {
           saveUser($id);
       }
       showMenu();
@@ -122,7 +122,7 @@ if (isset($_POST['action'])) {
       break;
     case 'removeUser' :
       $id = isset($_POST['id']) ? $scim->validateID($_POST['id']) : false;
-      if ( $editAccess && $id) {
+      if ( $editAccess && $id && isset($_POST['delete'])) {
           $user = $scim->getId($id);
           $version = $user->meta->version;
           $scim->removeUser($id,$version);
@@ -134,7 +134,7 @@ if (isset($_POST['action'])) {
     case 'saveInvite' :
       $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
       $parseErrors = '';
-      if ( $editAccess ) {
+      if ( $editAccess && isset($_POST['save']) ) {
         if (strlen($_POST['givenName']) == 0) {
           $parseErrors .= sprintf('%s %s.', _('GivenName'), _('missing')) . '<br>';
         }
@@ -201,7 +201,7 @@ if (isset($_POST['action'])) {
     case 'deleteInvite' :
       $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
       showMenu(2);
-      if ( $editAccess && $id) {
+      if ( $editAccess && $id && isset($_POST['delete'])) {
           $invites->removeInvite($id);
       }
       listUsers();
@@ -382,7 +382,7 @@ function showUser($user, $id, $editAccess = false) {
       $user['id'], _('Delete'));
   }
   printf('%s              </td>
-              <td colspan="3"><ul>%s', "\n", "\n");
+              <td colspan="2"><ul>%s', "\n", "\n");
   if ($user['profile']) {
     foreach($user['attributes'] as $key => $value) {
       $value = is_array($value) ? implode(", ", $value) : $value;
@@ -399,7 +399,9 @@ function editUser($id) {
 
   $html->setExtraURLPart('&action=editUser&id=' . $id);
   $userArray = $scim->getId($id);
-  printf('        <form method="POST">
+  printf('        <h2>%s</h2>
+        <p>%s</p>
+        <form method="POST">
           <input type="hidden" name="action" value="saveUser">
           <input type="hidden" name="id" value="%s">
           <table id="entities-table" class="table table-striped table-bordered">
@@ -410,6 +412,8 @@ function editUser($id) {
               <tr><th>Name</th><td>%s</td></tr>
               <tr><th>Pnr</th><td>%s</td></tr>
               <tr><th colspan="2">SAML Attributes</th></tr>%s',
+    _('Update User'),
+    _('Update information below and hit Save.'),
     htmlspecialchars($id), htmlspecialchars($id), $userArray->externalId,
     isset($userArray->name->formatted) ? $userArray->name->formatted : 'Not set!!!',
     isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo) ?
@@ -432,14 +436,14 @@ function editUser($id) {
           </table>%s', "\n");
   if ($editAccess) {
     printf('          <div class="buttons">
-            <button type="submit" class="btn btn-primary">%s</button>
-          </div>%s', _('Submit'), "\n");
+            <a href="?action=listUsers&id=%s"><button class="btn btn-secondary">%s</button></a>
+            <button type="submit" name="save" class="btn btn-primary">%s</button>
+          </div>%s',
+      htmlspecialchars($id), _('Cancel'),
+      _('Save'), "\n");
   }
-  printf('        </form>
-        <div class="buttons">
-          <a href="?action=listUsers&id=%s"><button class="btn btn-secondary">%s</button></a>
-        </div>%s',
-    htmlspecialchars($id), _('Back'), "\n");
+  printf('        </form>%s',
+     "\n");
   if (isset($_GET['debug'])) {
     print "<pre>";
     print_r($userArray);
@@ -546,7 +550,9 @@ function saveUser($id) {
 function removeUser($id) {
   global $scim;
   $user = $scim->getId($id);
-  printf('        <form method="POST">
+  printf('        <h2>%s</h2>
+        <p>%s</p>
+        <form method="POST">
           <input type="hidden" name="action" value="removeUser">
           <input type="hidden" name="id" value="%s">
           <table id="entities-table" class="table table-striped table-bordered">
@@ -558,19 +564,20 @@ function removeUser($id) {
             </tbody>
           </table>
           <div class="buttons">
-            <button type="submit" class="btn btn-primary">%s</button>
+            <a href="?action=listUsers&id=%s"><button class="btn btn-secondary">%s</button></a>
+            <button type="submit" name="delete" class="btn btn-primary">%s</button>
           </div>
-        </form>
-        <div class="buttons">
-          <a href="?action=listUsers&id=%s"><button class="btn btn-secondary">%s</button></a>
-        </div>%s',
+        </form>%s',
+    _('Remove User'),
+    _('Do you want to remove the user shown below ?'),
     $user->id,
     isset($user->name->formatted) ? $user->name->formatted : '',
     isset($user->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName) ?
       $user->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName : '',
     isset($user->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->mail) ?
       $user->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->mail : '',
-    _('Delete'), htmlspecialchars($id), _('Cancel'), "\n");
+    htmlspecialchars($id), _('Cancel'),
+    _('Delete'), "\n");
 }
 
 function showEduPersonScopedAffiliationInput($values, $allowedScopes, $possibleAffiliations, $editAccess) {
@@ -586,16 +593,19 @@ function showEduPersonScopedAffiliationInput($values, $allowedScopes, $possibleA
     $scope = isset($affiliationArray[1]) ? $affiliationArray[1] : 'unset';
     $existingAffiliation[$scope][$affiliationArray[0]] = true;
   }
-  printf ('              <tr><th>eduPersonScopedAffiliation</th><td>%s', "\n");
+  printf ('              <tr>
+                <th>eduPersonScopedAffiliation</th>
+                <td>%s', "\n");
   foreach ($allowedScopes as $scope) {
-    printf ('                <h5>Scope : %s</h5>%s', $scope, "\n");
+    printf ('                  <h5>Scope : %s</h5>%s', $scope, "\n");
     foreach ($possibleAffiliations as $affiliation => $depend) {
-      printf ('                <input type="checkbox"%s name="saml[eduPersonScopedAffiliation][%s]"%s> %s<br>%s',
+      printf ('                  <input type="checkbox"%s name="saml[eduPersonScopedAffiliation][%s]"%s> %s<br>%s',
         $existingAffiliation[$scope][$affiliation] ? HTML_CHECKED : '', $affiliation . '@' . $scope, $editAccess ? '' : ' disabled', $affiliation,
         "\n");
     }
   }
-  printf ('              </td></tr>%s', "\n");
+  printf ('                </td>
+              </tr>%s', "\n");
 }
 
 function parseEduPersonScopedAffiliation($value) {
@@ -611,15 +621,19 @@ function parseEduPersonScopedAffiliation($value) {
 }
 
 function showMenu($show = 1) {
-  global $scim, $result, $collapse;
+  global $result, $collapse;
   $collapse = true;
-  printf ('        <label for="select">%s</label>
+  printf ('        <h2>%s</h2>
+        <p>%s</p>
+        <label for="selectList">%s</label>
         <div class="select">
           <select id="selectList">
             <option value="List Users">%s</option>
             <option value="List invites"%s>%s</option>
           </select>
         </div>%s',
+    _('Handle users'),
+    _('Select a view in controller below; Users if you want to see, edit or delete a user, or Invites if you want to add one or more users at the same time.'),
     _('Select a list'),
     _('Users') , $show == 2 ? HTML_SELECTED : '',
     _('Invites'), "\n");
@@ -700,16 +714,14 @@ function showInvite($invite, $id, $editAccess) {
     }
     printf('              </ul></td>%s            </tr>%s', "\n", "\n");
   } else {
+      printf('              <td>%s', "\n");
     if ($editAccess) {
-      printf('              <td>
-                <a a href="?action=approveInvite&id=%s">
+      printf('                <a a href="?action=approveInvite&id=%s">
                   <button class="btn btn-primary btn-sm">%s</button>
-                </a><br>
-              </td>%s',
+                </a><br>%s',
         $invite['id'], _('Approve'), "\n");
     }
-    printf('              <td>
-                <a a href="?action=editInvite&id=%s">
+    printf('                <a a href="?action=editInvite&id=%s">
                     <button class="btn btn-primary btn-sm">%s</button>
                 </a>
               </td>
@@ -761,8 +773,14 @@ function editInvite($id, $error = '') {
   } else {
     $invite = array ('status' => 0, 'inviteInfo' => '{}', 'attributes' => '{}', 'lang' => '');
   }
+  printf('        <h2>%s</h2>
+        <p>%s</p>%s',
+      $id == 0 ? _('Add Invite') : _('Update Invite'),
+      _('Update information below and hit Save.'),
+      "\n"
+    );
   if ($invite['status'] == 2 && $editAccess) {
-    printf('        <div class="row alert alert-danger">%s</div>%s', _('You are editing an invite waiting for approval. If you submit it will be converted back to waiting for onboarding!'), "\n");
+    printf('        <div class="row alert alert-danger">%s</div>%s', _('You are editing an invite waiting for approval. If you save it will be converted back to waiting for onboarding!'), "\n");
   }
   $inviteInfo = json_decode($invite['inviteInfo']);
   # If POST exists some error occurred, save posted data to be edited
@@ -797,10 +815,17 @@ function editInvite($id, $error = '') {
               <tr><th>%s</th><td><input type="text" name="sn" value="%s"%s></td></tr>
               <tr><th>%s</th><td><input type="text" name="mail" value="%s"%s></td></tr>
               <tr><th>%s</th><td><input type="text" name="personNIN" value="%s"%s></td></tr>
-              <tr><th>%s</th><td><select name="lang"%s>
-                <option value="sv">%s</option>
-                <option value="en"%s>%s</option>
-              </select></td></tr>%s',
+              <tr>
+                <th>%s</th>
+                <td>
+                  <div class="select">
+                    <select name="lang"%s>
+                      <option value="sv">%s</option>
+                      <option value="en"%s>%s</option>
+                    </select>
+                  </div>
+                </td>
+              </tr>%s',
       htmlspecialchars($id),
       _('Invite Info'),
       _('GivenName'), isset($inviteInfo->givenName) ? $inviteInfo->givenName : '', $editAccess ? '' : ' readonly',
@@ -828,14 +853,16 @@ function editInvite($id, $error = '') {
           </table>%s', "\n");
   if ($editAccess) {
     printf('          <div class="buttons">
-            <button type="submit" class="btn btn-primary">%s</button>
-          </div>%s', _('Submit'), "\n");
+            <a href="?action=listInvites&id=%s"><button class="btn btn-secondary">%s</button></a>
+            <button type="submit" name="save" class="btn btn-primary">%s</button>
+          </div>%s',
+      htmlspecialchars($id), _('Cancel'),
+      _('Save'), "\n");
   }
   printf('        </form>
         <div class="buttons">
-          <a href="?action=listInvites&id=%s"><button class="btn btn-secondary">%s</button></a>
         </div>%s',
-    htmlspecialchars($id), _('Back'), "\n");
+     "\n");
 }
 
 function resendInvite($id) {
@@ -928,7 +955,9 @@ function deleteInvite($id)  {
     $invite = array ('inviteInfo' => '{}', 'attributes' => '{}');
   }
   $inviteInfo = json_decode($invite['inviteInfo']);
-  printf('        <form method="POST">
+  printf('                <h2>%s</h2>
+        <p>%s</p>
+        <form method="POST">
           <input type="hidden" name="action" value="deleteInvite">
           <input type="hidden" name="id" value="%s">
           <table id="entities-table" class="table table-striped table-bordered">
@@ -938,6 +967,8 @@ function deleteInvite($id)  {
               <tr><th>sn</th><td><input type="text" name="sn" value="%s"></td></tr>
               <tr><th>invite mail</th><td><input type="text" name="mail" value="%s"></td></tr>
               <tr><th>personNIN</th><td><input type="text" name="personNIN" value="%s"></td></tr>%s',
+      _('Remove Invite'),
+      _('Do you want to remove the invite shown below ?'),
       htmlspecialchars($id),
       isset($inviteInfo->givenName) ? $inviteInfo->givenName : '',
       isset($inviteInfo->sn) ? $inviteInfo->sn : '',
@@ -947,13 +978,12 @@ function deleteInvite($id)  {
   printf('            </tbody>
           </table>
           <div class="buttons">
-            <button type="submit" class="btn btn-primary">%s</button>
+            <a href="?action=listInvites&id=%s"><button class="btn btn-secondary">%s</button></a>
+            <button type="submit" name="delete" class="btn btn-primary">%s</button>
           </div>
-        </form>
-        <div class="buttons">
-          <a href="?action=listInvites&id=%s"><button class="btn btn-secondary">%s</button></a>
-        </div>%s',
-    _('Delete'), htmlspecialchars($id), _('Cancel'), "\n");
+        </form>%s',
+    htmlspecialchars($id), _('Cancel'),
+    _('Delete'), "\n");
 }
 
 function multiInvite() {
@@ -964,24 +994,30 @@ function multiInvite() {
     $placeHolder .= ';' . $SCIM;
   }
 
-  printf('        <form id="create-invite-form" method="POST">
+  printf('        <h2>%s</h2>
+        <p>%s</p>
+        <code>%s</code>
+        <form id="create-invite-form" method="POST">
           <input type="hidden" name="action" value="addMultiInvite">
+          <input type="checkbox" name="birthDate"%s> %s<br>
+          <input type="checkbox" name="sendMail"%s> %s
+          <textarea id="inviteData" name="inviteData" rows="4" cols="100" placeholder="%s">%s</textarea>
           <div class="buttons">
             <button type="submit" name="validateInvites" class="btn btn-primary">%s</button>
             <button type="submit" name="createInvites" class="btn btn-primary">%s</button>
           </div>
-          <input type="checkbox" name="birthDate"%s> %s<br>
-          <input type="checkbox" name="sendMail"%s> %s
-          <textarea id="inviteData" name="inviteData" rows="4" cols="100" placeholder="%s">%s</textarea>
         </form>%s',
-    _('Validate Invites'), _('Create Invites'),
+    _('Add multiple Invites'),
+    _('Add users in the textfield according to template below, separate each attribute with a semicolon. When you are finished hit the button Validate Invites and then Create Invites when you have fixed all errors.'),
+    $placeHolder,
     isset($_POST['birthDate']) ? HTML_CHECKED : '', _('Allow users without Swedish national identity number (requires Birthdate)'),
     isset($_POST['sendMail']) ? HTML_CHECKED : '', _('Send out invite mail'),
     $placeHolder, isset ($_POST['inviteData']) ? htmlspecialchars($_POST['inviteData']) : '',
+    _('Validate Invites'), _('Create Invites'),
     "\n");
   if (isset($_POST['inviteData'])) {
     foreach (explode("\n", $_POST['inviteData']) as $line) {
-      $params = explode(';', $line);
+      $params = explode(';', rtrim($line));
       $parseErrors = '';
       $fullInfo = '';
       $inviteArray = array();
@@ -1081,5 +1117,5 @@ function multiInvite() {
       }
     }
   }
-  printf('        <div class="buttons"><a href="./?action=listInvites"><button class="btn btn-secondary">%s</button></a></div>%s', _('Back'), "\n");
+  printf('        <div class="buttons"><a href="./?action=listInvites"><button class="btn btn-secondary">%s</button></a></div>%s', _('Cancel'), "\n");
 }

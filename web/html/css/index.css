@@ -490,6 +490,76 @@ table.list-invites tr th:last-child {
   color: red;
 }
 
+/* inloggad användare-uppgifterna lite finare/tydligare responsivt */
+header div {
+  text-align: right;
+}
+
+/* onödigt stor rubrik annars, är hämtad från vår landningssida, inte innehållssidor */
+h1.tagline {
+  font-size: 2.25rem;
+  margin: 0.75rem 0 2rem;
+}
+
+/* tightar till tabellerna lite, vertical spacing mellan element och håller vänsterställd text för raka tydliga kolumner */
+tr th {
+  padding: 15px !important;
+  vertical-align: unset;
+}
+td {
+  padding: 15px;
+  text-align: left !important;
+  font-size: 1rem;
+}
+th:empty,
+td:empty {
+  width: 0;
+  padding: 0;
+}
+td a button {
+  margin: 5px 0;
+}
+td h5 {
+  margin-top: 10px;
+}
+
+/* tydligare hierarki med fet text som annars överrides av normalise-css, samt mer proportionerliga inputs */
+b,
+strong {
+  font-weight: bold !important;
+}
+input[type="text"] {
+  font-size: 1.125rem;
+}
+
+/* viktigt ändring för att endast interaktiva tabellrader ska reagera på hover! */
+tbody tr:not(.content):hover {
+  background-color: initial;
+  cursor: initial;
+}
+
+tbody tr.collapsible:hover {
+  background-color: #ffe7dd;
+  cursor: pointer;
+}
+
+/* använd gärna headings även i tabellen och där det kan tänkas behövas, bra struktur för skärmläsare mm, nu utan att det tar för mycket plats  */
+td :is(h1, h2, h3, h4) {
+  margin-bottom: 0;
+}
+
+/* nytt element för att kunna uppvisa ifyllningstips till multipla inbjudan, med lite spacing emellan om ordningen ändras enl förslag */
+code {
+  font-family: monospace;
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+textarea {
+  margin-top: 1em;
+}
+
 /** Responsive **/
 @media (min-width: 414px) {
   .buttons {
@@ -537,7 +607,7 @@ table.list-invites tr th:last-child {
   }
 
   h1.tagline {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
   h2 {
     font-size: 1.5rem;
