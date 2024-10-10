@@ -147,6 +147,7 @@ class SCIM {
       case 'POST' :
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        $first = false;
         break;
       case 'PUT' :
         curl_setopt($ch, CURLOPT_POST, 0);
