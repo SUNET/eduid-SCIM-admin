@@ -215,7 +215,7 @@ class SCIM {
                 <li>Method : %s</li>
                 <li>Part : %s</li>
                 <li>Response : %s</li>
-              </ul>', $method, $part, $response);
+              </ul>', $method, htmlspecialchars($part), $response);
               exit;
             }
             break;
@@ -225,7 +225,7 @@ class SCIM {
               <li>Method : %s</li>
               <li>Part : %s</li>
               <li>Response : %s</li>
-            </ul>', $method, $part, $response);
+            </ul>', $method, htmlspecialchars($part), $response);
             exit;
             break;
         }
@@ -270,7 +270,7 @@ class SCIM {
   }
 
   public function getId($id) {
-    $user = $this->request('GET', self::SCIM_USERS.$id, '');
+    $user = $this->request('GET', self::SCIM_USERS . urlencode($id), '');
     return json_decode($user);
   }
 
@@ -281,14 +281,14 @@ class SCIM {
     $updateUserHandler->execute(array(
       self::SQL_INSTANCE => $this->dbInstanceId,
       ':ScimId' => $id));
-    return $this->request('DELETE', self::SCIM_USERS.$id, '', array('if-match: ' . $version));
+    return $this->request('DELETE', self::SCIM_USERS . urlencode($id), '', array('if-match: ' . $version));
   }
 
   public function getIdFromExternalId($externalId) {
     $request =
       sprintf('{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
         "filter": "externalId eq \"%s\"", "startIndex": 1, "count": 1}',
-        $externalId);
+        htmlspecialchars($externalId));
     $userInfo = $this->request('POST', self::SCIM_USERS.'.search', $request);
     $userArray = json_decode($userInfo);
     if ($userArray->totalResults == 1 && isset($userArray->Resources[0]->id)) {
@@ -299,7 +299,7 @@ class SCIM {
   }
 
   public function updateId($id, $data, $version) {
-    return $this->request('PUT', self::SCIM_USERS.$id, $data, array('if-match: ' . $version));
+    return $this->request('PUT', self::SCIM_USERS . urlencode($id), $data, array('if-match: ' . $version));
   }
 
   public function getAttributes2migrate(){
@@ -519,6 +519,60 @@ class SCIM {
     }
     if ($errors != '' ) {
       printf('        <div class="row alert-danger" role="alert">%s</div>%s', str_ireplace("\n", "<br>", $errors), "\n");
+    }
+  }
+
+  public function restoreUser($id) {
+    $userHandler =  $this->db->prepare('SELECT `ePPN`, `externalId`, `name`, `personNIN`
+      FROM `users`
+      WHERE `status` = 8 AND `instance_id` = :Instance AND `scimId` = :ScimId');
+    $userHandler->execute(array(
+      self::SQL_INSTANCE => $this->dbInstanceId,
+      ':ScimId' => $id));
+    if ($user = $userHandler->fetch(PDO::FETCH_ASSOC)) {
+      $userArray = new \stdClass();
+      $userArray->externalId = $user['externalId'];
+      $userArray->schemas[] = "urn:ietf:params:scim:schemas:core:2.0:User";
+      $userArray->schemas[] = self::SCIM_NUTID_SCHEMA;
+      $userArray->{self::SCIM_NUTID_SCHEMA} = new \stdClass();
+      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles = new \stdClass();
+      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp = new \stdClass();
+      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes = new \stdClass();
+      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName = $user['ePPN'];
+
+      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data = new \stdClass();
+      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo = $user['personNIN'];
+
+      $userArray->name = new \stdClass();
+      $userArray->name->formatted = $user['name'];
+
+      if ($userInfo = $this->request('POST', self::SCIM_USERS, json_encode($userArray))) {
+        $scimInfo = json_decode($userInfo);
+
+        $addUserHandler = $this->db->prepare('INSERT INTO `users`
+          (`instance_id`, `ePPN`, `externalId`, `name`, `scimId`, `personNIN`, `lastSeen`, `status`)
+          VALUES (:Instance, :EPPN, :ExternalId, :Name, :ScimId, :PersonNIN, NOW(), 1)');
+        $updateUserHandler =  $this->db->prepare('UPDATE `users`
+          SET `status` = 16
+          WHERE `instance_id` = :Instance AND `scimId` = :ScimId');
+        $addUserHandler->execute(array(
+          self::SQL_INSTANCE => $this->dbInstanceId,
+          self::SQL_EPPN => $user['ePPN'],
+          ':ExternalId' => $user['externalId'],
+          ':Name' => $user['name'],
+          ':ScimId' => $scimInfo->id,
+          ':PersonNIN' => $user['personNIN'])
+        );
+        $updateUserHandler->execute(array(
+          self::SQL_INSTANCE => $this->dbInstanceId,
+          ':ScimId' => $id));
+        return $scimInfo->id;
+      }
+      printf ('Problem to restore user in SCIM!!');
+      exit;
+    } else {
+      printf ('User was not removed. Can not restore!!');
+      exit;
     }
   }
 }

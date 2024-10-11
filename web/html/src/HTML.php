@@ -84,14 +84,24 @@ class HTML {
       const selectElement = document.querySelector("#selectList");
       const usertable = document.getElementById("list-users-table");
       const invitetable = document.getElementById("list-invites-table");
+      const deletedUsertable = document.getElementById("list-deletedUsers-table");
 
       selectElement.addEventListener("change", (event) => {
-        if (event.target.value == "List Users") {
-          usertable.hidden = false;
-          invitetable.hidden = true;
-        } else {
-          usertable.hidden = true;
-          invitetable.hidden = false;
+        switch(event.target.value) {
+          case "List Users":
+            usertable.hidden = false;
+            invitetable.hidden = true;
+            deletedUsertable.hidden = true;
+            break;
+          case "List invites":
+            usertable.hidden = true;
+            invitetable.hidden = false;
+            deletedUsertable.hidden = true;
+            break;
+          default:
+            usertable.hidden = true;
+            invitetable.hidden = true;
+            deletedUsertable.hidden = false;
         }
       });
     </script>' . "\n";
