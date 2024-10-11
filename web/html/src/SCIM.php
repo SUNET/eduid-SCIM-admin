@@ -114,23 +114,27 @@ class SCIM {
           $tokenHandler->execute();
           $this->token = $tokenValue;
           break;
-          case 503 :
-            if ($first) {
-              sleep(3);
-              return $this->getToken(false);
-            } else {
-              print "Got 503!";
-              print "<pre>";
-              print_r($info);
-              print "</pre>";
-              exit;
-            }
-            break;
+        case 503 :
+          if ($first) {
+            sleep(3);
+            return $this->getToken(false);
+          } else {
+            print "Got 503!";
+            printf('        Something went wrong.
+              Contact admin and give them this info<ul>
+                <li>Part : auth/token%</li>
+                <li>Response : %s</li>
+              </ul>', $response);
+            exit;
+          }
+          break;
         default:
-          print "<pre>";
-          print_r($info);
-          print "</pre>";
-          print $response;
+          print "Got 503!";
+          printf('        Something went wrong.
+              Contact admin and give them this info<ul>
+                <li>Part : auth/token%</li>
+                <li>Response : %s</li>
+              </ul>', $response);
           exit;
           break;
       }
@@ -147,7 +151,6 @@ class SCIM {
       case 'POST' :
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        $first = false;
         break;
       case 'PUT' :
         curl_setopt($ch, CURLOPT_POST, 0);
@@ -202,7 +205,7 @@ class SCIM {
           case 504 :
             // Timeout at api.eduid.se
             // Some other server ?
-            if ($first) {
+            if ($first && $method != 'POST') {
               sleep(3);
               return $this->request($method, $part, $data, $extraHeaders, false);
             } else {
@@ -233,77 +236,37 @@ class SCIM {
     }
   }
 
-  public function getAllUsers() {
+  public function getAllUsers($status = 1, $first = true) {
     $rand = rand(0,20);
     if ($rand == 0) {
-      $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN');
-      $addUserHandler = $this->db->prepare('INSERT INTO `users` (`instance_id`, `ePPN`) VALUES (:Instance, :EPPN)');
-      $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
-      $addUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
+      $this->refreshUsersSQL();
     }
-    $userList = array();
-    $totalResults = 500;
-    $index = 1;
-    while ($index < $totalResults) {
-      $idList = $this->request('POST',
-        self::SCIM_USERS.'.search','{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
-        "filter": "meta.lastModified ge \"1900-01-01\"", "startIndex": '. $index .', "count": 100}');
-        $index += 100;
 
-      $idListArray = json_decode($idList);
-      if (isset($idListArray->schemas) &&
-        $idListArray->schemas[0] == 'urn:ietf:params:scim:api:messages:2.0:ListResponse' ) {
-        $totalResults = $idListArray->totalResults;
-        foreach ($idListArray->Resources as $Resource) {
-          $user = $this->request('GET', self::SCIM_USERS.$Resource->id, '');
-          $userArray = json_decode($user);
-          $userList[$Resource->id] = array('id' => $Resource->id,
-            'externalId' => $userArray->externalId,
-            'fullName' => '', 'attributes' => '',
-            'profile' => false, 'linked_accounts' => false);
-          if (isset($userArray->name->formatted)) {
-            $userList[$Resource->id]['fullName'] = $userArray->name->formatted;
-          }
-          if (isset ($userArray->{self::SCIM_NUTID_SCHEMA})) {
-            $userList[$Resource->id] = $this->checkNutid(
-              $userArray->{self::SCIM_NUTID_SCHEMA},$userList[$Resource->id]);
-            if ($rand == 0 && isset($userList[$Resource->id]['attributes']) && isset($userList[$Resource->id]['attributes']->eduPersonPrincipalName)) {
-              $checkUserHandler->bindValue(self::SQL_EPPN, $userList[$Resource->id]['attributes']->eduPersonPrincipalName);
-              $checkUserHandler->execute();
-              if (! $checkUserHandler->fetch()) {
-                $addUserHandler->bindValue(self::SQL_EPPN, $userList[$Resource->id]['attributes']->eduPersonPrincipalName);
-                $addUserHandler->execute();
-              }
-            }
-          }
-        }
-      } else {
-        printf('Unknown schema : %s', $idListArray->schemas[0]);
-        return false;
-      }
+    $userList = array();
+    $userHandler = $this->db->prepare('SELECT `ePPN`, `externalId`, `scimId`, `name`
+      FROM `users` WHERE `instance_id` = :Instance AND `status` = :Status
+      ORDER BY `name`');
+    $userHandler->execute(array(self::SQL_INSTANCE => $this->dbInstanceId, ':Status' => $status));
+    while ($user = $userHandler->fetch(PDO::FETCH_ASSOC)) {
+      $userList[$user['scimId']] = array('id' => $user['scimId'],
+        'externalId' => $user['externalId'],
+        'fullName' => $user['name'],
+        'ePPN' => $user['ePPN']);
+    }
+    if (sizeof($userList) == 0 && $first) {
+      # Refresh if first time since upgrade
+      $this->refreshUsersSQL();
+      $userList = $this->getAllUsers($status, false);
     }
     return $userList;
   }
 
   public function ePPNexists($eduPersonPrincipalName) {
-    $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN');
+    $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN AND `status` < 16');
     $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
     $checkUserHandler->bindValue(self::SQL_EPPN, $eduPersonPrincipalName);
     $checkUserHandler->execute();
     return $checkUserHandler->fetch() ? true : false;
-  }
-
-  private function checkNutid($nutid, $userList) {
-    if (isset($nutid->profiles) && sizeof((array)$nutid->profiles) && isset($nutid->profiles->connectIdp)) {
-      if (isset($nutid->profiles->connectIdp->attributes) ) {
-        $userList['profile'] = true;
-      }
-      $userList['attributes'] = $nutid->profiles->connectIdp->attributes;
-    }
-    if (isset($nutid->linked_accounts) && sizeof((array)$nutid->linked_accounts)) {
-      $userList['linked_accounts'] = true;
-    }
-    return $userList;
   }
 
   public function getId($id) {
@@ -312,6 +275,12 @@ class SCIM {
   }
 
   public function removeUser($id, $version) {
+    $updateUserHandler =  $this->db->prepare('UPDATE `users`
+      SET `status` = 8
+      WHERE `instance_id` = :Instance AND `scimId` = :ScimId');
+    $updateUserHandler->execute(array(
+      self::SQL_INSTANCE => $this->dbInstanceId,
+      ':ScimId' => $id));
     return $this->request('DELETE', self::SCIM_USERS.$id, '', array('if-match: ' . $version));
   }
 
@@ -415,25 +384,141 @@ class SCIM {
     $userArray->name->formatted = $migrateInfo->givenName . ' ' . $migrateInfo->sn;
 
     if ($userInfo = $this->request('POST', self::SCIM_USERS, json_encode($userArray))) {
-      $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN');
-      $addUserHandler = $this->db->prepare('INSERT INTO `users` (`instance_id`, `ePPN`) VALUES (:Instance, :EPPN)');
+      $scimInfo = json_decode($userInfo);
+      $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN AND `status` < 16');
+      $addUserHandler = $this->db->prepare('INSERT INTO `users`
+        (`instance_id`, `ePPN`, `externalId`, `name`, `scimId`, `personNIN`, `lastSeen`, `status`)
+        VALUES (:Instance, :EPPN, :ExternalId, :Name, :ScimId, :PersonNIN, NOW(), 1)');
       $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
-      $addUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
       if (isset($attributes->eduPersonPrincipalName)) {
-        $checkUserHandler->bindValue(self::SQL_EPPN, $attributes->eduPersonPrincipalName);
-        $checkUserHandler->execute();
+        $checkUserHandler->execute(array(self::SQL_INSTANCE => $this->dbInstanceId, self::SQL_EPPN => $attributes->eduPersonPrincipalName));
         if (! $checkUserHandler->fetch()) {
-          $addUserHandler->bindValue(self::SQL_EPPN, $attributes->eduPersonPrincipalName);
-          $addUserHandler->execute();
+          $addUserHandler->execute(array(
+            self::SQL_INSTANCE => $this->dbInstanceId,
+            self::SQL_EPPN => $attributes->eduPersonPrincipalName,
+            ':ExternalId' => $migrateInfo->eduPersonPrincipalName,
+            ':Name' => $userArray->name->formatted,
+            ':ScimId' => $scimInfo->id,
+            ':PersonNIN' => $migrateInfo->norEduPersonNIN)
+          );
         }
       }
     }
-
     return $userInfo;
   }
 
   public function checkScopeExists($scope) {
     include __DIR__ . '/../config.php'; # NOSONAR
     return isset($instances[$scope]);
+  }
+
+  public function refreshUsersSQL() {
+    $errors = '';
+    $userList = array();
+    $scimList = array();
+    $checkUserHandler = $this->db->prepare('SELECT `ePPN`, `externalId`, `scimId`, `status`
+      FROM `users`
+      WHERE `instance_id` = :Instance AND `status` < 16');
+    $addUserHandler = $this->db->prepare('INSERT INTO `users`
+      (`instance_id`, `ePPN`, `externalId`, `name`, `scimId`, `personNIN`, `lastSeen`, `status`)
+      VALUES (:Instance, :EPPN, :ExternalId, :Name, :ScimId, :PersonNIN, NOW(), 1)');
+    $updateUserHandler =  $this->db->prepare('UPDATE `users`
+      SET `ePPN` = :EPPN, `externalId` = :ExternalId, `name` = :Name,
+        `personNIN` = :PersonNIN, `lastSeen` = NOW(), `status` = 1
+      WHERE `instance_id` = :Instance AND `scimId` = :ScimId');
+    $disableUserHandler =  $this->db->prepare('UPDATE `users`
+      SET `status` = :Status
+      WHERE `instance_id` = :Instance AND `scimId` = :ScimId');
+    $checkUserHandler->execute(array(self::SQL_INSTANCE => $this->dbInstanceId));
+    while ($user = $checkUserHandler->fetch(PDO::FETCH_ASSOC)) {
+      if ($user['ePPN'] != '') {
+        $userList[$user['ePPN']] = array('eduID' => $user['externalId'], 'seen' => false);
+      }
+      $scimList[$user['scimId']] = array('ePPN' => $user['ePPN'], 'status' => $user['status'], 'seen' => false);
+    }
+
+    $totalResults = 500;
+    $index = 1;
+    while ($index < $totalResults) {
+      $idList = $this->request('POST',
+        self::SCIM_USERS.'.search','{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
+        "filter": "meta.lastModified ge \"1900-01-01\"", "startIndex": '. $index .', "count": 100}');
+        $index += 100;
+
+      $idListArray = json_decode($idList);
+      if (isset($idListArray->schemas) &&
+        $idListArray->schemas[0] == 'urn:ietf:params:scim:api:messages:2.0:ListResponse' ) {
+        $totalResults = $idListArray->totalResults;
+        foreach ($idListArray->Resources as $Resource) {
+          $user = $this->request('GET', self::SCIM_USERS.$Resource->id, '');
+          $userArray = json_decode($user);
+          $fullName = isset($userArray->name->formatted) ? $userArray->name->formatted : '';
+          $personNIN = '';
+          $ePPN = isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName) ? 
+            $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName : '';
+          $personNIN = isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo) ? 
+            $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo : '';
+
+          if (isset($scimList[$Resource->id])) {
+            #exists in DB
+            $errors .= $scimList[$Resource->id]['ePPN'] == $ePPN ? '' : sprintf("ePPN was changed from %s to %s on %s\n", $scimList[$Resource->id]['ePPN'], $ePPN, $Resource->id);
+            $updateUserHandler->execute(array(
+              self::SQL_INSTANCE => $this->dbInstanceId,
+              ':EPPN' => $ePPN,
+              ':ExternalId' => $userArray->externalId,
+              ':Name' => $fullName,
+              ':ScimId' => $Resource->id,
+              ':PersonNIN' => $personNIN));
+              $scimList[$Resource->id]['seen'] = true;
+          } else {
+            # Add new row
+            $addUserHandler->execute(array(
+              self::SQL_INSTANCE => $this->dbInstanceId,
+              ':EPPN' => $ePPN,
+              ':ExternalId' => $userArray->externalId,
+              ':Name' => $fullName,
+              ':ScimId' => $Resource->id,
+              ':PersonNIN' => $personNIN));
+          }
+
+          if ($ePPN != '') {
+            $errors .= (isset($userList[$ePPN]['seen']) && $userList[$ePPN]['seen']) ? sprintf ("%s exists twice in SCIM.\n", $ePPN) : '';
+            $userList[$ePPN]['seen'] = true;
+          }
+        }
+      } else {
+        $errors .= sprintf("Unknown schema : %s\n", $idListArray->schemas[0]);
+        $index = 100000;
+      }
+    }
+    foreach ($scimList as $scimId => $data ) {
+      if (! $data['seen']) {
+        # Not in SCIM
+        switch ($data['status']) {
+          case 1 :
+            # Mark user as deleted
+            $disableUserHandler->execute(array(
+              self::SQL_INSTANCE => $this->dbInstanceId,
+              ':Status' => 8,
+              ':ScimId' => $scimId));
+            $errors .= sprintf ("Disabled %s->%s since missing in SCIM.\n", $scimId, $data['ePPN']);
+            break;
+          case 8 :
+            if (isset($userList[$data['ePPN']]) && $userList[$data['ePPN']]['seen']) {
+              $disableUserHandler->execute(array(
+                self::SQL_INSTANCE => $this->dbInstanceId,
+                ':Status' => 16,
+                ':ScimId' => $scimId));
+              $errors .= sprintf ("Archived %s->%s since exists in scim again.\n", $scimId, $data['ePPN']);
+            }
+            break;
+          default :
+        }
+      }
+
+    }
+    if ($errors != '' ) {
+      printf('        <div class="row alert-danger" role="alert">%s</div>%s', str_ireplace("\n", "<br>", $errors), "\n");
+    }
   }
 }

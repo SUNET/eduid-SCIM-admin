@@ -325,6 +325,13 @@ if (isset($_POST['action'])) {
         listInvites($id, true);
       }
       break;
+    case 'refreshUsers' :
+      $scim->refreshUsersSQL();
+      # listUsers
+      showMenu();
+      listUsers('', true);
+      listInvites();
+      break;
     default:
       # listUsers
       showMenu();
@@ -344,22 +351,15 @@ function listUsers($id='0-0', $shown = false) {
   global $scim;
   $editAccess = $scim->getAdminAccess() > 19;
   $users = $scim->getAllUsers();
-  uasort($users, 'sortFullName');
   printf('        <table id="list-users-table" class="table table-striped table-bordered list-users"%s>
           <thead>
-            <tr><th>ePPN</th><th>Name</th><th>eduID</tr>
+            <tr><th>ePPN</th><th>Name</th><th>eduID<a href=".?action=refreshUsers"><i class="fa-solid fa-arrows-rotate"></i></a></tr>
           </thead>
           <tbody>%s', $shown ? '' : ' hidden', "\n");
   foreach ($users as $user) {
     showUser($user, $id, $editAccess);
   }
   printf('          <tbody>%s        </table>%s', "\n", "\n");
-}
-function sortFullName($a, $b) {
-  if ($a['fullName'] == $b['fullName']) {
-    return 0;
-  }
-  return ($a['fullName'] < $b['fullName']) ? -1 : 1;
 }
 
 function showUser($user, $id, $editAccess = false) {
@@ -369,27 +369,20 @@ function showUser($user, $id, $editAccess = false) {
               <td>%s</td>
             </tr>
             <tr class="content" style="display: %s;">
-              <td>
-                <a a href="?action=editUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a>',
+              <td colspan="3">
+                <a a href="?action=editUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a>%s',
     $user['externalId'], $user['externalId'],
-    isset($user['attributes']->eduPersonPrincipalName) ? $user['attributes']->eduPersonPrincipalName : _('Missing'),
+    $user['ePPN'] == '' ? _('Missing') : $user['ePPN'] ,
     $user['fullName'], $user['externalId'],
     $id == $user['id'] ? 'table-row' : 'none',
-    $user['id'], $editAccess ? _('Edit') : _('View'));
+    $user['id'], $editAccess ? _('Edit') : _('View'),
+    "\n");
   if ($editAccess) {
-    printf('<br>
-                <a a href="?action=removeUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a>',
-      $user['id'], _('Delete'));
+    printf('                <a a href="?action=removeUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a>%s',
+      $user['id'], _('Delete'), "\n");
   }
-  printf('%s              </td>
-              <td colspan="2"><ul>%s', "\n", "\n");
-  if ($user['profile']) {
-    foreach($user['attributes'] as $key => $value) {
-      $value = is_array($value) ? implode(", ", $value) : $value;
-      printf (LI_ITEM, $key, $value, "\n");
-    }
-  }
-  printf('              </ul></td>%s            </tr>%s', "\n", "\n");
+  printf('              </td>
+            </tr>%s', "\n", "\n");
 }
 
 function editUser($id) {
@@ -923,7 +916,7 @@ function showApproveInviteForm ($id) {
           <input type="hidden" name="id" value="%s">
           <table id="entities-table" class="table table-striped table-bordered">
             <tbody>
-              <tr><td></td><td>Invite data</td><td>From eduID</td></tr>
+              <tr><td>&nbsp;</td><td>Invite data</td><td>From eduID</td></tr>
               <tr><td>personNIN</td><td>%s</td><td>%s</td></tr>
               <tr><td>%s</td><td>%s</td><td>%s</td></tr>
               <tr><td>%s</td><td>%s</td><td>%s</td></tr>

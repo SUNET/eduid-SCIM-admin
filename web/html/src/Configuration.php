@@ -83,7 +83,7 @@ class Configuration {
     } else {
       $dbVersion=$dbVersion['value'];
     }
-    if ($dbVersion < 3) {
+    if ($dbVersion < 4) {
       if ($dbVersion < 1) {
         $this->db->query("INSERT INTO params (`instance`, `id`, `value`) VALUES ('', 'dbVersion', 1)");
       }
@@ -109,29 +109,41 @@ class Configuration {
             `hash` varchar(65) DEFAULT NULL");
         $this->db->query("UPDATE params SET value = 2 WHERE `instance`='' AND `id`='dbVersion'");
       }
-      # To ver 3
-      $this->db->query('CREATE TABLE `instances` (
-        `id` int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        `instance` varchar(30) DEFAULT NULL)');
-      $this->db->query("INSERT INTO `instances` (`id`, `instance`) VALUES (1, 'Admin')");
-      $this->db->query('CREATE TABLE `users` (
-        `instance_id` int(10) unsigned NOT NULL,
-        `ePPN` varchar(40) DEFAULT NULL,
-        CONSTRAINT `users_ibfk_1` FOREIGN KEY (`instance_id`) REFERENCES `instances` (`id`) ON DELETE CASCADE)');
-      $this->db->query('DELETE FROM `invites`');
-      $this->db->query('ALTER TABLE `invites`
-        CHANGE `instance` `instance_id` int(10) unsigned NOT NULL,
-        ADD `lang` varchar(2) DEFAULT NULL,
-        ADD FOREIGN KEY (`instance_id`)
-          REFERENCES `instances` (`id`)
-          ON DELETE CASCADE');
-      $this->db->query("DELETE FROM `params` WHERE `id` = 'token'");
-      $this->db->query("UPDATE params SET value = 3, `instance`='1' WHERE `instance`='' AND `id`='dbVersion'");
-      $this->db->query('ALTER TABLE `params`
-        CHANGE `instance` `instance_id` int(10) unsigned NOT NULL,
-        ADD FOREIGN KEY (`instance_id`)
-          REFERENCES `instances` (`id`)
-          ON DELETE CASCADE');
+      if ($dbVersion < 3) {
+        # To ver 3
+        $this->db->query('CREATE TABLE `instances` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+          `instance` varchar(30) DEFAULT NULL)');
+        $this->db->query("INSERT INTO `instances` (`id`, `instance`) VALUES (1, 'Admin')");
+        $this->db->query('CREATE TABLE `users` (
+          `instance_id` int(10) unsigned NOT NULL,
+          `ePPN` varchar(40) DEFAULT NULL,
+          CONSTRAINT `users_ibfk_1` FOREIGN KEY (`instance_id`) REFERENCES `instances` (`id`) ON DELETE CASCADE)');
+        $this->db->query('DELETE FROM `invites`');
+        $this->db->query('ALTER TABLE `invites`
+          CHANGE `instance` `instance_id` int(10) unsigned NOT NUM@tilda
+          LL,
+          ADD `lang` varchar(2) DEFAULT NULL,
+          ADD FOREIGN KEY (`instance_id`)
+            REFERENCES `instances` (`id`)
+            ON DELETE CASCADE');
+        $this->db->query("DELETE FROM `params` WHERE `id` = 'token'");
+        $this->db->query("UPDATE params SET value = 3, `instance` = '1' WHERE `instance` = '' AND `id` = 'dbVersion'");
+        $this->db->query('ALTER TABLE `params`
+          CHANGE `instance` `instance_id` int(10) unsigned NOT NULL,
+          ADD FOREIGN KEY (`instance_id`)
+            REFERENCES `instances` (`id`)
+            ON DELETE CASCADE');
+      }
+      $this->db->query('ALTER TABLE `users`
+        ADD `externalId` text DEFAULT NULL,
+        ADD `name` text DEFAULT NULL,
+        ADD `scimId` varchar(40) DEFAULT NULL,
+        ADD `personNIN` varchar(12) DEFAULT NULL,
+        ADD `lastSeen` datetime DEFAULT NULL,
+        ADD `status` tinyint');
+      $this->db->query('DELETE FROM `users`');
+      $this->db->query("UPDATE params SET value = 4 WHERE `instance_id` = 1 AND `id` = 'dbVersion'");
     }
   }
 
