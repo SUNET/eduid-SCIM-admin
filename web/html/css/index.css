@@ -56,9 +56,9 @@ strong {
 }
 
 h1.tagline {
-  font-size: 2.75rem;
-  line-height: 1.2;
+  font-size: 2.25rem;line-height: 1.2;
   font-family: "Inter-Light", Arial, Helvetica, sans-serif;
+  margin: 0.75rem 0 2rem;
 }
 h2 {
   font-size: 1.65rem;
@@ -352,7 +352,7 @@ label {
 input[type="text"] {
   background-color: #f4f4f4;
   font-family: "Inter-Semibold", Arial, Helvetica, sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.125rem;
   font-weight: 500;
   color: #161616;
   box-shadow: none;
@@ -390,11 +390,11 @@ thead {
 }
 
 tr th {
-  vertical-align: middle;
+  vertical-align: unset;
   text-align: left;
+  padding: 15px !important;
   padding-left: 20px;
   width: 40%;
-  /* text-transform: uppercase; */
   font-family: "Inter-Regular", Arial, Helvetica, sans-serif;
   word-wrap: break-word;
 }
@@ -430,13 +430,21 @@ tr {
 }
 
 td {
-  padding: 20px;
+  padding: 15px;
+  text-align: left !important;
+  font-size: 1rem;
 }
 
 tbody tr:not(.content):hover {
+  background-color: initial;
+  cursor: initial;
+}
+
+tbody tr.collapsible:hover {
   background-color: #ffe7dd;
   cursor: pointer;
 }
+
 
 table.list-invites tr th:nth-child(1) {
   width: 20%;
@@ -454,7 +462,6 @@ table.list-invites tr th:last-child {
 
 .row {
   display: flex;
-/*  flex-wrap: wrap;*/
 }
 
 .col3 {
@@ -499,22 +506,6 @@ header div {
   text-align: right;
 }
 
-/* onödigt stor rubrik annars, är hämtad från vår landningssida, inte innehållssidor */
-h1.tagline {
-  font-size: 2.25rem;
-  margin: 0.75rem 0 2rem;
-}
-
-/* tightar till tabellerna lite, vertical spacing mellan element och håller vänsterställd text för raka tydliga kolumner */
-tr th {
-  padding: 15px !important;
-  vertical-align: unset;
-}
-td {
-  padding: 15px;
-  text-align: left !important;
-  font-size: 1rem;
-}
 th:empty,
 td:empty {
   width: 0;
@@ -531,20 +522,6 @@ td h5 {
 b,
 strong {
   font-weight: bold !important;
-}
-input[type="text"] {
-  font-size: 1.125rem;
-}
-
-/* viktigt ändring för att endast interaktiva tabellrader ska reagera på hover! */
-tbody tr:not(.content):hover {
-  background-color: initial;
-  cursor: initial;
-}
-
-tbody tr.collapsible:hover {
-  background-color: #ffe7dd;
-  cursor: pointer;
 }
 
 /* använd gärna headings även i tabellen och där det kan tänkas behövas, bra struktur för skärmläsare mm, nu utan att det tar för mycket plats  */
@@ -689,7 +666,6 @@ select::-ms-expand {
   top: 0;
   right: 0;
   padding: 0 1em;
-  /* background: #2b2e2e; */
   cursor: pointer;
   pointer-events: none;
   transition: 0.25s all ease;

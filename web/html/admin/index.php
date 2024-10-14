@@ -253,7 +253,6 @@ if (isset($_POST['action'])) {
       break;
     case 'listInvites' :
       $html->setExtraURLPart('&action=listInvites');
-      $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
       showLists(2, $id);
       break;
     case 'approveInvite' :
