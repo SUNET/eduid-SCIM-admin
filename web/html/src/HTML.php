@@ -7,6 +7,7 @@ class HTML {
   private $extraURL  = '';
   private $scope = '';
   private $tagLine = '';
+  private $tableToSort = array();
 
   public function __construct($tagLine = '') {
     $this->displayName = '';
@@ -30,6 +31,7 @@ class HTML {
     <link rel="stylesheet" href="/<?=$this->scope?>/css/fontawesome.min.css" type="text/css" media="all" />
     <link rel="stylesheet" href="/<?=$this->scope?>/css/solid.min.css" type="text/css" media="all" />
     <link rel="stylesheet" href="/<?=$this->scope?>/css/regular.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/<?=$this->scope?>/css/jquery.dataTables.css" type="text/css" media="all" />
     <link rel="icon" href="/assets/favicon.ico" type="image/x-icon" />
   </head>
 
@@ -70,9 +72,22 @@ class HTML {
 
       </div>
     </footer>
-<?php if ($collapse) {
-    print '    <script>
-      function showId(id) {
+
+<?php
+    if ($collapse || isset($this->tableToSort[0])) {
+      if (isset($this->tableToSort[0])) {
+        # Add JS script to be able to use later
+        printf('        <script src="/%s/js/jquery-3.7.1.slim.min.js"
+      integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8="
+      crossorigin="anonymous">
+    </script>
+    <script type="text/javascript" charset="utf8"
+      src="/%s/js/jquery.dataTables.js">
+    </script>%s', $this->scope, $this->scope, "\n");
+      }
+      print "    <script>\n";
+      if ($collapse) {
+        print '      function showId(id) {
         const collapsible = document.querySelector(`tr.collapsible[data-id="${id}"]`);
         const content = collapsible.nextElementSibling;
 
@@ -103,12 +118,18 @@ class HTML {
             invitetable.hidden = true;
             deletedUsertable.hidden = false;
         }
-      });
-    </script>' . "\n";
-}?>
-  </body>
-</html>
-<?php
+      });' . "\n";
+      }
+      if (isset($this->tableToSort[0])) {
+        print "    $(document).ready(function () {\n";
+        foreach ($this->tableToSort as $table) {
+          printf ("      $('#%s').DataTable( {paging: false});\n", $table);
+        }
+        print "    });\n";
+      }
+      print '    </script>' . "\n";
+    }
+    printf ('  </body>%s</html>%s', "\n", "\n");
   }
 
   public function setDisplayName($name) {
@@ -117,5 +138,9 @@ class HTML {
 
   public function setExtraURLPart($extra) {
     $this->extraURL = $extra;
+  }
+
+  public function addTableSort($tableId) {
+    $this->tableToSort[] = $tableId;
   }
 }

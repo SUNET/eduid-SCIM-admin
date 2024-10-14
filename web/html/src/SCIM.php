@@ -237,7 +237,7 @@ class SCIM {
   }
 
   public function getAllUsers($status = 1, $first = true) {
-    $rand = rand(0,20);
+    $rand = rand(0,20); # NOSONAR
     if ($rand == 0) {
       $this->refreshUsersSQL();
     }

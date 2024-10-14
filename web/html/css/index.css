@@ -414,6 +414,10 @@ thead tr .list-users th:nth-child(2) {
   width: 20%;
 }
 
+.list-users thead tr th:nth-child(4) {
+  width: 10%;
+}
+
 tr {
   border-bottom: 1px solid #ebebe3;
   height: 3rem;
@@ -516,8 +520,8 @@ td:empty {
   width: 0;
   padding: 0;
 }
-td a button {
-  margin: 5px 0;
+td a button.btn-sm {
+  margin: 5px 5px 5px 0;
 }
 td h5 {
   margin-top: 10px;

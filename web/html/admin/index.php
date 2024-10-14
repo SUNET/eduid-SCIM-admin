@@ -58,7 +58,7 @@ if (isset($_SERVER['displayName'])) {
 if (isset($_SERVER['eduPersonAssurance'])) {
   $acceptedAssurance = false;
   foreach (explode(';', $_SERVER['eduPersonAssurance']) as $subAssurance) {
-    if ($subAssurance == 'http://www.swamid.se/policy/assurance/al3') {
+    if ($subAssurance == 'http://www.swamid.se/policy/assurance/al3') { # NOSONAR
       $acceptedAssurance = true;
     }
   }
@@ -117,7 +117,7 @@ if (isset($_POST['action'])) {
           saveUser($id);
       }
       showMenu();
-      listUsers($id, true);
+      listUsers(true);
       listInvites();
       listDeletedUsers();
       break;
@@ -129,7 +129,7 @@ if (isset($_POST['action'])) {
           $scim->removeUser($id,$version);
       }
       showMenu();
-      listUsers($id, true);
+      listUsers(true);
       listInvites();
       listDeletedUsers();
       break;
@@ -195,20 +195,20 @@ if (isset($_POST['action'])) {
       break;
     case 'approveInvite' :
       $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
-      showMenu(2);
       if ( $editAccess && $id) {
           approveInvite($id);
       }
+      showMenu(2);
       listUsers();
       listInvites($id, true);
       listDeletedUsers();
       break;
     case 'deleteInvite' :
       $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
-      showMenu(2);
       if ( $editAccess && $id && isset($_POST['delete'])) {
           $invites->removeInvite($id);
       }
+      showMenu(2);
       listUsers();
       listInvites($id, true);
       listDeletedUsers();
@@ -219,7 +219,7 @@ if (isset($_POST['action'])) {
         multiInvite();
       } else {
         showMenu(2);
-        listUsers('');
+        listUsers();
         listInvites($id, true);
         listDeletedUsers();
       }
@@ -238,7 +238,7 @@ if (isset($_POST['action'])) {
         editUser($id);
       } else {
         showMenu();
-        listUsers($id, true);
+        listUsers(true);
         listInvites();
         listDeletedUsers();
       }
@@ -247,7 +247,7 @@ if (isset($_POST['action'])) {
       $html->setExtraURLPart('&action=listUsers');
       $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
       showMenu();
-      listUsers($id, true);
+      listUsers(true);
       listInvites();
       listDeletedUsers();
       break;
@@ -259,7 +259,7 @@ if (isset($_POST['action'])) {
         }
       } else {
         showMenu();
-        listUsers($id, true);
+        listUsers(true);
         listInvites();
         listDeletedUsers();
       }
@@ -346,7 +346,7 @@ if (isset($_POST['action'])) {
       $scim->refreshUsersSQL();
       # listUsers
       showMenu();
-      listUsers('', true);
+      listUsers(true);
       listInvites();
       listDeletedUsers();
       break;
@@ -366,33 +366,49 @@ if (isset($_POST['action'])) {
     default:
       # listUsers
       showMenu();
-      listUsers('', true);
+      listUsers(true);
       listInvites();
       listDeletedUsers();
       break;
   }
 } else {
   showMenu();
-  listUsers('', true);
+  listUsers(true);
   listInvites();
   listDeletedUsers();
 }
 print "        <br>\n";
 $html->showFooter($collapse);
 
-function listUsers($id='0-0', $shown = false) {
-  global $scim;
+function listUsers($shown = false) {
+  global $scim, $html;
   $editAccess = $scim->getAdminAccess() > 19;
   $users = $scim->getAllUsers();
   printf('        <table id="list-users-table" class="table table-striped table-bordered list-users"%s>
           <thead>
-            <tr><th>ePPN</th><th>Name</th><th>eduID<a href=".?action=refreshUsers"><i class="fa-solid fa-arrows-rotate"></i></a></tr>
+            <tr><th>ePPN</th><th>Name</th><th>eduID<a href=".?action=refreshUsers"><i class="fa-solid fa-arrows-rotate"></i></a></th><th>&nbsp;</th></tr>
           </thead>
           <tbody>%s', $shown ? '' : ' hidden', "\n");
   foreach ($users as $user) {
-    showUser($user, $id, $editAccess);
+    printf('            <tr>
+              <td>%s</td>
+              <td>%s</td>
+              <td>%s</td>
+              <td>
+                <a a href="?action=editUser&id=%s"><i class="fa fa-pencil-alt"></i></a>%s',
+      $user['ePPN'] == '' ? _('Missing') : $user['ePPN'] ,
+      $user['fullName'], $user['externalId'],
+      $user['id'], "\n");
+    if ($editAccess) {
+      printf('                <a a href="?action=removeUser&id=%s"><i class="fas fa-trash"></i></a>%s',
+        $user['id'], "\n");
+    }
+    printf('              </td>
+            </tr>%s', "\n", "\n");
+
   }
   printf('          <tbody>%s        </table>%s', "\n", "\n");
+  $html->addTableSort('list-users-table');
 }
 
 function listDeletedUsers($id='0-0', $shown = false) {
@@ -423,29 +439,6 @@ function listDeletedUsers($id='0-0', $shown = false) {
             </tr>%s', "\n", "\n");
   }
   printf('          <tbody>%s        </table>%s', "\n", "\n");
-}
-
-function showUser($user, $id, $editAccess = false) {
-  printf('            <tr class="collapsible" data-id="%s" onclick="showId(\'%s\')">
-              <td>%s</td>
-              <td>%s</td>
-              <td>%s</td>
-            </tr>
-            <tr class="content" style="display: %s;">
-              <td colspan="3">
-                <a a href="?action=editUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a>%s',
-    $user['externalId'], $user['externalId'],
-    $user['ePPN'] == '' ? _('Missing') : $user['ePPN'] ,
-    $user['fullName'], $user['externalId'],
-    $id == $user['id'] ? 'table-row' : 'none',
-    $user['id'], $editAccess ? _('Edit') : _('View'),
-    "\n");
-  if ($editAccess) {
-    printf('                <a a href="?action=removeUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a>%s',
-      $user['id'], _('Delete'), "\n");
-  }
-  printf('              </td>
-            </tr>%s', "\n", "\n");
 }
 
 function editUser($id) {
@@ -704,19 +697,21 @@ function showMenu($show = 1) {
 function listInvites($id = 0, $show = false) {
   global $invites, $scim;
   $editAccess = $scim->getAdminAccess() > 19;
-  printf('        <table id="list-invites-table" class="table table-striped table-bordered list-invites"%s>
-          <thead>
+  printf('        <table id="list-invites-table" class="table table-striped table-bordered list-invites"%s>%s', $show ? '' : ' hidden', "\n");
+  if ($editAccess) {
+    printf('          <thead>
+            <tr><td colspan="3">
+              <a a href="?action=addInvite"><button class="btn btn-primary btn-sm">%s</button></a>
+              <a a href="?action=addMultiInvite"><button class="btn btn-primary btn-sm">%s</button></a>
+            </td></tr>
+          </thead>%s',
+   _('Add Invite'), _('Add multiple Invites'), "\n");
+  }
+  printf('          <thead>
             <tr><th></th><th>%s</th><th>%s</th></tr>
           </thead>
           <tbody>%s',
-    $show ? '' : ' hidden', _('Last modified'), _('Name'), "\n");
-  if ($editAccess) {
-    printf('            <tr><td colspan="3">
-              <a a href="?action=addInvite"><button class="btn btn-primary btn-sm">%s</button></a>
-              <a a href="?action=addMultiInvite"><button class="btn btn-primary btn-sm">%s</button></a>
-            </td></tr>%s',
-   _('Add Invite'), _('Add multiple Invites'), "\n");
-  }
+    _('Last modified'), _('Name'), "\n");
   $oldStatus = 0;
   foreach ($invites->getInvitesList() as $invite) {
     if ($invite['status'] != $oldStatus) {
@@ -1177,5 +1172,5 @@ function multiInvite() {
       }
     }
   }
-  printf('        <div class="buttons"><a href="./?action=listInvites"><button class="btn btn-secondary">%s</button></a></div>%s', _('Cancel'), "\n");
+  printf('        <div class="buttons"><a href="./?action=listInvites"><button class="btn btn-secondary">%s</button></a></div>%s', _('Back'), "\n");
 }
