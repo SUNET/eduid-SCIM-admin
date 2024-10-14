@@ -116,10 +116,7 @@ if (isset($_POST['action'])) {
       if ( $editAccess && $id && isset($_POST['save'])) {
           saveUser($id);
       }
-      showMenu();
-      listUsers(true);
-      listInvites();
-      listDeletedUsers();
+      showLists(1);
       break;
     case 'removeUser' :
       $id = isset($_POST['id']) ? $scim->validateID($_POST['id']) : false;
@@ -128,10 +125,7 @@ if (isset($_POST['action'])) {
           $version = $user->meta->version;
           $scim->removeUser($id,$version);
       }
-      showMenu();
-      listUsers(true);
-      listInvites();
-      listDeletedUsers();
+      showLists(1);
       break;
     case 'saveInvite' :
       $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
@@ -178,19 +172,13 @@ if (isset($_POST['action'])) {
           if ($id == 0 || $id) {
             saveInvite($id);
           }
-          showMenu(2);
-          listUsers();
-          listInvites($id, true);
-          listDeletedUsers();
+          showLists(2, $id);
         } else {
           $html->setExtraURLPart('&action=editInvite&id=' . $id);
           editInvite($id, $parseErrors);
         }
       } else {
-        showMenu(2);
-        listUsers();
-        listInvites($id, true);
-        listDeletedUsers();
+        showLists(2, $id);
       }
       break;
     case 'approveInvite' :
@@ -198,30 +186,21 @@ if (isset($_POST['action'])) {
       if ( $editAccess && $id) {
           approveInvite($id);
       }
-      showMenu(2);
-      listUsers();
-      listInvites($id, true);
-      listDeletedUsers();
+      showLists(2, $id);
       break;
     case 'deleteInvite' :
       $id = isset($_POST['id']) ? $invites->validateID($_POST['id']) : false;
       if ( $editAccess && $id && isset($_POST['delete'])) {
           $invites->removeInvite($id);
       }
-      showMenu(2);
-      listUsers();
-      listInvites($id, true);
-      listDeletedUsers();
+      showLists(2, $id);
       break;
     case 'addMultiInvite' :
       $html->setExtraURLPart('&action=addMultiInvite');
       if ( $editAccess) {
         multiInvite();
       } else {
-        showMenu(2);
-        listUsers();
-        listInvites($id, true);
-        listDeletedUsers();
+        showLists(2, $id);
       }
       break;
     default:
@@ -237,19 +216,12 @@ if (isset($_POST['action'])) {
       if ( $viewAccess && $id) {
         editUser($id);
       } else {
-        showMenu();
-        listUsers(true);
-        listInvites();
-        listDeletedUsers();
+        showLists(1);
       }
       break;
     case 'listUsers' :
       $html->setExtraURLPart('&action=listUsers');
-      $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
-      showMenu();
-      listUsers(true);
-      listInvites();
-      listDeletedUsers();
+      showLists(1);
       break;
     case 'removeUser' :
       $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
@@ -258,10 +230,7 @@ if (isset($_POST['action'])) {
           removeUser($id);
         }
       } else {
-        showMenu();
-        listUsers(true);
-        listInvites();
-        listDeletedUsers();
+        showLists(1);
       }
       break;
     case 'editInvite' :
@@ -270,10 +239,7 @@ if (isset($_POST['action'])) {
         $html->setExtraURLPart('&action=editInvite&id=' . $id);
         editInvite($id);
       } else {
-        showMenu(2);
-        listUsers();
-        listInvites($id, true);
-        listDeletedUsers();
+        showLists(2, $id);
       }
       break;
     case 'resendInvite' :
@@ -282,19 +248,13 @@ if (isset($_POST['action'])) {
         $html->setExtraURLPart('&action=resendInvite&id=' . $id);
         resendInvite($id);
       } else {
-        showMenu(2);
-        listUsers();
-        listInvites($id, true);
-        listDeletedUsers();
+        showLists(2, $id);
       }
       break;
     case 'listInvites' :
       $html->setExtraURLPart('&action=listInvites');
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
-      showMenu(2);
-      listUsers();
-      listInvites($id, true);
-      listDeletedUsers();
+      showLists(2, $id);
       break;
     case 'approveInvite' :
       $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
@@ -302,10 +262,7 @@ if (isset($_POST['action'])) {
         $html->setExtraURLPart('&action=approveInvite&id=' . $id);
         showApproveInviteForm($id);
       } else {
-        showMenu(2);
-        listUsers();
-        listInvites($id, true);
-        listDeletedUsers();
+        showLists(2, $id);
       }
       break;
     case 'addInvite' :
@@ -313,10 +270,7 @@ if (isset($_POST['action'])) {
       if ( $editAccess) {
         editInvite(0);
       } else {
-        showMenu(2);
-        listUsers();
-        listInvites($id, true);
-        listDeletedUsers();
+        showLists(2, $id);
       }
       break;
     case 'addMultiInvite' :
@@ -324,10 +278,7 @@ if (isset($_POST['action'])) {
       if ( $editAccess) {
         multiInvite();
       } else {
-        showMenu(2);
-        listUsers();
-        listInvites($id, true);
-        listDeletedUsers();
+        showLists(2, $id);
       }
       break;
     case 'deleteInvite' :
@@ -336,19 +287,13 @@ if (isset($_POST['action'])) {
         $html->setExtraURLPart('&action=deleteInvite&id=' . $id);
         deleteInvite($id);
       } else {
-        showMenu(2);
-        listUsers();
-        listInvites($id, true);
-        listDeletedUsers();
+        showLists(2, $id);
       }
       break;
     case 'refreshUsers' :
       $scim->refreshUsersSQL();
       # listUsers
-      showMenu();
-      listUsers(true);
-      listInvites();
-      listDeletedUsers();
+      showLists(1);
       break;
     case 'restoreUser' :
       $id = isset($_GET['id']) ? $scim->validateID($_GET['id']) : false;
@@ -357,28 +302,26 @@ if (isset($_POST['action'])) {
         $html->setExtraURLPart('&action=editUser');
         editUser($newId);
       } else {
-        showMenu(3);
-        listUsers();
-        listInvites();
-        listDeletedUsers($id, true);
+        showLists(3, $id);
       }
       break;
     default:
       # listUsers
-      showMenu();
-      listUsers(true);
-      listInvites();
-      listDeletedUsers();
+      showLists(1);
       break;
   }
 } else {
-  showMenu();
-  listUsers(true);
-  listInvites();
-  listDeletedUsers();
+  showLists(1);
 }
 print "        <br>\n";
 $html->showFooter($collapse);
+
+function showLists($list, $id = '') {
+  showMenu($list);
+  listUsers($list == 1);
+  listInvites($list == 2 ? $id : '', $list == 2);
+  listDeletedUsers($list == 3 ? $id : '', $list == 3);
+}
 
 function listUsers($shown = false) {
   global $scim, $html;
