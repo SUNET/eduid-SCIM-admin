@@ -15,8 +15,8 @@ $invites = new scimAdmin\Invites();
 $localize = new scimAdmin\Localize();
 
 if ($invites->checkCorrectBackendIdP()) {
-  if ($migrateInfo = $invites->checkBackendData()) {
-    $ePPN = $migrateInfo['eduPersonPrincipalName'];
+  if ($userInfo = $invites->checkBackendData()) {
+    $ePPN = $userInfo['eduPersonPrincipalName'];
     $html->showHeaders(_('eduID Connect Self-service'));
     if (! $id = $scim->getIdFromExternalId($ePPN)) {
       showError(_('Could not find your account in our user database.<br>Please contact your admin.'));
@@ -28,27 +28,27 @@ if ($invites->checkCorrectBackendIdP()) {
     $version = $userArray->meta->version;
     unset($userArray->meta);
 
-    if (strlen($migrateInfo['givenName'] . $migrateInfo['sn']) > 1) {
+    if (strlen($userInfo['givenName'] . $userInfo['sn']) > 1) {
       $fullName = '';
       if (! isset($userArray->{'name'})) {
         $userArray->name = new \stdClass();
       }
-      if (strlen($migrateInfo['givenName']) > 1) {
-        $userArray->name->givenName = $migrateInfo['givenName'];
-        $fullName = $migrateInfo['givenName'];
+      if (strlen($userInfo['givenName']) > 1) {
+        $userArray->name->givenName = $userInfo['givenName'];
+        $fullName = $userInfo['givenName'];
       }
-      if (strlen($migrateInfo['sn']) > 1) {
-        $userArray->name->familyName = $migrateInfo['sn'];
-        $fullName .= ' ' . $migrateInfo['sn'];
+      if (strlen($userInfo['sn']) > 1) {
+        $userArray->name->familyName = $userInfo['sn'];
+        $fullName .= ' ' . $userInfo['sn'];
       }
       $userArray->name->formatted = $fullName;
     }
 
-    if (strlen($migrateInfo['norEduPersonNIN'] . $migrateInfo['schacDateOfBirth']) > 1) {
-      if (strlen($migrateInfo['norEduPersonNIN']) > 1 ) {
-        $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo = $migrateInfo['norEduPersonNIN'];
-      } elseif (strlen($migrateInfo['schacDateOfBirth']) > 1) {
-        $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo = $migrateInfo['schacDateOfBirth'];
+    if (strlen($userInfo['norEduPersonNIN'] . $userInfo['schacDateOfBirth']) > 1) {
+      if (strlen($userInfo['norEduPersonNIN']) > 1 ) {
+        $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo = $userInfo['norEduPersonNIN'];
+      } elseif (strlen($userInfo['schacDateOfBirth']) > 1) {
+        $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo = $userInfo['schacDateOfBirth'];
       }
     }
 

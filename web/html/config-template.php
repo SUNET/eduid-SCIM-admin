@@ -49,6 +49,9 @@ $instances = array (
       'kazof-vagus@eduid.se' => 20,
       'jocar@sunet.se' => 20,
       'zacharias@sunet.se' => 20,
-    )
+    ),
+    # false - admin have to give ePPN
+    # true - ePPN created from eduid ePPN
+    'autoEPPN' => false,
   ),
 );

@@ -3,6 +3,9 @@ namespace scimAdmin;
 
 use PDO;
 
+/**
+ * Class to handle Invites to be added to SCIM
+ */
 class Invites {
   private $scope = '';
   private $sourceIdP = '';
@@ -406,7 +409,7 @@ class Invites {
 
   public function move2Manual($id, $migrateInfo) {
     $invitesHandler = $this->db->prepare('UPDATE invites
-      SET `status` = 2, `migrateInfo`= :MigrateInfo
+      SET `status` = 2, `migrateInfo`= :MigrateInfo, `session` = NULL
       WHERE `id` = :Id AND `instance_id` = :Instance');
     $invitesHandler->bindParam(self::SQL_ID, $id);
     $invitesHandler->bindValue(self::SQL_MIGRATEINFO, $migrateInfo);

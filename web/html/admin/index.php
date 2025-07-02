@@ -150,13 +150,15 @@ if (isset($_POST['action'])) {
         foreach ($_POST['saml'] as $part => $data) {
           switch($part) {
             case 'eduPersonPrincipalName' :
-              if ($scim->ePPNexists($data)) {
+              if ($scim->autoEPPN()) {
+                unset($_POST['saml'][$part]);
+              } elseif ($scim->ePPNexists($data)) {
                 $parseErrors .= sprintf(_('%s already have an account.'), htmlspecialchars($data)) . '<br>';
               } elseif ($invites->ePPNexists($data)) {
                 $parseErrors .= $invites->getInviteePPNid() == $id ? '' :
                   sprintf(_('%s already have an invite.'), htmlspecialchars($data)) . '<br>';
               }
-              if (! $scim->validScope($data)) {
+              if (! $scim->validScope($data) && ! $scim->autoEPPN()) {
                   $parseErrors .= sprintf(_('%s has an invalid scope.'), htmlspecialchars($data)) . '<br>';
               }
               break;
@@ -252,6 +254,7 @@ if (isset($_POST['action'])) {
       }
       break;
     case 'listInvites' :
+      $id = isset($_GET['id']) ? $invites->validateID($_GET['id']) : false;
       $html->setExtraURLPart('&action=listInvites');
       showLists(2, $id);
       break;
@@ -483,9 +486,12 @@ function getSamlAttributesDB($attributes){
   foreach(json_decode($attributes) as $key => $value) {
     if ($key == 'eduPersonScopedAffiliation') {
       showEduPersonScopedAffiliationInput($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations(), $editAccess);
+    } elseif ($key == 'eduPersonPrincipalName' && $scim->autoEPPN()) {
+      printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s" readonly></td></tr>%s',
+        $key, $key, _('Automatic'), "\n");
     } else {
       $value = is_array($value) ? implode(", ", $value) : $value;
-      printf ('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"%s></td></tr>%s',
+      printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"%s></td></tr>%s',
         $key, $key, $value, $editAccess ? '' : ' readonly', "\n");
     }
     $samlAttributes[$key] = true;
@@ -839,6 +845,9 @@ function editInvite($id, $error = '') {
     if (! $found) {
       if ($attribute == 'eduPersonScopedAffiliation') {
         showEduPersonScopedAffiliationInput(array(), $scim->getAllowedScopes(), $scim->getPossibleAffiliations(), $editAccess);
+      } elseif ($attribute == 'eduPersonPrincipalName' && $scim->autoEPPN()) {
+        printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s" readonly></td></tr>%s',
+          $attribute, $attribute, _('Automatic'), "\n");
       } else {
         printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value=""%s></td></tr>%s',
           $attribute, $attribute, $editAccess ? '' : ' readonly', "\n");
@@ -988,7 +997,9 @@ function multiInvite() {
   $placeHolder = _('GivenName') . ';' . _('SurName') . ';' . _('Invite mail') . ';' . _('Swedish national identity number') . '/' . _('Birthdate') . ';sv/en';
   $attributes2Migrate = $scim->getAttributes2migrate();
   foreach ( $attributes2Migrate as $SCIM) {
-    $placeHolder .= ';' . $SCIM;
+    if (! ($SCIM == 'eduPersonPrincipalName' && $scim->autoEPPN())) {
+      $placeHolder .= ';' . $SCIM;
+    }
   }
 
   printf('        <h2>%s</h2>
@@ -1063,6 +1074,9 @@ function multiInvite() {
 
         $paramCounter = 4;
         foreach ( $attributes2Migrate as $SCIM) {
+          if ($SCIM == 'eduPersonPrincipalName' && $scim->autoEPPN()) {
+            continue;
+          }
           $paramCounter++;
           if (isset($params[$paramCounter]) && strlen($params[$paramCounter])) {
             switch ($SCIM) {

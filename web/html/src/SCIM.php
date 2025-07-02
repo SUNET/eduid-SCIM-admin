@@ -6,6 +6,7 @@ use scimAdmin\Configuration;
 
 class SCIM {
   private $scope = false;
+  private $autoEPPN = false;
   private $authURL = '';
   private $keyName = '';
   private $certFile = '';
@@ -43,6 +44,7 @@ class SCIM {
       $this->attributes2migrate = $instance['attributes2migrate'];
       $this->allowedScopes = $instance['allowedScopes'];
       $this->adminUsers = $instance['adminUsers'];
+      $this->autoEPPN = $instance['autoEPPN'];
       $this->possibleAffiliations = $config->getPossibleAffiliations();
       $this->dbInstanceId = $config->getDbInstanceId();
 
@@ -372,7 +374,15 @@ class SCIM {
     $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes = new \stdClass();
 
     foreach ($attributes as $key => $value) {
+      if ($key == 'eduPersonPrincipalName' && $this->autoEPPN) {
+        continue;
+      }
       $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->$key = $value;
+    }
+    if ($this->autoEPPN) {
+      $newEPPN = explode('@', $migrateInfo->eduPersonPrincipalName)[0];
+      $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName =
+        $newEPPN . "@" . $this->scope;
     }
 
     $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data = new \stdClass();
@@ -574,5 +584,17 @@ class SCIM {
       printf ('User was not removed. Can not restore!!');
       exit;
     }
+  }
+
+  /**
+   * Returns auto ePPN from config
+   *
+   * false - admin have to give ePPN
+   * true - ePPN created from eduid ePPN
+   *
+   * @return bool
+   */
+  public function autoEPPN() {
+    return $this->autoEPPN;
   }
 }

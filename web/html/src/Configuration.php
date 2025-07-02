@@ -23,7 +23,7 @@ class Configuration {
       'smtpHost', 'saslUser', 'saslPassword', 'mailFrom',
       'Mode', 'possibleAffiliations', 'instances');
     $reqParamsInstance = array('sourceIdP', 'backendIdP', 'forceMFA',
-      'orgName', 'allowedScopes', 'attributes2migrate');
+      'orgName', 'allowedScopes', 'attributes2migrate', 'autoEPPN');
 
     foreach ($reqParams as $param) {
       if (! isset(${$param})) {
