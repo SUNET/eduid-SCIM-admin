@@ -47,6 +47,7 @@ if ($invites->checkCorrectBackendIdP()) {
     if (strlen($userInfo['norEduPersonNIN'] . $userInfo['schacDateOfBirth']) > 1) {
       if (strlen($userInfo['norEduPersonNIN']) > 1 ) {
         $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo = $userInfo['norEduPersonNIN'];
+        unset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->norEduPersonNIN);
       } elseif (strlen($userInfo['schacDateOfBirth']) > 1) {
         $userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo = $userInfo['schacDateOfBirth'];
       }
