@@ -422,7 +422,7 @@ function editUser($id) {
         showEduPersonScopedAffiliationInput(array(), $scim->getAllowedScopes(), $scim->getPossibleAffiliations(), $editAccess);
       } else {
         printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value=""%s></td></tr>%s',
-          $attribute, $attribute, $editAccess ? '' : ' readonly', "\n");
+          $scim->translatedSAML($attribute), $attribute, $editAccess ? '' : ' readonly', "\n");
       }
     }
   }
@@ -453,7 +453,7 @@ function getSamlAttributesSCIM($userArray){
   # Set up a list of allowed/expected attributes to be able to show unused attribute in edit-form
   $samlAttributes = array();
   foreach ($scim->getAttributes2migrate() as $saml => $SCIM) {
-    $samlAttributes[$saml] =false;
+    $samlAttributes[$SCIM] =false;
   }
   if (isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp)) {
     foreach($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes
@@ -461,12 +461,12 @@ function getSamlAttributesSCIM($userArray){
       if ($key == 'eduPersonScopedAffiliation') {
         showEduPersonScopedAffiliationInput($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations(), $editAccess);
       } elseif ($key == 'eduPersonPrincipalName') {
-        printf ('              <tr><th>eduPersonPrincipalName</th><td>%s</td></tr>%s',
-          $value, "\n");
+        printf ('              <tr><th>%s</th><td>%s</td></tr>%s',
+          $scim->translatedSAML('eduPersonPrincipalName'), $value, "\n");
       } else {
         $value = is_array($value) ? implode(", ", $value) : $value;
         printf ('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"%s></td></tr>%s',
-          $key, $key, $value, $editAccess ? '' : ' readonly', "\n");
+          $scim->translatedSAML($key), $key, $value, $editAccess ? '' : ' readonly', "\n");
       }
       $samlAttributes[$key] = true;
     }
@@ -481,18 +481,19 @@ function getSamlAttributesDB($attributes){
   # Set up a list of allowed/expected attributes to be able to show unused attribute in edit-form
   $samlAttributes = array();
   foreach ($scim->getAttributes2migrate() as $saml => $SCIM) {
-    $samlAttributes[$saml] =false;
+    $samlAttributes[$SCIM] =false;
   }
   foreach(json_decode($attributes) as $key => $value) {
     if ($key == 'eduPersonScopedAffiliation') {
       showEduPersonScopedAffiliationInput($value, $scim->getAllowedScopes(), $scim->getPossibleAffiliations(), $editAccess);
     } elseif ($key == 'eduPersonPrincipalName' && $scim->autoEPPN()) {
       printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s" readonly></td></tr>%s',
-        $key, $key, _('Automatic'), "\n");
+        $scim->translatedSAML($key), $key, _('Automatic'), "\n");
     } else {
       $value = is_array($value) ? implode(", ", $value) : $value;
       printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"%s></td></tr>%s',
-        $key, $key, $value, $editAccess ? '' : ' readonly', "\n");
+        $scim->translatedSAML($key), $key, $value, $editAccess ? '' : ' readonly', "\n");
+      print $key;
     }
     $samlAttributes[$key] = true;
   }
@@ -847,10 +848,10 @@ function editInvite($id, $error = '') {
         showEduPersonScopedAffiliationInput(array(), $scim->getAllowedScopes(), $scim->getPossibleAffiliations(), $editAccess);
       } elseif ($attribute == 'eduPersonPrincipalName' && $scim->autoEPPN()) {
         printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s" readonly></td></tr>%s',
-          $attribute, $attribute, _('Automatic'), "\n");
+          $scim->translatedSAML($attribute), $attribute, _('Automatic'), "\n");
       } else {
         printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value=""%s></td></tr>%s',
-          $attribute, $attribute, $editAccess ? '' : ' readonly', "\n");
+          $scim->translatedSAML($attribute), $attribute, $editAccess ? '' : ' readonly', "\n");
       }
     }
   }
@@ -998,7 +999,7 @@ function multiInvite() {
   $attributes2Migrate = $scim->getAttributes2migrate();
   foreach ( $attributes2Migrate as $SCIM) {
     if (! ($SCIM == 'eduPersonPrincipalName' && $scim->autoEPPN())) {
-      $placeHolder .= ';' . $SCIM;
+      $placeHolder .= ';' . $scim->translatedSAML($SCIM);
     }
   }
 

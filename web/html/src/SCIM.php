@@ -20,6 +20,7 @@ class SCIM {
   private $db;
   private $token;
   private $dbInstanceId = 0;
+  private $translateSAML = array();
 
   const SCIM_USERS = 'Users/';
 
@@ -47,6 +48,9 @@ class SCIM {
       $this->autoEPPN = $instance['autoEPPN'];
       $this->possibleAffiliations = $config->getPossibleAffiliations();
       $this->dbInstanceId = $config->getDbInstanceId();
+
+      # Make sure we have an array called translateSAML
+      $this->translateSAML = isset($instance['translateSAML']) ? $instance['translateSAML'] : array();
 
       // Get token from DB. If no param exists create
       $paramsHandler = $this->db->prepare('SELECT `value` FROM params WHERE `id` = :Id AND `instance_id` = :Instance;');
@@ -464,9 +468,9 @@ class SCIM {
           $userArray = json_decode($user);
           $fullName = isset($userArray->name->formatted) ? $userArray->name->formatted : '';
           $personNIN = '';
-          $ePPN = isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName) ? 
+          $ePPN = isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName) ?
             $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName : '';
-          $personNIN = isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo) ? 
+          $personNIN = isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo) ?
             $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo : '';
 
           if (isset($scimList[$Resource->id])) {
@@ -596,5 +600,16 @@ class SCIM {
    */
   public function autoEPPN() {
     return $this->autoEPPN;
+  }
+
+  /**
+   * Returns translated SAML attribute
+   *
+   * @param string $attribute
+   *
+   * @return string
+   */
+  public function translatedSAML($attribute) {
+    return isset($this->translateSAML[$attribute]) ? $this->translateSAML[$attribute] : $attribute;
   }
 }

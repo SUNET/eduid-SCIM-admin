@@ -43,6 +43,11 @@ $instances = array (
       'eduPersonScopedAffiliation' => 'eduPersonScopedAffiliation',
       'mail' => 'mail',
     ),
+    # Optional array. Only needed IF we want to translate any SAML-name
+    # Use the value from internal/SCIM above
+    'translateSAML' => array(
+      'norEduPersonNIN' => 'Interim personal identity number',
+    ),
     'adminUsers' => array (
       # user => level. 0-9 = view users 10 > Edit users,  20 > Invite new users
       'bjorn@sunet.se' => 20,

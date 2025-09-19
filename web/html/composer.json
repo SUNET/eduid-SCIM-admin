@@ -14,5 +14,4 @@
   "autoload": {
     "psr-4": {"scimAdmin\\": "src"}
   }
-  
 }

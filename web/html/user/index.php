@@ -76,7 +76,7 @@ if ($invites->checkCorrectBackendIdP()) {
         as $key => $value) {
         $value = is_array($value) ? implode(", ", $value) : $value;
         printf ('            <tr><th>%s</th><td>%s</td></tr>%s',
-          $key, $value, "\n");
+          $scim->translatedSAML($key), $value, "\n");
       }
     }
     printf ('            <tr><th colspan="2"></th></tr>
