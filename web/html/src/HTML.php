@@ -41,7 +41,8 @@ class HTML {
     <link rel="stylesheet" href="/<?=$this->scope?>/css/fontawesome.min.css" type="text/css" media="all" />
     <link rel="stylesheet" href="/<?=$this->scope?>/css/solid.min.css" type="text/css" media="all" />
     <link rel="stylesheet" href="/<?=$this->scope?>/css/regular.min.css" type="text/css" media="all" />
-    <link rel="stylesheet" href="/<?=$this->scope?>/css/jquery.dataTables.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="//cdn.datatables.net/v/dt/dt-2.3.4/datatables.min.css"
+      integrity="sha384-pmGS6IIcXhAVIhcnh9X/mxffzZNHbuxboycGuQQoP3pAbb0SwlSUUHn2v22bOenI" crossorigin="anonymous" media="all" />
     <link rel="icon" href="/assets/favicon.ico" type="image/x-icon" />
   </head>
 
@@ -95,8 +96,8 @@ class HTML {
       integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8="
       crossorigin="anonymous">
     </script>
-    <script type="text/javascript" charset="utf8"
-      src="/%s/js/jquery.dataTables.js">
+    <script src="//cdn.datatables.net/v/dt/dt-2.3.4/datatables.min.js"
+      integrity="sha384-X2pTSfom8FUa+vGQ+DgTCSyBZYkC1RliOduHa0X96D060s7Q//fnOh3LcazRNHyo" crossorigin="anonymous">
     </script>%s', $this->scope, $this->scope, "\n");
       }
       print "    <script>\n";
