@@ -1,8 +1,16 @@
 <?php
 namespace scimAdmin;
 
+/**
+ * Class to handle Localization of application
+ */
 class Localize {
 
+  /**
+   * Setup the class
+   *
+   * @return void
+   */
   public function __construct() {
     if(session_status() !== PHP_SESSION_ACTIVE) {
       session_start();
@@ -66,6 +74,12 @@ class Localize {
     }
   }
 
+  /**
+   * Set langauage of translation
+   *
+   * @param string $locale locale to translae into
+   * @return void
+   */
   private function setLocale($locale) {
     setlocale(LC_MESSAGES, $locale); // Linux
     bindtextdomain("SCIM", __DIR__ . '/../locale');

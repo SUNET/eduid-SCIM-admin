@@ -5,16 +5,24 @@ use PDO;
 use PDOException;
 
 class Configuration {
-  private $scope = '';
-  private $possibleAffiliations = '';
-  private $instance = false;
-  private $scim = false;
-  private $smtp = false;
+  private string $scope = '';
+  private array $possibleAffiliations = array();
+  private array $instance = array();
+  private array $scim = array();
+  private array $smtp = array();
   private $mode = 'Lab';
-  private $db;
-  private $orgName = '';
+  private PDO $db;
   private $dbInstanceId = 0;
 
+  /**
+   * Setup the class
+   *
+   * @param bool $startDB If we should start the database connection or not.
+   *
+   * @param bool $scope scope/instance of config. If not set pick from URL
+   *
+   * @return void
+   */
   public function __construct($startDB = true, $scope = false) {
     include __DIR__ . '/../config.php'; # NOSONAR
 
@@ -69,13 +77,19 @@ class Configuration {
           exit;
         }
       }
-      $this->orgName = $instances[$this->scope]['orgName'];
     }
     if ($startDB) {
       $this->checkInstanceExitInDB($this->scope);
     }
   }
 
+  /**
+   * Check Database version
+   *
+   * Check the version of database. If needed update to latest version
+   *
+   * @return void
+   */
   private function checkDBVersion() {
     $dbVersionHandler = $this->db->query("SELECT value FROM params WHERE `id` = 'dbVersion'");
     if (! $dbVersion = $dbVersionHandler->fetch(PDO::FETCH_ASSOC)) {
@@ -147,6 +161,15 @@ class Configuration {
     }
   }
 
+  /**
+   * Check if scope is configured for use
+   *
+   * Check if scope exists in database. If not insert into database.
+   * In both cases store the id in $this->dbInstanceId
+   *
+   * @param string $scope
+   * @return void
+   */
   private function checkInstanceExitInDB($scope) {
     $instanceHandler = $this->db->prepare('SELECT `id` FROM `instances` WHERE `instance` = :Instance');
     $instanceHandler->execute(array('Instance' => $scope));
@@ -159,50 +182,103 @@ class Configuration {
     }
   }
 
+  /**
+   * Return array of possible affiliations
+   *
+   * @return array
+   */
   public function getPossibleAffiliations() {
     return $this->possibleAffiliations;
   }
 
+  /**
+   * Return configuration for connecting to SCIM API
+   *
+   * @return array
+   */
   public function getSCIM() {
     return $this->scim;
   }
 
+  /**
+   * Return configuration for connecting to SMTP Server
+   *
+   * @return array
+   */
   public function getSMTP() {
     return $this->smtp;
   }
 
+  /**
+   * Return configuration for instance
+   *
+   * Return configuration for configured instance based on what scope wsa selected on init.
+   *
+   * @return array
+   */
   public function getInstance() {
     return $this->instance;
   }
 
+  /**
+   * Return configuration for connecting to database server
+   *
+   * @return PDO
+   */
   public function getDb() {
     return $this->db;
   }
 
-  public function getScope(){
+  /**
+   * Return scope
+   *
+   * @return string
+   */
+  public function getScope() {
     return $this->scope;
   }
 
-  public function getOrgName() {
-    return $this->orgName;
-  }
-
+  /**
+   * Return db instance
+   *
+   * @return int
+   */
   public function getDbInstanceId() {
     return $this->dbInstanceId;
   }
 
+  /**
+   * Return forceMFA
+   *
+   * @return bool
+   */
   public function forceMFA() {
     return $this->instance['forceMFA'];
   }
 
+  /**
+   * Return orgName
+   *
+   * @return string
+   */
   public function orgName() {
     return $this->instance['orgName'];
   }
 
+  /**
+   * Return mode
+   *
+   * @return string
+   */
   public function mode() {
     return $this->mode;
   }
 
+  /**
+   * Return if scope is configured
+   *
+   * @return bool
+   */
   public function scopeConfigured() {
     return ($this->instance) ? true : false;
   }

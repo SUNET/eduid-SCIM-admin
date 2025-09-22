@@ -9,6 +9,11 @@ class HTML {
   private $tagLine = '';
   private $tableToSort = array();
 
+  /**
+   * Setup the class
+   *
+   * @return void
+   */
   public function __construct($tagLine = '') {
     $this->displayName = '';
     $this->extraURL = '';
@@ -16,9 +21,14 @@ class HTML {
     $this->tagLine = $tagLine == '' ? _('Activate your organisation identity in eduID') : $tagLine;
   }
 
-  ###
-  # Print start of webpage
-  ###
+  /**
+   * Print start of webpage
+   *
+   * @param string $title
+   * @param string $tagLine
+   *
+   * @return void
+   */
   public function showHeaders($title = '', $tagLine = '') { ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -52,9 +62,13 @@ class HTML {
       <div class="horizontal-content-margin content">
 <?php }
 
-  ###
-  # Print footer on webpage
-  ###
+  /**
+   * Print footer on webpage
+   *
+   * @param bool $collapse If we have any collapsable items
+   *
+   * @return void
+   */
   public function showFooter($collapse = false) { ?>
       </div>
     </section>
@@ -132,14 +146,37 @@ class HTML {
     printf ('  </body>%s</html>%s', "\n", "\n");
   }
 
+  /**
+   * Set Displayname
+   *
+   * Changes Displayname
+   *
+   * @param string $name
+   *
+   * @return void
+   */
   public function setDisplayName($name) {
     $this->displayName = $name;
   }
 
+  /**
+   * Set ExtraURLPart
+   *
+   * @param string $extra
+   *
+   * @return void
+   */
   public function setExtraURLPart($extra) {
     $this->extraURL = $extra;
   }
 
+  /**
+   * Add table to sort
+   *
+   * @param string $tableId
+   *
+   * @return void
+   */
   public function addTableSort($tableId) {
     $this->tableToSort[] = $tableId;
   }

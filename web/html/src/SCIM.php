@@ -4,6 +4,9 @@ namespace scimAdmin;
 use PDO;
 use scimAdmin\Configuration;
 
+/**
+ * Class to handle Connection with SCIM API
+ */
 class SCIM {
   private $scope = false;
   private $autoEPPN = false;
@@ -17,7 +20,7 @@ class SCIM {
   private $possibleAffiliations = '';
   private $adminUsers = array();
   private $adminAccess = 0;
-  private $db;
+  private PDO $db;
   private $token;
   private $dbInstanceId = 0;
   private $translateSAML = array();
@@ -29,6 +32,11 @@ class SCIM {
 
   const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
 
+  /**
+   * Setup the class
+   *
+   * @return void
+   */
   public function __construct() {
     $config = new Configuration();
     $this->db = $config->getDb();
@@ -69,6 +77,13 @@ class SCIM {
     }
   }
 
+  /**
+   * Request a token from auth-server
+   *
+   * @param bool $first If this is first request.
+   *
+   * @return string
+   */
   private function getToken($first = true) {
     $access = new \stdClass();
     $access->scope = $this->scope;
@@ -151,6 +166,17 @@ class SCIM {
     }
   }
 
+  /**
+   * Sends a request to SCIM API
+   *
+   * @param string $method  PUT, POST or DELETE
+   * @param string $part part of API to call
+   * @param string $data Data to sent to API
+   * @param array $extraHeaders Extra headers to include in request
+   * @param bool $first If this is first request.
+   *
+   * @return bool|string
+   */
   public function request($method, $part, $data, $extraHeaders = array(), $first = true) {
     $ch = curl_init();
     switch ($method) {
@@ -242,6 +268,14 @@ class SCIM {
     }
   }
 
+  /**
+   * Return a list of all users
+   *
+   * @param int $status Status of user
+   * @param bool $first first run after upgrade ?
+   *
+   * @return array
+   */
   public function getAllUsers($status = 1, $first = true) {
     $rand = rand(0,20); # NOSONAR
     if ($rand == 0) {
@@ -267,6 +301,13 @@ class SCIM {
     return $userList;
   }
 
+  /**
+   * Check if ePPN exists in database
+   *
+   * @param string $eduPersonPrincipalName
+   *
+   * @return bool
+   */
   public function ePPNexists($eduPersonPrincipalName) {
     $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN AND `status` < 16');
     $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
@@ -275,11 +316,26 @@ class SCIM {
     return $checkUserHandler->fetch() ? true : false;
   }
 
+  /**
+   * Return user object
+   *
+   * @param string $id Id of user in SCIM
+   *
+   * @return bool|object
+   */
   public function getId($id) {
     $user = $this->request('GET', self::SCIM_USERS . urlencode($id), '');
     return json_decode($user);
   }
 
+  /**
+   * Remove user
+   *
+   * @param string $id
+   * @param string $version
+   *
+   * @return bool
+   */
   public function removeUser($id, $version) {
     $updateUserHandler =  $this->db->prepare('UPDATE `users`
       SET `status` = 8
@@ -290,6 +346,13 @@ class SCIM {
     return $this->request('DELETE', self::SCIM_USERS . urlencode($id), '', array('if-match: ' . $version));
   }
 
+  /**
+   * Return user id based on ePPN
+   *
+   * @param string $externalId
+   *
+   * @return string
+   */
   public function getIdFromExternalId($externalId) {
     $request =
       sprintf('{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
@@ -304,18 +367,44 @@ class SCIM {
     }
   }
 
+  /**
+   * Update user in SCIM
+   *
+   * @param string $id
+   * @param string $data
+   * @param string $version
+   *
+   * @return string
+   */
   public function updateId($id, $data, $version) {
     return $this->request('PUT', self::SCIM_USERS . urlencode($id), $data, array('if-match: ' . $version));
   }
 
+  /**
+   * Return SAML attribues to migrate
+   *
+   * @return array
+   */
   public function getAttributes2migrate(){
     return $this->attributes2migrate;
   }
 
+  /**
+   * Return allowed scopes
+   *
+   * @return array
+   */
   public function getAllowedScopes() {
     return $this->allowedScopes;
   }
 
+  /**
+   * Check if $scope is valid to use
+   *
+   * @param string $string Textstring ending in @<scope>
+   *
+   * @return bool
+   */
   public function validScope($string) {
     $stringA = explode('@', $string, 2);
     if (count($stringA) > 1 && in_array($stringA[1], $this->allowedScopes)) {
@@ -324,10 +413,24 @@ class SCIM {
     return false;
   }
 
+  /**
+   * Return Possibleaffiliations
+   *
+   * @return array
+   */
   public function getPossibleAffiliations() {
     return $this->possibleAffiliations;
   }
 
+  /**
+   * Expand ePersonScopedAffilation
+   *
+   * If parent affiliation is missing add
+   *
+   * @param array $ePSA
+   *
+   * @return array
+   */
   public function expandePSA($ePSA) {
     do {
       $added = false;
@@ -347,6 +450,13 @@ class SCIM {
     return $ePSA;
   }
 
+  /**
+   * Check access for admin user
+   *
+   * @param string $adminUser
+   *
+   * @return bool
+   */
   public function checkAccess($adminUser) {
     if (isset($this->adminUsers[$adminUser])) {
       $this->adminAccess = $this->adminUsers[$adminUser];
@@ -355,15 +465,35 @@ class SCIM {
     return false;
   }
 
+  /**
+   * Return adminaccess for user
+   *
+   * @return int
+   */
   public function getAdminAccess() {
     return $this->adminAccess;
   }
 
+  /**
+   * Validate structure of id
+   *
+   * @param string $id
+   *
+   * @return bool|string
+   */
   public function validateID($id) {
     return filter_var($id, FILTER_VALIDATE_REGEXP,
       array("options"=>array("regexp"=>"/^[a-z,0-9]{8}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{12}$/")));
   }
 
+  /**
+   * Migrate user into SCIM
+   *
+   * @param string $migrateInfo info fetched from backendIdp to migrate
+   * @param string $attributes SAML attributes from invite to migrate
+   *
+   * @return bool|string
+   */
   public function migrate($migrateInfo, $attributes) {
     $migrateInfo = json_decode($migrateInfo);
     $attributes = json_decode($attributes);
@@ -421,11 +551,23 @@ class SCIM {
     return $userInfo;
   }
 
+  /**
+   * Check if scope exists in config
+   *
+   * @param string $scope
+   *
+   * @return bool
+   */
   public function checkScopeExists($scope) {
     include __DIR__ . '/../config.php'; # NOSONAR
     return isset($instances[$scope]);
   }
 
+  /**
+   * Refresh userlist in SQL based on current users in SCIM
+   *
+   * @return void
+   */
   public function refreshUsersSQL() {
     $errors = '';
     $userList = array();
@@ -536,6 +678,13 @@ class SCIM {
     }
   }
 
+  /**
+   * Restore user into SCIM.
+   *
+   * @param string $id SCIM id
+   *
+   * @return string
+   */
   public function restoreUser($id) {
     $userHandler =  $this->db->prepare('SELECT `ePPN`, `externalId`, `name`, `personNIN`
       FROM `users`

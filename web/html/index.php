@@ -158,7 +158,7 @@ function showStartPage() {
   global $html, $config;
   $html->showHeaders(_('Connect - Onboard'));
   print "        <div>";
-  printf(_('%s uses eduID for logging in to national and international web services. To be able to log in to these, you need to connect your personal eduID identity to your organisation. You can do this by following the instructions below.'), $config->getOrgName());
+  printf(_('%s uses eduID for logging in to national and international web services. To be able to log in to these, you need to connect your personal eduID identity to your organisation. You can do this by following the instructions below.'), $config->orgName());
   printf('</div>
         <br>
         <div class="numberList">%s

@@ -7,21 +7,74 @@ use PDO;
  * Class to handle Invites to be added to SCIM
  */
 class Invites {
-  private $scope = '';
-  private $sourceIdP = '';
-  private $backendIdP = '';
-  private $attributes2migrate = array();
-  private $forceMFA = false;
-  private $orgName = '';
-  private $ePPN_id = 0;
 
-  private $smtpHost = '';
-  private $saslUser = '';
-  private $saslPassword = '';
-  private $mailFrom = '';
+  /**
+   * Scope for instance
+   *
+   * Example sunet.se
+   * Used to check scoped values lite scopedAffiliation and eduPersonPrincipalName
+   */
+  private string $scope = '';
 
-  private $db;
-  private $dbInstanceId = 0;
+  /**
+   * EntityID for Idp to migrate old users from
+   */
+  private string $sourceIdP = '';
+
+  /**
+   * EntityID for Idp to migrate users to
+   */
+  private string $backendIdP = '';
+
+  /**
+   * Attributes that should be migrated/added to new accounts in SCIM
+   */
+  private array $attributes2migrate = array();
+
+  /**
+   * If we should force MFA on all logins during migration/setup
+   */
+  private bool $forceMFA = false;
+
+  /**
+   * Organization name in email
+   */
+  private string $orgName = '';
+
+  /**
+   * Id of invite for a specific eduPersonPrincipalName
+   */
+  private int $ePPN_id = 0;
+
+  /**
+   * Host to use for sending mail
+   */
+  private string $smtpHost = '';
+
+  /**
+   * SASL user for sending mail
+   */
+  private string $saslUser = '';
+
+  /**
+   * SASL password for sending mail
+   */
+  private string $saslPassword = '';
+
+  /**
+   * Mailadress to use as from address in e-mail
+   */
+  private string $mailFrom = '';
+
+  /**
+   * Database handler
+   */
+  private PDO $db;
+
+  /**
+   * Id for the instance in SQL
+   */
+  private int $dbInstanceId = 0;
 
   const SQL_INVITELIST = 'SELECT *  FROM invites WHERE `instance_id` = :Instance
     ORDER BY `status` DESC, `hash`, `session`';
@@ -39,6 +92,11 @@ class Invites {
 
   const SWAMID_AL = 'http://www.swamid.se/policy/assurance/al'; # NOSONAR
 
+  /**
+   * Setup the class
+   *
+   * @return void
+   */
   public function __construct() {
     $config = new Configuration();
     $this->db = $config->getDb();
@@ -61,6 +119,11 @@ class Invites {
     }
   }
 
+  /**
+   * Return a list of all invites
+   *
+   * @return array
+   */
   public function getInvitesList() {
     $invitesHandler = $this->db->prepare(self::SQL_INVITELIST);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
@@ -68,6 +131,13 @@ class Invites {
     return $invitesHandler->fetchAll(PDO::FETCH_ASSOC);
   }
 
+  /**
+   * Return invite
+   *
+   * @param int $id Id of invite
+   *
+   * @return array
+   */
   public function getInvite($id) {
     $invitesHandler = $this->db->prepare(self::SQL_INVITE);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
@@ -76,6 +146,15 @@ class Invites {
     return $invitesHandler->fetch(PDO::FETCH_ASSOC);
   }
 
+  /**
+   * Validate id
+   *
+   * Chekc id $id exists in Db
+   *
+   * @param int $id
+   *
+   * @return bool|string
+   */
   public function validateID($id) {
     $invitesHandler = $this->db->prepare(self::SQL_INVITE);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
@@ -87,6 +166,13 @@ class Invites {
     return false;
   }
 
+  /**
+   * Check if session have an invite in database
+   *
+   * @param string $session
+   *
+   * @return bool|array
+   */
   public function checkInviteBySession($session) {
     $invitesHandler = $this->db->prepare(self::SQL_SPECIFICINVITE);
     $invitesHandler->bindParam(self::SQL_SESSION, $session);
@@ -99,6 +185,11 @@ class Invites {
     }
   }
 
+  /**
+   * Redirects user to old IdP
+   *
+   * @return void
+   */
   public function startMigrateFromSourceIdP() {
     $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
     $redirectURL = sprintf('%s/Shibboleth.sso/Login?entityID=%s&target=%s&forceAuthn=true',
@@ -106,6 +197,11 @@ class Invites {
     header('Location: ' . $redirectURL);
   }
 
+  /**
+   * Check SAMLattributes from old IdP and creates an invite
+   *
+   * @return bool|array
+   */
   public function checkSourceData() {
     $migrate = array();
     if ($_SERVER['Shib-Identity-Provider'] == $this->sourceIdP) {
@@ -121,10 +217,20 @@ class Invites {
     }
   }
 
+  /**
+   * Check to see that we are talking to correct backend-IdP
+   *
+   * @return bool
+   */
   public function checkCorrectBackendIdP() {
     return $_SERVER['Shib-Identity-Provider'] == $this->backendIdP;
   }
 
+  /**
+   * Get SAML attributes from IdP
+   *
+   * @return array
+   */
   public function getUserDataFromIdP() {
     $migrate = array();
     $attributes= array('eduPersonPrincipalName','givenName', 'mail', 'mailLocalAddress',
@@ -135,6 +241,11 @@ class Invites {
     return $migrate;
   }
 
+  /**
+   * Check that we talk to correct IdP ang get SAML Attributes
+   *
+   * @return bool|array
+   */
   public function checkBackendData() {
     if ($this->checkCorrectBackendIdP()) {
       if (isset($_SERVER['eduPersonPrincipalName'])) {
@@ -149,6 +260,11 @@ class Invites {
     }
   }
 
+  /**
+   * Check that user/IdP have correct AL-level
+   *
+   * @return bool
+   */
   public function checkALLevel($level) {
     $idpACFound = false;
     $userACFound = false;
@@ -165,6 +281,13 @@ class Invites {
     return $idpACFound && $userACFound;
   }
 
+  /**
+   * Check if ePPN exists in invites
+   *
+   * @param string $eduPersonPrincipalName
+   *
+   * @return bool|int
+   */
   public function ePPNexists($eduPersonPrincipalName) {
     $inviteHandler = $this->db->prepare(
       'SELECT `id`, `status`, `attributes`
@@ -181,6 +304,15 @@ class Invites {
     return false;
   }
 
+  /**
+   * Updates attribute in an invite based on the session
+   *
+   * @param string $session
+   * @param string $attributes
+   * @param string $inviteInfo
+   *
+   * @return bool
+   */
   public function updateInviteAttributes($session, $attributes, $inviteInfo) {
     $invitesHandler = $this->db->prepare(self::SQL_SPECIFICINVITE);
     $invitesHandler->bindParam(self::SQL_SESSION, $session);
@@ -209,9 +341,14 @@ class Invites {
     }
   }
 
+  /**
+   * Connect an invite to current session
+   *
+   * @return bool
+   */
   public function updateInviteSession($session) {
     $updateHandler = $this->db->prepare('UPDATE invites
-      SET `modified` = NOW(),  `session` = :Session
+      SET `modified` = NOW(), `session` = :Session
       WHERE `id`= :Id AND status = 1 AND `instance_id` = :Instance');
     $updateHandler->bindParam(self::SQL_SESSION, $session);
     $updateHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
@@ -219,6 +356,13 @@ class Invites {
     return $updateHandler->execute();
   }
 
+  /**
+   * Send out an new inviteCode
+   *
+   * @param int $id
+   *
+   * @return void
+   */
   public function sendNewInviteCode($id) {
     $invite = $this->getInvite($id);
     $inviteInfo = json_decode($invite['inviteInfo']);
@@ -335,6 +479,17 @@ class Invites {
     }
   }
 
+  /**
+   * Updates attribute in an invite bases on invite id
+   *
+   * @param int $id
+   * @param string $attributes
+   * @param string $inviteInfo
+   * @param string $lang
+   * @param bool $sendMail
+   *
+   * @return bool
+   */
   public function updateInviteAttributesById($id, $attributes, $inviteInfo, $lang, $sendMail = true) {
     $invitesHandler = $this->db->prepare('SELECT *  FROM invites WHERE `id` = :Id AND `instance_id` = :Instance');
     $invitesHandler->bindParam(self::SQL_ID, $id);
@@ -371,6 +526,14 @@ class Invites {
     }
   }
 
+  /**
+   * Bind a invite to session if code is correct
+   *
+   * @param string $session
+   * @param string $code
+   *
+   * @return bool
+   */
   public function updateInviteByCode($session,$code) {
     $invitesHandler = $this->db->prepare("SELECT *  FROM invites
       WHERE `hash` = :Hash AND `instance_id` = :Instance AND `status` = 1");
@@ -391,6 +554,13 @@ class Invites {
     }
   }
 
+  /**
+   * Return invite based on session
+   *
+   * @param string $session
+   *
+   * @return array
+   */
   public function getInviteBySession($session) {
     $invitesHandler = $this->db->prepare(self::SQL_SPECIFICINVITE);
     $invitesHandler->bindParam(self::SQL_SESSION, $session);
@@ -399,6 +569,13 @@ class Invites {
     return $invitesHandler->fetch(PDO::FETCH_ASSOC);
   }
 
+  /**
+   * Remove invite
+   *
+   * @param int $id
+   *
+   * @return bool
+   */
   public function removeInvite($id) {
     $invitesHandler = $this->db->prepare('DELETE FROM invites
       WHERE `id` = :Id AND `instance_id` = :Instance');
@@ -407,6 +584,14 @@ class Invites {
     return $invitesHandler->execute();
   }
 
+  /**
+   * Move invite to manual verification
+   *
+   * @param int $id
+   * @param array $migrateInfo
+   *
+   * @return bool
+   */
   public function move2Manual($id, $migrateInfo) {
     $invitesHandler = $this->db->prepare('UPDATE invites
       SET `status` = 2, `migrateInfo`= :MigrateInfo, `session` = NULL
@@ -417,14 +602,32 @@ class Invites {
     return $invitesHandler->execute();
   }
 
+  /**
+   * Return <Scope>
+   *
+   * @return string
+   */
   public function getInstance() {
     return $this->scope;
   }
 
+  /**
+   * Return invite-id for ePPN
+   *
+   * @return int
+   */
   public function getInviteePPNid() {
     return $this->ePPN_id;
   }
 
+  /**
+   * Redirect to backend IdP
+   *
+   * @param string $page
+   * @param bool $mfa If we should force MFA om request
+   *
+   * @return void
+   */
   public function redirectToNewIdP($page, $mfa = false) {
     $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
     $redirectURL = sprintf('%s/Shibboleth.sso/Login?entityID=%s&target=%s&forceAuthn=true%s',
@@ -433,6 +636,13 @@ class Invites {
     header('Location: ' . $redirectURL);
   }
 
+  /**
+   * Check if string is a valid email address
+   *
+   * @param string $string
+   *
+   * @return bool
+   */
   public function validateEmail($string) {
     $mailA = explode('@', $string);
     if (isset($mailA[1]) && strlen($mailA[0])) {
@@ -446,6 +656,14 @@ class Invites {
     return false;
   }
 
+  /**
+   * Check if ssn is a valid SocialSecurityNumber or Birthdate
+   *
+   * @param string $ssn
+   * @param bool $allowBirthDate if we also allow Birthdate and not only full SocialSecurityNumber
+   *
+   * @return bool
+   */
   public function validateSSN($ssn, $allowBirthDate = false) {
     if (strlen($ssn) == 12 || (strlen($ssn) == 8 && $allowBirthDate)) {
       $dateA = str_split($ssn,2);
