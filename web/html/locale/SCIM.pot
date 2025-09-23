@@ -1,0 +1,573 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the SCIM package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: SCIM 1\n"
+"Report-Msgid-Bugs-To: bjorn@sunet.se\n"
+"POT-Creation-Date: 2025-09-23 09:19+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: web/html/index.php:68
+msgid "Error wrong code was supplied, please try again"
+msgstr ""
+
+#: web/html/index.php:73 web/html/index.php:116
+msgid "Connect - Activate"
+msgstr ""
+
+#: web/html/index.php:78 web/html/index.php:135 web/html/index.php:168
+#: web/html/src/Invites.php:421 web/html/src/Invites.php:452
+msgid ""
+"To be able to make this connection, you need to have done the following:"
+msgstr ""
+
+#: web/html/index.php:79 web/html/index.php:136 web/html/index.php:169
+#: web/html/src/Invites.php:422 web/html/src/Invites.php:453
+msgid "Create a personal identity on eduID."
+msgstr ""
+
+#: web/html/index.php:80 web/html/index.php:137 web/html/index.php:170
+#: web/html/src/Invites.php:423 web/html/src/Invites.php:454
+msgid "Verify your identity in eduID."
+msgstr ""
+
+#: web/html/index.php:84 web/html/index.php:141 web/html/index.php:174
+#: web/html/src/Invites.php:427 web/html/src/Invites.php:458
+msgid "Add a security key to eduID for safer login."
+msgstr ""
+
+#: web/html/index.php:92
+msgid ""
+"When you have a personal identity in eduID, proceed by entering the one-time "
+"code and click the button."
+msgstr ""
+
+#: web/html/index.php:108
+msgid "Invite code"
+msgstr ""
+
+#: web/html/index.php:108
+msgid "Next"
+msgstr ""
+
+#: web/html/index.php:121
+msgid "You've started the activation of your organisation identity in eduID."
+msgstr ""
+
+#: web/html/index.php:122
+msgid "The following data will be added to your account:"
+msgstr ""
+
+#: web/html/index.php:129
+msgid "Activate account"
+msgstr ""
+
+#: web/html/index.php:150
+msgid ""
+"When you have a personal identity in eduID, proceed by click the button."
+msgstr ""
+
+#: web/html/index.php:151
+msgid "Start onboarding with organisational login"
+msgstr ""
+
+#: web/html/index.php:159 web/html/index.php:191
+msgid "Connect - Onboard"
+msgstr ""
+
+#: web/html/index.php:161
+#, php-format
+msgid ""
+"%s uses eduID for logging in to national and international web services. To "
+"be able to log in to these, you need to connect your personal eduID identity "
+"to your organisation. You can do this by following the instructions below."
+msgstr ""
+
+#: web/html/index.php:182
+msgid ""
+"When you have completed the above steps, proceed and click one of the "
+"buttons below. If you have received an invitation code via email from an "
+"administrator, use that option; otherwise, use login via the "
+"organisation\\’s old login service."
+msgstr ""
+
+#: web/html/index.php:183
+msgid "Onboard with Invite code"
+msgstr ""
+
+#: web/html/index.php:184
+msgid "Onboard with organisational login"
+msgstr ""
+
+#: web/html/index.php:191
+msgid "Account is activated and ready to use"
+msgstr ""
+
+#: web/html/index.php:192
+#, php-format
+msgid ""
+"Your account is now activated and ready to use when you're logging into "
+"services. Please choose your home organisation (%s) when you're logging in. "
+"Please close the window."
+msgstr ""
+
+#: web/html/index.php:199
+msgid "Connect - Missing instance"
+msgstr ""
+
+#: web/html/index.php:200
+#, php-format
+msgid "instance['%s'] is missing in config-file. Contact admin"
+msgstr ""
+
+#: web/html/admin/index.php:15
+msgid "Administration of your organisation identities."
+msgstr ""
+
+#: web/html/admin/index.php:70
+msgid "Account must be at least AL3!"
+msgstr ""
+
+#: web/html/admin/index.php:73
+msgid "Missing eduPersonAssurance in SAML response "
+msgstr ""
+
+#: web/html/admin/index.php:98
+#, php-format
+msgid ""
+"Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a "
+"href=\"%s\">here</a> to logout."
+msgstr ""
+
+#: web/html/admin/index.php:139 web/html/admin/index.php:838
+#: web/html/admin/index.php:954 web/html/admin/index.php:1002
+#: web/html/admin/index.php:1044
+msgid "GivenName"
+msgstr ""
+
+#: web/html/admin/index.php:139 web/html/admin/index.php:142
+#: web/html/admin/index.php:145 web/html/admin/index.php:150
+#: web/html/admin/index.php:1044 web/html/admin/index.php:1050
+#: web/html/admin/index.php:1060 web/html/admin/index.php:1069
+#: web/html/admin/index.php:1077 web/html/admin/index.php:1118
+msgid "missing"
+msgstr ""
+
+#: web/html/admin/index.php:142 web/html/admin/index.php:839
+#: web/html/admin/index.php:955 web/html/admin/index.php:1002
+#: web/html/admin/index.php:1050
+msgid "SurName"
+msgstr ""
+
+#: web/html/admin/index.php:145 web/html/admin/index.php:147
+#: web/html/admin/index.php:840 web/html/admin/index.php:1002
+#: web/html/admin/index.php:1057 web/html/admin/index.php:1060
+msgid "Invite mail"
+msgstr ""
+
+#: web/html/admin/index.php:147 web/html/admin/index.php:152
+#: web/html/admin/index.php:171 web/html/admin/index.php:1057
+#: web/html/admin/index.php:1066 web/html/admin/index.php:1111
+msgid "have wrong format"
+msgstr ""
+
+#: web/html/admin/index.php:150 web/html/admin/index.php:152
+#: web/html/admin/index.php:841 web/html/admin/index.php:1002
+#: web/html/admin/index.php:1066 web/html/admin/index.php:1069
+msgid "Swedish national identity number"
+msgstr ""
+
+#: web/html/admin/index.php:160 web/html/admin/index.php:1091
+#: web/html/migrate/index.php:26
+#, php-format
+msgid "%s already have an account."
+msgstr ""
+
+#: web/html/admin/index.php:163 web/html/admin/index.php:1093
+#, php-format
+msgid "%s already have an invite."
+msgstr ""
+
+#: web/html/admin/index.php:166 web/html/admin/index.php:1096
+#: web/html/admin/index.php:1103
+#, php-format
+msgid "%s has an invalid scope."
+msgstr ""
+
+#: web/html/admin/index.php:171 web/html/admin/index.php:1111
+msgid "Organisation mail"
+msgstr ""
+
+#: web/html/admin/index.php:348 web/html/admin/index.php:382
+msgid "Missing"
+msgstr ""
+
+#: web/html/admin/index.php:385
+msgid "Restore"
+msgstr ""
+
+#: web/html/admin/index.php:385 web/html/admin/index.php:699
+#: web/html/admin/index.php:763
+msgid "View"
+msgstr ""
+
+#: web/html/admin/index.php:413
+msgid "Update User"
+msgstr ""
+
+#: web/html/admin/index.php:414 web/html/admin/index.php:786
+msgid "Update information below and hit Save."
+msgstr ""
+
+#: web/html/admin/index.php:440 web/html/admin/index.php:581
+#: web/html/admin/index.php:869 web/html/admin/index.php:957
+#: web/html/admin/index.php:996
+msgid "Cancel"
+msgstr ""
+
+#: web/html/admin/index.php:441 web/html/admin/index.php:870
+msgid "Save"
+msgstr ""
+
+#: web/html/admin/index.php:495 web/html/admin/index.php:855
+msgid "Automatic"
+msgstr ""
+
+#: web/html/admin/index.php:573
+msgid "Remove User"
+msgstr ""
+
+#: web/html/admin/index.php:574
+msgid "Do you want to remove the user shown below ?"
+msgstr ""
+
+#: web/html/admin/index.php:582 web/html/admin/index.php:709
+#: web/html/admin/index.php:997
+msgid "Delete"
+msgstr ""
+
+#: web/html/admin/index.php:638
+msgid "Handle users"
+msgstr ""
+
+#: web/html/admin/index.php:639
+msgid ""
+"Select a view in controller below; Users if you want to see, edit or delete "
+"a user, or Invites if you want to add one or more users at the same time."
+msgstr ""
+
+#: web/html/admin/index.php:640
+msgid "Select a list"
+msgstr ""
+
+#: web/html/admin/index.php:641
+msgid "Users"
+msgstr ""
+
+#: web/html/admin/index.php:642
+msgid "Invites"
+msgstr ""
+
+#: web/html/admin/index.php:643
+msgid "Deleted Users"
+msgstr ""
+
+#: web/html/admin/index.php:661 web/html/admin/index.php:785
+msgid "Add Invite"
+msgstr ""
+
+#: web/html/admin/index.php:661 web/html/admin/index.php:1023
+msgid "Add multiple Invites"
+msgstr ""
+
+#: web/html/admin/index.php:667
+msgid "Last modified"
+msgstr ""
+
+#: web/html/admin/index.php:667
+msgid "Name"
+msgstr ""
+
+#: web/html/admin/index.php:672
+msgid "Waiting for onboarding"
+msgstr ""
+
+#: web/html/admin/index.php:672
+msgid "Waiting for approval"
+msgstr ""
+
+#: web/html/admin/index.php:699 web/html/admin/index.php:763
+msgid "Edit"
+msgstr ""
+
+#: web/html/admin/index.php:708
+msgid "Resend"
+msgstr ""
+
+#: web/html/admin/index.php:729 web/html/admin/index.php:957
+msgid "Approve"
+msgstr ""
+
+#: web/html/admin/index.php:785
+msgid "Update Invite"
+msgstr ""
+
+#: web/html/admin/index.php:790
+msgid ""
+"You are editing an invite waiting for approval. If you save it will be "
+"converted back to waiting for onboarding!"
+msgstr ""
+
+#: web/html/admin/index.php:837
+msgid "Invite Info"
+msgstr ""
+
+#: web/html/admin/index.php:842
+msgid "Language for invite"
+msgstr ""
+
+#: web/html/admin/index.php:842
+msgid "Swedish"
+msgstr ""
+
+#: web/html/admin/index.php:843
+msgid "English"
+msgstr ""
+
+#: web/html/admin/index.php:884
+msgid "New code sent to"
+msgstr ""
+
+#: web/html/admin/index.php:929
+msgid ""
+"Please verify that it's the same person logged in from eduID that was "
+"invited."
+msgstr ""
+
+#: web/html/admin/index.php:930
+msgid ""
+"personNIN from eduID (12 numbers) should match what's shown on their "
+"identification documents OR birth date (8 numbers) + GivenName, SurName"
+msgstr ""
+
+#: web/html/admin/index.php:981
+msgid "Remove Invite"
+msgstr ""
+
+#: web/html/admin/index.php:982
+msgid "Do you want to remove the invite shown below ?"
+msgstr ""
+
+#: web/html/admin/index.php:1002
+msgid "Birthdate"
+msgstr ""
+
+#: web/html/admin/index.php:1024
+msgid ""
+"Add users in the textfield according to template below, separate each "
+"attribute with a semicolon. When you are finished hit the button Validate "
+"Invites and then Create Invites when you have fixed all errors."
+msgstr ""
+
+#: web/html/admin/index.php:1026
+msgid ""
+"Allow users without Swedish national identity number (requires Birthdate)"
+msgstr ""
+
+#: web/html/admin/index.php:1027
+msgid "Send out invite mail"
+msgstr ""
+
+#: web/html/admin/index.php:1029
+msgid "Validate Invites"
+msgstr ""
+
+#: web/html/admin/index.php:1029
+msgid "Create Invites"
+msgstr ""
+
+#: web/html/admin/index.php:1074 web/html/admin/index.php:1077
+msgid "Language"
+msgstr ""
+
+#: web/html/admin/index.php:1074
+msgid "should be sv or en"
+msgstr ""
+
+#: web/html/admin/index.php:1118
+msgid "SAML value for"
+msgstr ""
+
+#: web/html/admin/index.php:1125
+msgid "Invited"
+msgstr ""
+
+#: web/html/admin/index.php:1136 web/html/migrate/index.php:136
+msgid "Back"
+msgstr ""
+
+#: web/html/migrate/index.php:29
+#, php-format
+msgid ""
+"%s already have an invite waiting for approval, please ask your admin for "
+"approval."
+msgstr ""
+
+#: web/html/migrate/index.php:61
+msgid "Error while migrating! Please close your browser and try again."
+msgstr ""
+
+#: web/html/migrate/index.php:67
+#, php-format
+msgid ""
+"%s is already connected to an account. If you need help contact your user "
+"administrator. Please close your browser."
+msgstr ""
+
+#: web/html/migrate/index.php:97 web/html/user/index.php:25
+msgid "eduID account needs to be at verified."
+msgstr ""
+
+#: web/html/migrate/index.php:100
+msgid "Error while adding account (Got no ePPN or wrong IdP)"
+msgstr ""
+
+#: web/html/migrate/index.php:114
+msgid "Error while adding account (Could not update SCIM)"
+msgstr ""
+
+#: web/html/migrate/index.php:122
+msgid ""
+"Automatic matching of registered user information could not be completed.\n"
+"    Contact the organisation user administrator to complete the account "
+"activation.\n"
+"    Please close the window."
+msgstr ""
+
+#: web/html/migrate/index.php:125
+msgid "Activation of account awaiting approval"
+msgstr ""
+
+#: web/html/migrate/index.php:131 web/html/user/index.php:20
+#: web/html/user/index.php:108
+msgid "eduID Connect Self-service"
+msgstr ""
+
+#: web/html/src/HTML.php:21
+msgid "Activate your organisation identity in eduID"
+msgstr ""
+
+#: web/html/src/Invites.php:402
+msgid "Connect - Admin"
+msgstr ""
+
+#: web/html/src/Invites.php:418 web/html/src/Invites.php:449
+msgid "Hi."
+msgstr ""
+
+#: web/html/src/Invites.php:420
+msgid ""
+"uses eduID for login into national and international web-services. To be "
+"able to use this service you need to connect your personal eduID-account to "
+"your organisation. This is done by following the instructions below."
+msgstr ""
+
+#: web/html/src/Invites.php:436 web/html/src/Invites.php:466
+msgid "When you have a personal identity in eduID, proceed to this web-page"
+msgstr ""
+
+#: web/html/src/Invites.php:438 web/html/src/Invites.php:468
+msgid "enter the follwing code and press the button."
+msgstr ""
+
+#: web/html/src/Invites.php:439 web/html/src/Invites.php:469
+msgid "Invitecode:"
+msgstr ""
+
+#: web/html/src/Invites.php:441 web/html/src/Invites.php:471
+msgid "Welcome"
+msgstr ""
+
+#: web/html/src/Invites.php:451
+msgid ""
+"uses eduID for login into national and international web-services. To be "
+"able to use this service you need to connect yoour personal eduID-account to "
+"your organisation."
+msgstr ""
+
+#: web/html/src/Invites.php:472
+msgid "Your invite code for eduID Connect"
+msgstr ""
+
+#: web/html/user/index.php:9
+msgid "User profile"
+msgstr ""
+
+#: web/html/user/index.php:22
+msgid ""
+"Could not find your account in our user database.<br>Please contact your "
+"admin."
+msgstr ""
+
+#: web/html/user/index.php:57
+msgid "Error while update recovery info (Could not update database)"
+msgstr ""
+
+#: web/html/user/index.php:69
+msgid "User Attributes"
+msgstr ""
+
+#: web/html/user/index.php:70
+msgid ""
+"When you log into a service via your organization identity provider most "
+"personal data is retrieved from your eduID account but the organization "
+"profile contains the organizational information."
+msgstr ""
+
+#: web/html/user/index.php:71
+msgid "To update the personal data in your eduID account please go to the"
+msgstr ""
+
+#: web/html/user/index.php:72 web/html/user/index.php:97
+msgid "eduID Dashboard"
+msgstr ""
+
+#: web/html/user/index.php:73
+msgid ""
+"and to update the organizational profile please contact your home "
+"organization service desk or IT support."
+msgstr ""
+
+#: web/html/user/index.php:94
+msgid "Recovery info"
+msgstr ""
+
+#: web/html/user/index.php:95
+msgid ""
+"The recovery info is only used to be able to reconnect the organization "
+"profile to you as a person if you need to change what eduID account is used "
+"for the profile."
+msgstr ""
+
+#: web/html/user/index.php:96
+msgid "To update the recovery info first update the information in your"
+msgstr ""
+
+#: web/html/user/index.php:98
+msgid ""
+"and thereafter automatically update them in this service by logging in again."
+msgstr ""
+
+#: web/html/user/index.php:109
+msgid "Did not get any ePPN from IdP!"
+msgstr ""
