@@ -2,7 +2,11 @@
 const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
 const LI_ITEM = '                <li>%s - %s</li>%s';
 const HTML_CHECKED = ' checked';
+const HTML_HIDDEN = ' hidden';
+const HTML_READONLY = ' readonly';
 const HTML_SELECTED = ' selected';
+const HTTPS = 'https://';
+const TEXT_2STR = '%s %s. ';
 
 require_once '../vendor/autoload.php';
 
@@ -19,7 +23,7 @@ $collapse = false;
 $errorURL = isset($_SERVER['Meta-errorURL']) ?
   '<a href="' . $_SERVER['Meta-errorURL'] . '">Mer information</a><br>' : '<br>';
 $errorURL = str_replace(array('ERRORURL_TS', 'ERRORURL_RP', 'ERRORURL_TID'),
-  array(time(), 'https://'. $_SERVER['SERVER_NAME'] . '/shibboleth', $_SERVER['Shib-Session-ID']), $errorURL);
+  array(time(), HTTPS . $_SERVER['SERVER_NAME'] . '/shibboleth', $_SERVER['Shib-Session-ID']), $errorURL);
 
 if (isset($_SERVER['Meta-Assurance-Certification'])) {
   $AssuranceCertificationFound = false;
@@ -94,7 +98,7 @@ if ($errors != '') {
         ' . _('Logged into wrong IdP ?<br> You are trying with <b>%s</b>.<br>Click <a href="%s">here</a> to logout.') .'
       </div>%s    </div>%s',
     "\n", $_SERVER['Shib-Identity-Provider'],
-    'https://' . $_SERVER['SERVER_NAME'] . '/Shibboleth.sso/Logout?return=' . urlencode('https://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI']),
+    HTTPS . $_SERVER['SERVER_NAME'] . '/Shibboleth.sso/Logout?return=' . urlencode(HTTPS . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI']),
     "\n", "\n");
   $html->showFooter(false);
   exit;
@@ -135,17 +139,17 @@ if (isset($_POST['action'])) {
           $parseErrors .= sprintf('%s %s.', _('GivenName'), _('missing')) . '<br>';
         }
         if (strlen($_POST['sn']) == 0) {
-          $parseErrors .= sprintf('%s %s. ', _('SurName'), _('missing')) . '<br>';
+          $parseErrors .= sprintf(TEXT_2STR, _('SurName'), _('missing')) . '<br>';
         }
         if (strlen($_POST['mail']) == 0) {
-          $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('missing')) . '<br>';
+          $parseErrors .= sprintf(TEXT_2STR, _('Invite mail'), _('missing')) . '<br>';
         } elseif (! $invites->validateEmail($_POST['mail'])) {
-          $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('have wrong format')) . '<br>';
+          $parseErrors .= sprintf(TEXT_2STR, _('Invite mail'), _('have wrong format')) . '<br>';
         }
         if (strlen($_POST['personNIN']) == 0) {
-          $parseErrors .= sprintf('%s %s. ', _('Swedish national identity number'), _('missing')) . '<br>';
+          $parseErrors .= sprintf(TEXT_2STR, _('Swedish national identity number'), _('missing')) . '<br>';
         } elseif (!$invites->validateSSN($_POST['personNIN'], true)) {
-          $parseErrors .= sprintf('%s %s. ', _('Swedish national identity number'), _('have wrong format')) . '<br>';
+          $parseErrors .= sprintf(TEXT_2STR, _('Swedish national identity number'), _('have wrong format')) . '<br>';
         }
         foreach ($_POST['saml'] as $part => $data) {
           switch($part) {
@@ -164,7 +168,7 @@ if (isset($_POST['action'])) {
               break;
             case 'mail' :
               if (! $invites->validateEmail($data)) {
-                $parseErrors .= sprintf('%s %s. ', _('Organisation mail'), _('have wrong format')) . '<br>';
+                $parseErrors .= sprintf(TEXT_2STR, _('Organisation mail'), _('have wrong format')) . '<br>';
               }
               break;
             default :
@@ -333,7 +337,7 @@ function listUsers($shown = false) {
           <thead>
             <tr><th>ePPN</th><th>Name</th><th>eduID<a href=".?action=refreshUsers"><i class="fa-solid fa-arrows-rotate"></i></a></th><th>&nbsp;</th></tr>
           </thead>
-          <tbody>%s', $shown ? '' : ' hidden', "\n");
+          <tbody>%s', $shown ? '' : HTML_HIDDEN, "\n");
   foreach ($users as $user) {
     printf('            <tr>
               <td>%s</td>
@@ -364,7 +368,7 @@ function listDeletedUsers($id='0-0', $shown = false) {
           <thead>
             <tr><th>ePPN</th><th>Name</th><th>eduID</tr>
           </thead>
-          <tbody>%s', $shown ? '' : ' hidden', "\n");
+          <tbody>%s', $shown ? '' : HTML_HIDDEN, "\n");
   foreach ($users as $user) {
     printf('            <tr class="collapsible" data-id="%s" onclick="showId(\'%s\')">
               <td>%s</td>
@@ -422,7 +426,7 @@ function editUser($id) {
         showEduPersonScopedAffiliationInput(array(), $scim->getAllowedScopes(), $scim->getPossibleAffiliations(), $editAccess);
       } else {
         printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value=""%s></td></tr>%s',
-          $scim->translatedSAML($attribute), $attribute, $editAccess ? '' : ' readonly', "\n");
+          $scim->translatedSAML($attribute), $attribute, $editAccess ? '' : HTML_READONLY, "\n");
       }
     }
   }
@@ -452,7 +456,7 @@ function getSamlAttributesSCIM($userArray){
 
   # Set up a list of allowed/expected attributes to be able to show unused attribute in edit-form
   $samlAttributes = array();
-  foreach ($scim->getAttributes2migrate() as $saml => $SCIM) {
+  foreach ($scim->getAttributes2migrate() as $SCIM) {
     $samlAttributes[$SCIM] =false;
   }
   if (isset($userArray->{SCIM_NUTID_SCHEMA}->profiles->connectIdp)) {
@@ -466,7 +470,7 @@ function getSamlAttributesSCIM($userArray){
       } else {
         $value = is_array($value) ? implode(", ", $value) : $value;
         printf ('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"%s></td></tr>%s',
-          $scim->translatedSAML($key), $key, $value, $editAccess ? '' : ' readonly', "\n");
+          $scim->translatedSAML($key), $key, $value, $editAccess ? '' : HTML_READONLY, "\n");
       }
       $samlAttributes[$key] = true;
     }
@@ -480,7 +484,7 @@ function getSamlAttributesDB($attributes){
   $editAccess = $scim->getAdminAccess() > 19;
   # Set up a list of allowed/expected attributes to be able to show unused attribute in edit-form
   $samlAttributes = array();
-  foreach ($scim->getAttributes2migrate() as $saml => $SCIM) {
+  foreach ($scim->getAttributes2migrate() as $SCIM) {
     $samlAttributes[$SCIM] =false;
   }
   foreach(json_decode($attributes) as $key => $value) {
@@ -492,7 +496,7 @@ function getSamlAttributesDB($attributes){
     } else {
       $value = is_array($value) ? implode(", ", $value) : $value;
       printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"%s></td></tr>%s',
-        $scim->translatedSAML($key), $key, $value, $editAccess ? '' : ' readonly', "\n");
+        $scim->translatedSAML($key), $key, $value, $editAccess ? '' : HTML_READONLY, "\n");
       print $key;
     }
     $samlAttributes[$key] = true;
@@ -646,7 +650,7 @@ function showMenu($show = 1) {
 function listInvites($id = 0, $show = false) {
   global $invites, $scim;
   $editAccess = $scim->getAdminAccess() > 19;
-  printf('        <table id="list-invites-table" class="table table-striped table-bordered list-invites"%s>%s', $show ? '' : ' hidden', "\n");
+  printf('        <table id="list-invites-table" class="table table-striped table-bordered list-invites"%s>%s', $show ? '' : HTML_HIDDEN, "\n");
   if ($editAccess) {
     printf('          <thead>
             <tr><td colspan="3">
@@ -831,10 +835,10 @@ function editInvite($id, $error = '') {
               </tr>%s',
       htmlspecialchars($id),
       _('Invite Info'),
-      _('GivenName'), isset($inviteInfo->givenName) ? $inviteInfo->givenName : '', $editAccess ? '' : ' readonly',
-      _('SurName'), isset($inviteInfo->sn) ? $inviteInfo->sn : '', $editAccess ? '' : ' readonly',
-      _('Invite mail'), isset($inviteInfo->mail) ? $inviteInfo->mail : '', $editAccess ? '' : ' readonly',
-      _('Swedish national identity number'), isset($inviteInfo->personNIN) ? $inviteInfo->personNIN : '', $editAccess ? '' : ' readonly',
+      _('GivenName'), isset($inviteInfo->givenName) ? $inviteInfo->givenName : '', $editAccess ? '' : HTML_READONLY,
+      _('SurName'), isset($inviteInfo->sn) ? $inviteInfo->sn : '', $editAccess ? '' : HTML_READONLY,
+      _('Invite mail'), isset($inviteInfo->mail) ? $inviteInfo->mail : '', $editAccess ? '' : HTML_READONLY,
+      _('Swedish national identity number'), isset($inviteInfo->personNIN) ? $inviteInfo->personNIN : '', $editAccess ? '' : HTML_READONLY,
       _('Language for invite'), $editAccess ? '' : ' disabled', _('Swedish'),
       $invite['lang'] == 'en' ? HTML_SELECTED : '', _('English'),
       "\n");
@@ -851,7 +855,7 @@ function editInvite($id, $error = '') {
           $scim->translatedSAML($attribute), $attribute, _('Automatic'), "\n");
       } else {
         printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value=""%s></td></tr>%s',
-          $scim->translatedSAML($attribute), $attribute, $editAccess ? '' : ' readonly', "\n");
+          $scim->translatedSAML($attribute), $attribute, $editAccess ? '' : HTML_READONLY, "\n");
       }
     }
   }
@@ -1037,40 +1041,40 @@ function multiInvite() {
           $fullInfo = htmlspecialchars($params[0]);
           $inviteArray['givenName'] = $params[0];
         } else {
-          $parseErrors .= sprintf('%s %s. ', _('GivenName'), _('missing'));
+          $parseErrors .= sprintf(TEXT_2STR, _('GivenName'), _('missing'));
         }
         if (isset($params[1]) && strlen($params[1])) {
           $fullInfo .= ' ' . htmlspecialchars($params[1]);
           $inviteArray['sn'] = $params[1];
         } else {
-          $parseErrors .= sprintf('%s %s. ', _('SurName'), _('missing'));
+          $parseErrors .= sprintf(TEXT_2STR, _('SurName'), _('missing'));
         }
         if (isset($params[2]) && strlen($params[2])) {
           if ($invites->validateEmail($params[2])) {
             $fullInfo .= ' (' . htmlspecialchars($params[2]) . ')' ;
             $inviteArray['mail'] = $params[2];
           } else {
-            $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('have wrong format'));
+            $parseErrors .= sprintf(TEXT_2STR, _('Invite mail'), _('have wrong format'));
           }
         } else {
-          $parseErrors .= sprintf('%s %s. ', _('Invite mail'), _('missing'));
+          $parseErrors .= sprintf(TEXT_2STR, _('Invite mail'), _('missing'));
         }
         if (isset($params[3]) && strlen($params[3])) {
           if ($invites->validateSSN($params[3], isset($_POST['birthDate']))) {
             $inviteArray['personNIN'] = $params[3];
           } else {
-            $parseErrors .= sprintf('%s %s. ', _('Swedish national identity number'), _('have wrong format'));
+            $parseErrors .= sprintf(TEXT_2STR, _('Swedish national identity number'), _('have wrong format'));
           }
         } else {
-          $parseErrors .= sprintf('%s %s. ', _('Swedish national identity number'), _('missing'));
+          $parseErrors .= sprintf(TEXT_2STR, _('Swedish national identity number'), _('missing'));
         }
         if (isset($params[4]) && strlen($params[4])) {
           $lang = $params[4];
           if (! ($lang == 'sv' || $lang == 'en')) {
-            $parseErrors .= sprintf('%s %s. ', _('Language'), _('should be sv or en'));
+            $parseErrors .= sprintf(TEXT_2STR, _('Language'), _('should be sv or en'));
           }
         } else {
-          $parseErrors .= sprintf('%s %s. ', _('Language'), _('missing'));
+          $parseErrors .= sprintf(TEXT_2STR, _('Language'), _('missing'));
         }
 
         $paramCounter = 4;
@@ -1104,7 +1108,7 @@ function multiInvite() {
                 if ($invites->validateEmail($params[$paramCounter])) {
                   $attributeArray['mail'] = $params[$paramCounter];
                 } else {
-                  $parseErrors .= sprintf('%s %s. ', _('Organisation mail'), _('have wrong format'));
+                  $parseErrors .= sprintf(TEXT_2STR, _('Organisation mail'), _('have wrong format'));
                 }
                 break;
               default :

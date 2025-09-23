@@ -40,7 +40,7 @@ if (isset($_GET['source'])) {
       #Remove unused parts and restructure
       if (strstr($inviteInfo['eduPersonAssurance'], SWAMID_AL2)) {
         # The info we got is on AL2 level
-        $inviteInfo['personNIN'] = $inviteInfo['norEduPersonNIN'] = ''
+        $inviteInfo['personNIN'] = $inviteInfo['norEduPersonNIN'] == ''
           ? $inviteInfo['schacDateOfBirth'] : $inviteInfo['norEduPersonNIN'];
       } else {
         #Don't add full trust to attributes

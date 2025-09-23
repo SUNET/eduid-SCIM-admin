@@ -26,11 +26,15 @@ class SCIM {
   private $translateSAML = array();
 
   const SCIM_USERS = 'Users/';
-
-  const SQL_INSTANCE = ':Instance';
-  const SQL_EPPN = ':EPPN';
-
   const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
+
+  const SQL_EPPN = ':EPPN';
+  const SQL_EXTERNALID = ':ExternalId';
+  const SQL_INSTANCE = ':Instance';
+  const SQL_NAME = ':Name';
+  const SQL_PERSONNIN = ':PersonNIN';
+  const SQL_SCIMID = 'ScimId';
+  const SQL_STATUS = ':Status';
 
   /**
    * Setup the class
@@ -105,8 +109,7 @@ class SCIM {
     curl_setopt($ch, CURLOPT_HEADER, 0);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
       'Accept: */*',
-      'Content-Type: application/json'
-    ));
+      'Content-Type: application/json'));
 
     curl_setopt($ch, CURLOPT_SSLCERT, $this->certFile);
 
@@ -286,14 +289,16 @@ class SCIM {
     $userHandler = $this->db->prepare('SELECT `ePPN`, `externalId`, `scimId`, `name`
       FROM `users` WHERE `instance_id` = :Instance AND `status` = :Status
       ORDER BY `name`');
-    $userHandler->execute(array(self::SQL_INSTANCE => $this->dbInstanceId, ':Status' => $status));
+    $userHandler->execute(array(
+      self::SQL_INSTANCE => $this->dbInstanceId,
+      self::SQL_STATUS => $status));
     while ($user = $userHandler->fetch(PDO::FETCH_ASSOC)) {
       $userList[$user['scimId']] = array('id' => $user['scimId'],
         'externalId' => $user['externalId'],
         'fullName' => $user['name'],
         'ePPN' => $user['ePPN']);
     }
-    if (sizeof($userList) == 0 && $first) {
+    if (empty($userList) && $first) {
       # Refresh if first time since upgrade
       $this->refreshUsersSQL();
       $userList = $this->getAllUsers($status, false);
@@ -342,7 +347,7 @@ class SCIM {
       WHERE `instance_id` = :Instance AND `scimId` = :ScimId');
     $updateUserHandler->execute(array(
       self::SQL_INSTANCE => $this->dbInstanceId,
-      ':ScimId' => $id));
+      self::SQL_SCIMID => $id));
     return $this->request('DELETE', self::SCIM_USERS . urlencode($id), '', array('if-match: ' . $version));
   }
 
@@ -535,16 +540,17 @@ class SCIM {
         VALUES (:Instance, :EPPN, :ExternalId, :Name, :ScimId, :PersonNIN, NOW(), 1)');
       $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
       if (isset($attributes->eduPersonPrincipalName)) {
-        $checkUserHandler->execute(array(self::SQL_INSTANCE => $this->dbInstanceId, self::SQL_EPPN => $attributes->eduPersonPrincipalName));
+        $checkUserHandler->execute(array(
+          self::SQL_INSTANCE => $this->dbInstanceId,
+          self::SQL_EPPN => $attributes->eduPersonPrincipalName));
         if (! $checkUserHandler->fetch()) {
           $addUserHandler->execute(array(
             self::SQL_INSTANCE => $this->dbInstanceId,
             self::SQL_EPPN => $attributes->eduPersonPrincipalName,
-            ':ExternalId' => $migrateInfo->eduPersonPrincipalName,
-            ':Name' => $userArray->name->formatted,
-            ':ScimId' => $scimInfo->id,
-            ':PersonNIN' => $migrateInfo->norEduPersonNIN)
-          );
+            self::SQL_EXTERNALID => $migrateInfo->eduPersonPrincipalName,
+            self::SQL_NAME => $userArray->name->formatted,
+            self::SQL_SCIMID => $scimInfo->id,
+            self::SQL_PERSONNIN => $migrateInfo->norEduPersonNIN));
         }
       }
     }
@@ -620,21 +626,21 @@ class SCIM {
             $errors .= $scimList[$Resource->id]['ePPN'] == $ePPN ? '' : sprintf("ePPN was changed from %s to %s on %s\n", $scimList[$Resource->id]['ePPN'], $ePPN, $Resource->id);
             $updateUserHandler->execute(array(
               self::SQL_INSTANCE => $this->dbInstanceId,
-              ':EPPN' => $ePPN,
-              ':ExternalId' => $userArray->externalId,
-              ':Name' => $fullName,
-              ':ScimId' => $Resource->id,
-              ':PersonNIN' => $personNIN));
-              $scimList[$Resource->id]['seen'] = true;
+              self::SQL_EPPN => $ePPN,
+              self::SQL_EXTERNALID => $userArray->externalId,
+              self::SQL_NAME => $fullName,
+              self::SQL_SCIMID => $Resource->id,
+              self::SQL_PERSONNIN => $personNIN));
+            $scimList[$Resource->id]['seen'] = true;
           } else {
             # Add new row
             $addUserHandler->execute(array(
               self::SQL_INSTANCE => $this->dbInstanceId,
-              ':EPPN' => $ePPN,
-              ':ExternalId' => $userArray->externalId,
-              ':Name' => $fullName,
-              ':ScimId' => $Resource->id,
-              ':PersonNIN' => $personNIN));
+              self::SQL_EPPN => $ePPN,
+              self::SQL_EXTERNALID => $userArray->externalId,
+              self::SQL_NAME => $fullName,
+              self::SQL_SCIMID => $Resource->id,
+              self::SQL_PERSONNIN => $personNIN));
           }
 
           if ($ePPN != '') {
@@ -655,16 +661,16 @@ class SCIM {
             # Mark user as deleted
             $disableUserHandler->execute(array(
               self::SQL_INSTANCE => $this->dbInstanceId,
-              ':Status' => 8,
-              ':ScimId' => $scimId));
+              self::SQL_STATUS => 8,
+              self::SQL_SCIMID => $scimId));
             $errors .= sprintf ("Disabled %s->%s since missing in SCIM.\n", $scimId, $data['ePPN']);
             break;
           case 8 :
             if (isset($userList[$data['ePPN']]) && $userList[$data['ePPN']]['seen']) {
               $disableUserHandler->execute(array(
                 self::SQL_INSTANCE => $this->dbInstanceId,
-                ':Status' => 16,
-                ':ScimId' => $scimId));
+                self::SQL_STATUS => 16,
+                self::SQL_SCIMID => $scimId));
               $errors .= sprintf ("Archived %s->%s since exists in scim again.\n", $scimId, $data['ePPN']);
             }
             break;
@@ -691,7 +697,7 @@ class SCIM {
       WHERE `status` = 8 AND `instance_id` = :Instance AND `scimId` = :ScimId');
     $userHandler->execute(array(
       self::SQL_INSTANCE => $this->dbInstanceId,
-      ':ScimId' => $id));
+      self::SQL_SCIMID => $id));
     if ($user = $userHandler->fetch(PDO::FETCH_ASSOC)) {
       $userArray = new \stdClass();
       $userArray->externalId = $user['externalId'];
@@ -721,14 +727,13 @@ class SCIM {
         $addUserHandler->execute(array(
           self::SQL_INSTANCE => $this->dbInstanceId,
           self::SQL_EPPN => $user['ePPN'],
-          ':ExternalId' => $user['externalId'],
-          ':Name' => $user['name'],
-          ':ScimId' => $scimInfo->id,
-          ':PersonNIN' => $user['personNIN'])
-        );
+          self::SQL_EXTERNALID => $user['externalId'],
+          self::SQL_NAME => $user['name'],
+          self::SQL_SCIMID => $scimInfo->id,
+          self::SQL_PERSONNIN => $user['personNIN']));
         $updateUserHandler->execute(array(
           self::SQL_INSTANCE => $this->dbInstanceId,
-          ':ScimId' => $id));
+          self::SQL_SCIMID => $id));
         return $scimInfo->id;
       }
       printf ('Problem to restore user in SCIM!!');

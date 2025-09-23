@@ -44,7 +44,7 @@ class Invites {
   /**
    * Id of invite for a specific eduPersonPrincipalName
    */
-  private int $ePPN_id = 0;
+  private int $ePPNId = 0;
 
   /**
    * Host to use for sending mail
@@ -297,7 +297,7 @@ class Invites {
     while ($invite = $inviteHandler->fetch(PDO::FETCH_ASSOC)) {
       $json = json_decode($invite['attributes']);
       if (isset($json->eduPersonPrincipalName) && $json->eduPersonPrincipalName == $eduPersonPrincipalName) {
-        $this->ePPN_id = $invite['id'];
+        $this->ePPNId = $invite['id'];
         return $invite['status'];
       }
     }
@@ -352,7 +352,7 @@ class Invites {
       WHERE `id`= :Id AND status = 1 AND `instance_id` = :Instance');
     $updateHandler->bindParam(self::SQL_SESSION, $session);
     $updateHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
-    $updateHandler->bindValue(self::SQL_ID, $this->ePPN_id);
+    $updateHandler->bindValue(self::SQL_ID, $this->ePPNId);
     return $updateHandler->execute();
   }
 
@@ -617,7 +617,7 @@ class Invites {
    * @return int
    */
   public function getInviteePPNid() {
-    return $this->ePPN_id;
+    return $this->ePPNId;
   }
 
   /**
@@ -679,11 +679,9 @@ class Invites {
             } else {
               $checkValue += $ssnA[$pos] * 2;
             }
-            #printf ('%d<br>', $checkValue);
           }
           for ($pos = 3; $pos <= 9; $pos += 2) {
             $checkValue += $ssnA[$pos];
-            #printf ('%d<br>', $checkValue);
           }
           return (10 - ($checkValue %10))%10 == $ssnA[11];
         }
