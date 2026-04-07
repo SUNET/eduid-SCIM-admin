@@ -97,7 +97,7 @@ class Configuration {
     } else {
       $dbVersion=$dbVersion['value'];
     }
-    if ($dbVersion < 4) {
+    if ($dbVersion < 5) {
       if ($dbVersion < 1) {
         $this->db->query("INSERT INTO params (`instance`, `id`, `value`) VALUES ('', 'dbVersion', 1)");
       }
@@ -135,8 +135,7 @@ class Configuration {
           CONSTRAINT `users_ibfk_1` FOREIGN KEY (`instance_id`) REFERENCES `instances` (`id`) ON DELETE CASCADE)');
         $this->db->query('DELETE FROM `invites`');
         $this->db->query('ALTER TABLE `invites`
-          CHANGE `instance` `instance_id` int(10) unsigned NOT NUM@tilda
-          LL,
+          CHANGE `instance` `instance_id` int(10) unsigned NOT NULL,
           ADD `lang` varchar(2) DEFAULT NULL,
           ADD FOREIGN KEY (`instance_id`)
             REFERENCES `instances` (`id`)
@@ -149,15 +148,20 @@ class Configuration {
             REFERENCES `instances` (`id`)
             ON DELETE CASCADE');
       }
-      $this->db->query('ALTER TABLE `users`
-        ADD `externalId` text DEFAULT NULL,
-        ADD `name` text DEFAULT NULL,
-        ADD `scimId` varchar(40) DEFAULT NULL,
-        ADD `personNIN` varchar(12) DEFAULT NULL,
-        ADD `lastSeen` datetime DEFAULT NULL,
-        ADD `status` tinyint');
-      $this->db->query('DELETE FROM `users`');
-      $this->db->query("UPDATE params SET value = 4 WHERE `instance_id` = 1 AND `id` = 'dbVersion'");
+      if ($dbVersion < 4) {
+        $this->db->query('ALTER TABLE `users`
+          ADD `externalId` text DEFAULT NULL,
+          ADD `name` text DEFAULT NULL,
+          ADD `scimId` varchar(40) DEFAULT NULL,
+          ADD `personNIN` varchar(12) DEFAULT NULL,
+          ADD `lastSeen` datetime DEFAULT NULL,
+          ADD `status` tinyint');
+        $this->db->query('DELETE FROM `users`');
+        $this->db->query("UPDATE params SET value = 4 WHERE `instance_id` = 1 AND `id` = 'dbVersion'");
+      }
+      $this->db->query('ALTER TABLE `invites`
+          CHANGE `session` `session` varchar(40) DEFAULT NULL');
+      $this->db->query("UPDATE params SET value = 5 WHERE `instance_id` = 1 AND `id` = 'dbVersion'");
     }
   }
 
