@@ -1,6 +1,6 @@
 <?php
 const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
-const LI_ITEM = '                <li>%s - %s</li>%s';
+const LI_ITEM = '                  <li>%s - %s</li>%s';
 const HTML_CHECKED = ' checked';
 const HTML_HIDDEN = ' hidden';
 const HTML_READONLY = ' readonly';
@@ -333,30 +333,31 @@ function listUsers($shown = false) {
   global $scim, $html;
   $editAccess = $scim->getAdminAccess() > 19;
   $users = $scim->getAllUsers();
-  printf('        <table id="list-users-table" class="table table-striped table-bordered list-users"%s>
-          <thead>
-            <tr><th>ePPN</th><th>Name</th><th>eduID<a href=".?action=refreshUsers"><i class="fa-solid fa-arrows-rotate"></i></a></th><th>&nbsp;</th></tr>
-          </thead>
-          <tbody>%s', $shown ? '' : HTML_HIDDEN, "\n");
+  printf('        <div id="list-users-div"%s>
+          <table id="list-users-table" class="table table-striped table-bordered list-users">
+            <thead>
+              <tr><th>ePPN</th><th>Name</th><th>eduID<a href=".?action=refreshUsers"><i class="fa-solid fa-arrows-rotate"></i></a></th><th>&nbsp;</th></tr>
+            </thead>
+            <tbody>%s', $shown ? '' : HTML_HIDDEN, "\n");
   foreach ($users as $user) {
-    printf('            <tr>
-              <td>%s</td>
-              <td>%s</td>
-              <td>%s</td>
-              <td>
-                <a a href="?action=editUser&id=%s"><i class="fa fa-pencil-alt"></i></a>%s',
+    printf('              <tr>
+                <td>%s</td>
+                <td>%s</td>
+                <td>%s</td>
+                <td>
+                  <a a href="?action=editUser&id=%s"><i class="fa fa-pencil-alt"></i></a>%s',
       $user['ePPN'] == '' ? _('Missing') : $user['ePPN'] ,
       $user['fullName'], $user['externalId'],
       $user['id'], "\n");
     if ($editAccess) {
-      printf('                <a a href="?action=removeUser&id=%s"><i class="fas fa-trash"></i></a>%s',
+      printf('                  <a a href="?action=removeUser&id=%s"><i class="fas fa-trash"></i></a>%s',
         $user['id'], "\n");
     }
-    printf('              </td>
-            </tr>%s', "\n", "\n");
+    printf('                </td>
+              </tr>%s', "\n", "\n");
 
   }
-  printf('          <tbody>%s        </table>%s', "\n", "\n");
+  printf('            <tbody>%s          </table>%s        </div>%s', "\n", "\n", "\n");
   $html->addTableSort('list-users-table');
 }
 
@@ -364,30 +365,31 @@ function listDeletedUsers($id='0-0', $shown = false) {
   global $scim;
   $editAccess = $scim->getAdminAccess() > 19;
   $users = $scim->getAllUsers(8);
-  printf('        <table id="list-deletedUsers-table" class="table table-striped table-bordered list-users"%s>
-          <thead>
-            <tr><th>ePPN</th><th>Name</th><th>eduID</tr>
-          </thead>
-          <tbody>%s', $shown ? '' : HTML_HIDDEN, "\n");
+  printf('        <div id="list-deletedUsers-div"%s>
+          <table id="list-deletedUsers-table" class="table table-striped table-bordered list-users">
+            <thead>
+              <tr><th>ePPN</th><th>Name</th><th>eduID</tr>
+            </thead>
+            <tbody>%s', $shown ? '' : HTML_HIDDEN, "\n");
   foreach ($users as $user) {
-    printf('            <tr class="collapsible" data-id="%s" onclick="showId(\'%s\')">
-              <td>%s</td>
-              <td>%s</td>
-              <td>%s</td>
-            </tr>
-            <tr class="content" style="display: %s;">
-              <td colspan="3">
-                <a a href="?action=restoreUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a>%s',
+    printf('              <tr class="collapsible" data-id="%s" onclick="showId(\'%s\')">
+                <td>%s</td>
+                <td>%s</td>
+                <td>%s</td>
+              </tr>
+              <tr class="content" style="display: %s;">
+                <td colspan="3">
+                  <a a href="?action=restoreUser&id=%s"><button class="btn btn-primary btn-sm">%s</button></a>%s',
       $user['id'], $user['id'],
       $user['ePPN'] == '' ? _('Missing') : $user['ePPN'] ,
       $user['fullName'], $user['externalId'],
       $id == $user['id'] ? 'table-row' : 'none',
       $user['id'], $editAccess ? _('Restore') : _('View'),
       "\n");
-    printf('              </td>
-            </tr>%s', "\n", "\n");
+    printf('                </td>
+              </tr>%s', "\n", "\n");
   }
-  printf('          <tbody>%s        </table>%s', "\n", "\n");
+  printf('            <tbody>%s          </table>%s        </div>%s', "\n", "\n", "\n");
 }
 
 function editUser($id) {
@@ -497,7 +499,6 @@ function getSamlAttributesDB($attributes){
       $value = is_array($value) ? implode(", ", $value) : $value;
       printf('              <tr><th>%s</th><td><input type="text" name="saml[%s]" value="%s"%s></td></tr>%s',
         $scim->translatedSAML($key), $key, $value, $editAccess ? '' : HTML_READONLY, "\n");
-      print $key;
     }
     $samlAttributes[$key] = true;
   }
@@ -650,116 +651,115 @@ function showMenu($show = 1) {
 function listInvites($id = 0, $show = false) {
   global $invites, $scim;
   $editAccess = $scim->getAdminAccess() > 19;
-  printf('        <table id="list-invites-table" class="table table-striped table-bordered list-invites"%s>%s', $show ? '' : HTML_HIDDEN, "\n");
+  printf('        <div id="list-invites-div"%s>%s', $show ? '' : HTML_HIDDEN, "\n");
   if ($editAccess) {
-    printf('          <thead>
-            <tr><td colspan="3">
-              <a a href="?action=addInvite"><button class="btn btn-primary btn-sm">%s</button></a>
-              <a a href="?action=addMultiInvite"><button class="btn btn-primary btn-sm">%s</button></a>
-            </td></tr>
-          </thead>%s',
+    printf('          <a a href="?action=addInvite"><button class="btn btn-primary btn-sm">%s</button></a>
+          <a a href="?action=addMultiInvite"><button class="btn btn-primary btn-sm">%s</button></a>%s',
    _('Add Invite'), _('Add multiple Invites'), "\n");
   }
-  printf('          <thead>
-            <tr><th></th><th>%s</th><th>%s</th></tr>
-          </thead>
-          <tbody>%s',
+  printf('          <table id="list-invites-table" class="table table-striped table-bordered list-invites">
+            <thead
+              <tr><th></th><th>%s</th><th>%s</th></tr>
+            </thead>
+            <tbody>%s',
     _('Last modified'), _('Name'), "\n");
   $oldStatus = 0;
   foreach ($invites->getInvitesList() as $invite) {
     if ($invite['status'] != $oldStatus) {
-      printf('            <tr><td colspan="3"><b>%s</b></td></tr>%s',
+      printf('              <tr><td colspan="3"><b>%s</b></td></tr>%s',
         $invite['status'] == 1 ? _('Waiting for onboarding') : _('Waiting for approval'), "\n");
       $oldStatus = $invite['status'];
     }
     showInvite($invite, $id, $editAccess);
   }
-  printf('          </tbody>%s        </table>%s', "\n", "\n");
+  printf('            </tbody>%s          </table>%s        </div>%s', "\n", "\n", "\n");
+  # Doesn't work since we hide next rown in table
+  #$html->addTableSort('list-invites-table');
 }
 
 function showInvite($invite, $id, $editAccess) {
   $inviteInfo = json_decode($invite['inviteInfo']);
   $migrateInfo = json_decode($invite['migrateInfo']);
-  printf('            <tr class="collapsible" data-id="%s" onclick="showId(\'%s\')">
-              <td></td>
-              <td>%s</td>
-              <td>%s</td>
-            </tr>
-            <tr class="content" style="display: %s;">%s',
+  printf('              <tr class="collapsible" data-id="%s" onclick="showId(\'%s\')">
+                <td></td>
+                <td>%s</td>
+                <td>%s</td>
+              </tr>
+              <tr class="content" style="display: %s;">%s',
     $invite['id'], $invite['id'],
     $invite['modified'],
     $inviteInfo->givenName . ' ' . $inviteInfo->sn,
     $id == $invite['id'] ? 'table-row' : 'none',
     "\n");
   if ($invite['status'] == 1) {
-    printf('              <td>
-                <a a href="?action=editInvite&id=%s">
-                  <button class="btn btn-primary btn-sm">%s</button>
-                </a>',
+    printf('                <td>
+                  <a a href="?action=editInvite&id=%s">
+                    <button class="btn btn-primary btn-sm">%s</button>
+                  </a>',
       $invite['id'], $editAccess ? _('Edit') : _('View'));
     if ($editAccess) {
       printf('<br>
-                <a a href="?action=resendInvite&id=%s">
-                  <button class="btn btn-primary btn-sm">%s</button>
-                </a><br>
-                <a a href="?action=deleteInvite&id=%s">
-                  <button class="btn btn-primary btn-sm">%s</button>
-                </a>',
+                  <a a href="?action=resendInvite&id=%s">
+                    <button class="btn btn-primary btn-sm">%s</button>
+                  </a><br>
+                  <a a href="?action=deleteInvite&id=%s">
+                    <button class="btn btn-primary btn-sm">%s</button>
+                  </a>',
         $invite['id'], _('Resend'),
         $invite['id'], _('Delete'));
     }
-    printf('%s              </td>
-              <td>Attributes : <ul>%s', "\n", "\n");
+    printf('%s                </td>
+                <td>Attributes : <ul>%s', "\n", "\n");
     foreach(json_decode($invite['attributes']) as $key => $value) {
       $value = is_array($value) ? implode(", ", $value) : $value;
       printf (LI_ITEM, $key, $value, "\n");
     }
-    printf('              </ul></td>%s              <td>InviteInfo : <ul>%s', "\n", "\n");
+    printf('                </ul></td>%s                <td>InviteInfo : <ul>%s', "\n", "\n");
     foreach($inviteInfo as $key => $value) {
       $value = is_array($value) ? implode(", ", $value) : $value;
       printf (LI_ITEM, $key, $value, "\n");
     }
-    printf('              </ul></td>%s            </tr>%s', "\n", "\n");
+    printf('                </ul></td>%s              </tr>%s', "\n", "\n");
   } else {
-      printf('              <td>%s', "\n");
+      printf('                <td>%s', "\n");
     if ($editAccess) {
-      printf('                <a a href="?action=approveInvite&id=%s">
-                  <button class="btn btn-primary btn-sm">%s</button>
-                </a><br>%s',
+      printf('                  <a a href="?action=approveInvite&id=%s">
+                    <button class="btn btn-primary btn-sm">%s</button>
+                  </a><br>%s',
         $invite['id'], _('Approve'), "\n");
     }
-    printf('                <a a href="?action=editInvite&id=%s">
-                    <button class="btn btn-primary btn-sm">%s</button>
-                </a>
-              </td>
-              <td colspan="2">
-                <div class="row">
-                  <div class="col3"></div>
-                  <div class="col3">Invite data</div>
-                  <div class="col3">From IdP</div>
-                </div>
-                <div class="row">
-                  <div class="col3">personNIN</div>
-                  <div class="col3">%s</div>
-                  <div class="col3">%s</div>
-                </div>
-                <div class="row">
-                  <div class="col3">givenName</div>
-                  <div class="col3">%s</div>
-                  <div class="col3">%s</div>
-                </div>
-                <div class="row">
-                  <div class="col3">sn</div>
-                  <div class="col3">%s</div>
-                  <div class="col3">%s</div>
-                </div>
-                <div class="row">
-                  <div class="col3">mail</div>
-                  <div class="col3">%s</div>
-                  <div class="col3">%s<br>%s</div>
-                </div>
-              </td>
-            </tr>%s',
+    printf('                  <a a href="?action=editInvite&id=%s">
+                      <button class="btn btn-primary btn-sm">%s</button>
+                  </a>
+                </td>
+                <td colspan="2">
+                  <div class="row">
+                    <div class="col3"></div>
+                    <div class="col3">Invite data</div>
+                    <div class="col3">From IdP</div>
+                  </div>
+                  <div class="row">
+                    <div class="col3">personNIN</div>
+                    <div class="col3">%s</div>
+                    <div class="col3">%s</div>
+                  </div>
+                  <div class="row">
+                    <div class="col3">givenName</div>
+                    <div class="col3">%s</div>
+                    <div class="col3">%s</div>
+                  </div>
+                  <div class="row">
+                    <div class="col3">sn</div>
+                    <div class="col3">%s</div>
+                    <div class="col3">%s</div>
+                  </div>
+                  <div class="row">
+                    <div class="col3">mail</div>
+                    <div class="col3">%s</div>
+                    <div class="col3">%s<br>%s</div>
+                  </div>
+                </td>
+              </tr>%s',
       $invite['id'], $editAccess ? _('Edit') : _('View'),
       $inviteInfo->personNIN,
       $migrateInfo->norEduPersonNIN == '' ? $migrateInfo->schacDateOfBirth: $migrateInfo->norEduPersonNIN,

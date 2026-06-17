@@ -112,9 +112,9 @@ class HTML {
       }
 
       const selectElement = document.querySelector("#selectList");
-      const usertable = document.getElementById("list-users-table");
-      const invitetable = document.getElementById("list-invites-table");
-      const deletedUsertable = document.getElementById("list-deletedUsers-table");
+      const usertable = document.getElementById("list-users-div");
+      const invitetable = document.getElementById("list-invites-div");
+      const deletedUsertable = document.getElementById("list-deletedUsers-div");
 
       selectElement.addEventListener("change", (event) => {
         switch(event.target.value) {
