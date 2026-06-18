@@ -32,6 +32,17 @@ if (isset($_GET['source'])) {
         }
       }
     }
+    if (isset($inviteInfo['personNIN'])) {
+      if ($scim->personNINexists($inviteInfo['personNIN'])) {
+        showError(sprintf(_('A user with personNIN %s already have an account.'), $inviteInfo['personNIN']));
+      } elseif ($status = $invites->personNINexists($inviteInfo['personNIN'])) {
+        if ($status == 2) {
+          showError(sprintf(_('A user with personNIN %s already have an invite waiting for approval, please ask your admin for approval.'), $inviteInfo['personNIN']));
+        } else {
+          $inviteExist = true;
+        }
+      }
+    }
     if ($inviteExist) {
       $invites->updateInviteSession($sessionID);
     } else {

@@ -150,6 +150,11 @@ if (isset($_POST['action'])) {
           $parseErrors .= sprintf(TEXT_2STR, _('Swedish national identity number'), _('missing')) . '<br>';
         } elseif (!$invites->validateSSN($_POST['personNIN'], true)) {
           $parseErrors .= sprintf(TEXT_2STR, _('Swedish national identity number'), _('have wrong format')) . '<br>';
+        } elseif ($scim->personNINexists($_POST['personNIN'])) {
+          $parseErrors .= sprintf(_('A user with personNIN %s already have an account.'), htmlspecialchars($_POST['personNIN'])) . '<br>';
+        } elseif ($invites->personNINexists($_POST['personNIN'])) {
+          $parseErrors .= $invites->getInviteePPNid() == $id ? '' :
+            sprintf(_('A user with personNIN %s already have an invite.'), htmlspecialchars($_POST['personNIN'])) . '<br>';
         }
         foreach ($_POST['saml'] as $part => $data) {
           switch($part) {
@@ -1061,7 +1066,13 @@ function multiInvite() {
         }
         if (isset($params[3]) && strlen($params[3])) {
           if ($invites->validateSSN($params[3], isset($_POST['birthDate']))) {
-            $inviteArray['personNIN'] = $params[3];
+            if ($scim->personNINexists($params[3])) {
+              $parseErrors .= sprintf(_('A user with personNIN %s already have an account.'), htmlspecialchars($params[3]));
+            } elseif ($invites->personNINexists($params[3])) {
+              $parseErrors .= sprintf(_('A user with personNIN %s already have an invite.'), htmlspecialchars($params[3]));
+            } else {
+              $inviteArray['personNIN'] = $params[3];
+            }
           } else {
             $parseErrors .= sprintf(TEXT_2STR, _('Swedish national identity number'), _('have wrong format'));
           }

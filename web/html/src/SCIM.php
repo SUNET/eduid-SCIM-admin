@@ -322,6 +322,21 @@ class SCIM {
   }
 
   /**
+   * Check if personNIN exists in database
+   *
+   * @param string $personNIN
+   *
+   * @return bool
+   */
+  public function personNINexists($personNIN) {
+    $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `personNIN` = :PersonNIN AND `status` < 16');
+    $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
+    $checkUserHandler->bindValue(self::SQL_PERSONNIN, $personNIN);
+    $checkUserHandler->execute();
+    return $checkUserHandler->fetch() ? true : false;
+  }
+
+  /**
    * Return user object
    *
    * @param string $id Id of user in SCIM

@@ -305,6 +305,29 @@ class Invites {
   }
 
   /**
+   * Check if personNIN exists in invites
+   *
+   * @param string $personNIN
+   *
+   * @return bool|int
+   */
+  public function personNINexists($personNIN) {
+    $inviteHandler = $this->db->prepare(
+      'SELECT `id`, `status`, `inviteInfo`
+      FROM `invites`
+      WHERE `instance_id` = :Instance');
+    $inviteHandler->execute(array(self::SQL_INSTANCE => $this->dbInstanceId));
+    while ($invite = $inviteHandler->fetch(PDO::FETCH_ASSOC)) {
+      $json = json_decode($invite['inviteInfo']);
+      if (isset($json->personNIN) && $json->personNIN == $personNIN) {
+        $this->ePPNId = $invite['id'];
+        return $invite['status'];
+      }
+    }
+    return false;
+  }
+
+  /**
    * Updates attribute in an invite based on the session
    *
    * @param string $session
