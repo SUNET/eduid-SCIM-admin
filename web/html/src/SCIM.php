@@ -1,4 +1,5 @@
 <?php
+
 namespace scimAdmin;
 
 use PDO;
@@ -7,7 +8,8 @@ use scimAdmin\Configuration;
 /**
  * Class to handle Connection with SCIM API
  */
-class SCIM {
+class SCIM
+{
   private $scope = false;
   private $autoEPPN = false;
   private $authURL = '';
@@ -21,27 +23,28 @@ class SCIM {
   private $adminUsers = array();
   private $adminAccess = 0;
   private PDO $db;
-  private $token;
+  private string $token;
   private $dbInstanceId = 0;
   private $translateSAML = array();
 
-  const SCIM_USERS = 'Users/';
-  const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
+  private const SCIM_USERS = 'Users/';
+  private const SCIM_NUTID_SCHEMA = 'https://scim.eduid.se/schema/nutid/user/v1';
 
-  const SQL_EPPN = ':EPPN';
-  const SQL_EXTERNALID = ':ExternalId';
-  const SQL_INSTANCE = ':Instance';
-  const SQL_NAME = ':Name';
-  const SQL_PERSONNIN = ':PersonNIN';
-  const SQL_SCIMID = 'ScimId';
-  const SQL_STATUS = ':Status';
+  private const SQL_EPPN = ':EPPN';
+  private const SQL_EXTERNALID = ':ExternalId';
+  private const SQL_INSTANCE = ':Instance';
+  private const SQL_NAME = ':Name';
+  private const SQL_PERSONNIN = ':PersonNIN';
+  private const SQL_SCIMID = 'ScimId';
+  private const SQL_STATUS = ':Status';
 
   /**
    * Setup the class
    *
    * @return void
    */
-  public function __construct() {
+  public function __construct()
+  {
     $config = new Configuration();
     $this->db = $config->getDb();
 
@@ -72,8 +75,10 @@ class SCIM {
       if ($param = $paramsHandler->fetch(PDO::FETCH_ASSOC)) {
         $this->token = $param['value'];
       } else {
-        $addParamsHandler = $this->db->prepare('INSERT INTO params (`instance_id`,`id`, `value`)
-          VALUES ( :Instance, ' ."'token', '')");
+        $addParamsHandler = $this->db->prepare(
+          'INSERT INTO params (`instance_id`,`id`, `value`)
+          VALUES ( :Instance, ' . "'token', '')"
+        );
         $addParamsHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
         $addParamsHandler->execute();
         $this->getToken();
@@ -86,9 +91,10 @@ class SCIM {
    *
    * @param bool $first If this is first request.
    *
-   * @return string
+   * @return bool
    */
-  private function getToken($first = true) {
+  private function getToken($first = true)
+  {
     $access = new \stdClass();
     $access->scope = $this->scope;
     $access->type = 'scim-api';
@@ -104,29 +110,29 @@ class SCIM {
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $this->authURL . 'transaction');
-    curl_setopt($ch, CURLOPT_PORT , 443);
-    curl_setopt($ch, CURLOPT_VERBOSE, 0);
-    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_PORT, 443);
+    curl_setopt($ch, CURLOPT_VERBOSE, false);
+    curl_setopt($ch, CURLOPT_HEADER, false);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
       'Accept: */*',
-      'Content-Type: application/json'));
+      'Content-Type: application/json'
+    ));
 
     curl_setopt($ch, CURLOPT_SSLCERT, $this->certFile);
 
     curl_setopt($ch, CURLOPT_SSLKEY, $this->keyFile);
     curl_setopt($ch, CURLOPT_CAINFO, "/etc/ssl/certs/ca-certificates.crt");
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
     $response = curl_exec($ch);
     if (curl_errno($ch) == 0) {
       $info = curl_getinfo($ch);
-      curl_close($ch);
       switch ($info['http_code']) {
-        case 200 :
-        case 201 :
+        case 200:
+        case 201:
           $token = json_decode($response);
           $tokenValue = $token->access_token->value;
 
@@ -137,34 +143,37 @@ class SCIM {
           $tokenHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
           $tokenHandler->execute();
           $this->token = $tokenValue;
-          break;
-        case 503 :
+          return true;
+        case 503:
           if ($first) {
             sleep(3);
             return $this->getToken(false);
           } else {
             print "Got 503!";
-            printf('        Something went wrong.
+            printf(
+              '        Something went wrong.
               Contact admin and give them this info<ul>
-                <li>Part : auth/token%</li>
+                <li>Part : auth/token</li>
                 <li>Response : %s</li>
-              </ul>', $response);
+              </ul>',
+              $response
+            );
             exit;
           }
-          break;
         default:
           print "Got 503!";
-          printf('        Something went wrong.
+          printf(
+            '        Something went wrong.
               Contact admin and give them this info<ul>
-                <li>Part : auth/token%</li>
+                <li>Part : auth/token</li>
                 <li>Response : %s</li>
-              </ul>', $response);
+              </ul>',
+            $response
+          );
           exit;
-          break;
       }
     } else {
       print "Error on request to auth-server";
-      curl_close($ch);
       exit;
     }
   }
@@ -180,25 +189,26 @@ class SCIM {
    *
    * @return bool|string
    */
-  public function request($method, $part, $data, $extraHeaders = array(), $first = true) {
+  public function request($method, $part, $data, $extraHeaders = array(), $first = true)
+  {
     $ch = curl_init();
     switch ($method) {
-      case 'POST' :
-        curl_setopt($ch, CURLOPT_POST, 1);
+      case 'POST':
+        curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         break;
-      case 'PUT' :
-        curl_setopt($ch, CURLOPT_POST, 0);
+      case 'PUT':
+        curl_setopt($ch, CURLOPT_POST, false);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         break;
-      case 'DELETE' :
+      case 'DELETE':
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         break;
-      default :
+      default:
         # GET
-        curl_setopt($ch, CURLOPT_POST, 0);
+        curl_setopt($ch, CURLOPT_POST, false);
         break;
     }
     $headers = array(
@@ -206,19 +216,21 @@ class SCIM {
       'Content-Type: application/scim+json',
       'Authorization: Bearer ' . $this->token
     );
-    curl_setopt($ch, CURLOPT_URL, $this->apiURL. htmlspecialchars($part));
-    curl_setopt($ch, CURLOPT_PORT , 443);
-    curl_setopt($ch, CURLOPT_VERBOSE, 0);
-    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_URL, $this->apiURL . htmlspecialchars($part));
+    curl_setopt($ch, CURLOPT_PORT, 443);
+    curl_setopt($ch, CURLOPT_VERBOSE, false);
+    curl_setopt($ch, CURLOPT_HEADER, false);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($headers, $extraHeaders));
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     $response = curl_exec($ch);
 
     if (curl_errno($ch) == 0) {
-      if ($response ==
-      '{"schemas":["urn:ietf:params:scim:api:messages:2.0:Error"],"detail":"Bearer token error","status":401}') {
+      if (
+        $response ==
+          '{"schemas":["urn:ietf:params:scim:api:messages:2.0:Error"],"detail":"Bearer token error","status":401}'
+      ) {
         if ($first) {
           $this->getToken();
           return $this->request($method, $part, $data, $extraHeaders, false);
@@ -229,15 +241,14 @@ class SCIM {
       } else {
         $info = curl_getinfo($ch);
         switch ($info['http_code']) {
-          case 200 :
-          case 201 :
-          case 204 :
+          case 200:
+          case 201:
+          case 204:
             // User removed
             return $response;
-            break;
-          case 503 :
+          case 503:
             // Timeout at server
-          case 504 :
+          case 504:
             // Timeout at api.eduid.se
             // Some other server ?
             if ($first && $method != 'POST') {
@@ -245,24 +256,32 @@ class SCIM {
               return $this->request($method, $part, $data, $extraHeaders, false);
             } else {
               print "Got 503/504!";
-              printf('        Something went wrong.
+              printf(
+                '        Something went wrong.
               Contact admin and give them this info<ul>
                 <li>Method : %s</li>
                 <li>Part : %s</li>
                 <li>Response : %s</li>
-              </ul>', $method, htmlspecialchars($part), $response);
+              </ul>',
+                $method,
+                htmlspecialchars($part),
+                $response
+              );
               exit;
             }
-            break;
           default:
-            printf('        Something went wrong.
+            printf(
+              '        Something went wrong.
             Contact admin and give them this info<ul>
               <li>Method : %s</li>
               <li>Part : %s</li>
               <li>Response : %s</li>
-            </ul>', $method, htmlspecialchars($part), $response);
+            </ul>',
+              $method,
+              htmlspecialchars($part),
+              $response
+            );
             exit;
-            break;
         }
       }
     } else {
@@ -279,8 +298,9 @@ class SCIM {
    *
    * @return array
    */
-  public function getAllUsers($status = 1, $first = true) {
-    $rand = rand(0,20); # NOSONAR
+  public function getAllUsers($status = 1, $first = true)
+  {
+    $rand = rand(0, 20); # NOSONAR
     if ($rand == 0) {
       $this->refreshUsersSQL();
     }
@@ -293,10 +313,12 @@ class SCIM {
       self::SQL_INSTANCE => $this->dbInstanceId,
       self::SQL_STATUS => $status));
     while ($user = $userHandler->fetch(PDO::FETCH_ASSOC)) {
-      $userList[$user['scimId']] = array('id' => $user['scimId'],
+      $userList[$user['scimId']] = array(
+        'id' => $user['scimId'],
         'externalId' => $user['externalId'],
         'fullName' => $user['name'],
-        'ePPN' => $user['ePPN']);
+        'ePPN' => $user['ePPN']
+      );
     }
     if (empty($userList) && $first) {
       # Refresh if first time since upgrade
@@ -313,8 +335,11 @@ class SCIM {
    *
    * @return bool
    */
-  public function ePPNexists($eduPersonPrincipalName) {
-    $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN AND `status` < 16');
+  public function ePPNexists($eduPersonPrincipalName)
+  {
+    $checkUserHandler = $this->db->prepare(
+      'SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN AND `status` < 16'
+    );
     $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
     $checkUserHandler->bindValue(self::SQL_EPPN, $eduPersonPrincipalName);
     $checkUserHandler->execute();
@@ -328,8 +353,11 @@ class SCIM {
    *
    * @return bool
    */
-  public function personNINexists($personNIN) {
-    $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `personNIN` = :PersonNIN AND `status` < 16');
+  public function personNINexists($personNIN)
+  {
+    $checkUserHandler = $this->db->prepare(
+      'SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `personNIN` = :PersonNIN AND `status` < 16'
+    );
     $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
     $checkUserHandler->bindValue(self::SQL_PERSONNIN, $personNIN);
     $checkUserHandler->execute();
@@ -343,7 +371,8 @@ class SCIM {
    *
    * @return bool|object
    */
-  public function getId($id) {
+  public function getId($id)
+  {
     $user = $this->request('GET', self::SCIM_USERS . urlencode($id), '');
     return json_decode($user);
   }
@@ -356,7 +385,8 @@ class SCIM {
    *
    * @return bool
    */
-  public function removeUser($id, $version) {
+  public function removeUser($id, $version)
+  {
     $updateUserHandler =  $this->db->prepare('UPDATE `users`
       SET `status` = 8
       WHERE `instance_id` = :Instance AND `scimId` = :ScimId');
@@ -371,14 +401,17 @@ class SCIM {
    *
    * @param string $externalId
    *
-   * @return string
+   * @return bool|string
    */
-  public function getIdFromExternalId($externalId) {
+  public function getIdFromExternalId($externalId)
+  {
     $request =
-      sprintf('{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
+      sprintf(
+        '{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
         "filter": "externalId eq \"%s\"", "startIndex": 1, "count": 1}',
-        htmlspecialchars($externalId));
-    $userInfo = $this->request('POST', self::SCIM_USERS.'.search', $request);
+        htmlspecialchars($externalId)
+      );
+    $userInfo = $this->request('POST', self::SCIM_USERS . '.search', $request);
     $userArray = json_decode($userInfo);
     if ($userArray->totalResults == 1 && isset($userArray->Resources[0]->id)) {
       return $userArray->Resources[0]->id;
@@ -396,7 +429,8 @@ class SCIM {
    *
    * @return string
    */
-  public function updateId($id, $data, $version) {
+  public function updateId($id, $data, $version)
+  {
     return $this->request('PUT', self::SCIM_USERS . urlencode($id), $data, array('if-match: ' . $version));
   }
 
@@ -405,7 +439,8 @@ class SCIM {
    *
    * @return array
    */
-  public function getAttributes2migrate(){
+  public function getAttributes2migrate()
+  {
     return $this->attributes2migrate;
   }
 
@@ -414,7 +449,8 @@ class SCIM {
    *
    * @return array
    */
-  public function getAllowedScopes() {
+  public function getAllowedScopes()
+  {
     return $this->allowedScopes;
   }
 
@@ -425,7 +461,8 @@ class SCIM {
    *
    * @return bool
    */
-  public function validScope($string) {
+  public function validScope($string)
+  {
     $stringA = explode('@', $string, 2);
     if (count($stringA) > 1 && in_array($stringA[1], $this->allowedScopes)) {
       return true;
@@ -438,7 +475,8 @@ class SCIM {
    *
    * @return array
    */
-  public function getPossibleAffiliations() {
+  public function getPossibleAffiliations()
+  {
     return $this->possibleAffiliations;
   }
 
@@ -451,19 +489,22 @@ class SCIM {
    *
    * @return array
    */
-  public function expandePSA($ePSA) {
+  public function expandePSA($ePSA)
+  {
     do {
       $added = false;
       foreach ($ePSA as $affiliation) {
         $affiliationArray = explode('@', $affiliation);
         $checkedAffiliation = $affiliationArray[0];
         $checkedScope = '@' . $affiliationArray[1];
-        if (isset($this->possibleAffiliations[$checkedAffiliation]) &&
+        if (
+          isset($this->possibleAffiliations[$checkedAffiliation]) &&
           $this->possibleAffiliations[$checkedAffiliation] <> '' &&
-          ! in_array($this->possibleAffiliations[$checkedAffiliation].$checkedScope, $ePSA)) {
+          ! in_array($this->possibleAffiliations[$checkedAffiliation] . $checkedScope, $ePSA)
+        ) {
           # Add dependent affiliation
           $added = true;
-          $ePSA[] = $this->possibleAffiliations[$checkedAffiliation].$checkedScope;
+          $ePSA[] = $this->possibleAffiliations[$checkedAffiliation] . $checkedScope;
         }
       }
     } while ($added);
@@ -477,7 +518,8 @@ class SCIM {
    *
    * @return bool
    */
-  public function checkAccess($adminUser) {
+  public function checkAccess($adminUser)
+  {
     if (isset($this->adminUsers[$adminUser])) {
       $this->adminAccess = $this->adminUsers[$adminUser];
       return true;
@@ -490,7 +532,8 @@ class SCIM {
    *
    * @return int
    */
-  public function getAdminAccess() {
+  public function getAdminAccess()
+  {
     return $this->adminAccess;
   }
 
@@ -501,9 +544,13 @@ class SCIM {
    *
    * @return bool|string
    */
-  public function validateID($id) {
-    return filter_var($id, FILTER_VALIDATE_REGEXP,
-      array("options"=>array("regexp"=>"/^[a-z,0-9]{8}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{12}$/")));
+  public function validateID($id)
+  {
+    return filter_var(
+      $id,
+      FILTER_VALIDATE_REGEXP,
+      array('options' => array('regexp' => "/^[a-z,0-9]{8}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{4}-[a-z,0-9]{12}$/"))
+    );
   }
 
   /**
@@ -514,7 +561,8 @@ class SCIM {
    *
    * @return bool|string
    */
-  public function migrate($migrateInfo, $attributes) {
+  public function migrate($migrateInfo, $attributes)
+  {
     $migrateInfo = json_decode($migrateInfo);
     $attributes = json_decode($attributes);
 
@@ -549,10 +597,14 @@ class SCIM {
 
     if ($userInfo = $this->request('POST', self::SCIM_USERS, json_encode($userArray))) {
       $scimInfo = json_decode($userInfo);
-      $checkUserHandler = $this->db->prepare('SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN AND `status` < 16');
-      $addUserHandler = $this->db->prepare('INSERT INTO `users`
+      $checkUserHandler = $this->db->prepare(
+        'SELECT `instance_id` FROM `users` WHERE `instance_id` = :Instance AND `ePPN` = :EPPN AND `status` < 16'
+      );
+      $addUserHandler = $this->db->prepare(
+        'INSERT INTO `users`
         (`instance_id`, `ePPN`, `externalId`, `name`, `scimId`, `personNIN`, `lastSeen`, `status`)
-        VALUES (:Instance, :EPPN, :ExternalId, :Name, :ScimId, :PersonNIN, NOW(), 1)');
+        VALUES (:Instance, :EPPN, :ExternalId, :Name, :ScimId, :PersonNIN, NOW(), 1)'
+      );
       $checkUserHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
       if (isset($attributes->eduPersonPrincipalName)) {
         $checkUserHandler->execute(array(
@@ -579,7 +631,8 @@ class SCIM {
    *
    * @return bool
    */
-  public function checkScopeExists($scope) {
+  public function checkScopeExists($scope)
+  {
     include __DIR__ . '/../config.php'; # NOSONAR
     return isset($instances[$scope]);
   }
@@ -589,23 +642,32 @@ class SCIM {
    *
    * @return void
    */
-  public function refreshUsersSQL() {
+  public function refreshUsersSQL()
+  {
     $errors = '';
     $userList = array();
     $scimList = array();
-    $checkUserHandler = $this->db->prepare('SELECT `ePPN`, `externalId`, `scimId`, `status`
+    $checkUserHandler = $this->db->prepare(
+      'SELECT `ePPN`, `externalId`, `scimId`, `status`
       FROM `users`
-      WHERE `instance_id` = :Instance AND `status` < 16');
-    $addUserHandler = $this->db->prepare('INSERT INTO `users`
+      WHERE `instance_id` = :Instance AND `status` < 16'
+    );
+    $addUserHandler = $this->db->prepare(
+      'INSERT INTO `users`
       (`instance_id`, `ePPN`, `externalId`, `name`, `scimId`, `personNIN`, `lastSeen`, `status`)
-      VALUES (:Instance, :EPPN, :ExternalId, :Name, :ScimId, :PersonNIN, NOW(), 1)');
-    $updateUserHandler =  $this->db->prepare('UPDATE `users`
+      VALUES (:Instance, :EPPN, :ExternalId, :Name, :ScimId, :PersonNIN, NOW(), 1)'
+    );
+    $updateUserHandler =  $this->db->prepare(
+      'UPDATE `users`
       SET `ePPN` = :EPPN, `externalId` = :ExternalId, `name` = :Name,
         `personNIN` = :PersonNIN, `lastSeen` = NOW(), `status` = 1
-      WHERE `instance_id` = :Instance AND `scimId` = :ScimId');
-    $disableUserHandler =  $this->db->prepare('UPDATE `users`
+      WHERE `instance_id` = :Instance AND `scimId` = :ScimId'
+    );
+    $disableUserHandler =  $this->db->prepare(
+      'UPDATE `users`
       SET `status` = :Status
-      WHERE `instance_id` = :Instance AND `scimId` = :ScimId');
+      WHERE `instance_id` = :Instance AND `scimId` = :ScimId'
+    );
     $checkUserHandler->execute(array(self::SQL_INSTANCE => $this->dbInstanceId));
     while ($user = $checkUserHandler->fetch(PDO::FETCH_ASSOC)) {
       if ($user['ePPN'] != '') {
@@ -617,28 +679,42 @@ class SCIM {
     $totalResults = 500;
     $index = 1;
     while ($index < $totalResults) {
-      $idList = $this->request('POST',
-        self::SCIM_USERS.'.search','{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
-        "filter": "meta.lastModified ge \"1900-01-01\"", "startIndex": '. $index .', "count": 100}');
-        $index += 100;
+      $idList = $this->request(
+        'POST',
+        self::SCIM_USERS . '.search',
+        '{"schemas": ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
+        "filter": "meta.lastModified ge \"1900-01-01\"", "startIndex": ' . $index . ', "count": 100}'
+      );
+      $index += 100;
 
       $idListArray = json_decode($idList);
-      if (isset($idListArray->schemas) &&
-        $idListArray->schemas[0] == 'urn:ietf:params:scim:api:messages:2.0:ListResponse' ) {
+      if (
+        isset($idListArray->schemas) &&
+        $idListArray->schemas[0] == 'urn:ietf:params:scim:api:messages:2.0:ListResponse'
+      ) {
         $totalResults = $idListArray->totalResults;
         foreach ($idListArray->Resources as $Resource) {
-          $user = $this->request('GET', self::SCIM_USERS.$Resource->id, '');
+          $user = $this->request('GET', self::SCIM_USERS . $Resource->id, '');
           $userArray = json_decode($user);
           $fullName = isset($userArray->name->formatted) ? $userArray->name->formatted : '';
           $personNIN = '';
-          $ePPN = isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName) ?
+          $ePPN = isset(
+            $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName
+          ) ?
             $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->attributes->eduPersonPrincipalName : '';
           $personNIN = isset($userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo) ?
             $userArray->{self::SCIM_NUTID_SCHEMA}->profiles->connectIdp->data->civicNo : '';
 
           if (isset($scimList[$Resource->id])) {
             #exists in DB
-            $errors .= $scimList[$Resource->id]['ePPN'] == $ePPN ? '' : sprintf("ePPN was changed from %s to %s on %s\n", $scimList[$Resource->id]['ePPN'], $ePPN, $Resource->id);
+            $errors .= $scimList[$Resource->id]['ePPN'] == $ePPN
+              ? ''
+              : sprintf(
+                "ePPN was changed from %s to %s on %s\n",
+                $scimList[$Resource->id]['ePPN'],
+                $ePPN,
+                $Resource->id
+              );
             $updateUserHandler->execute(array(
               self::SQL_INSTANCE => $this->dbInstanceId,
               self::SQL_EPPN => $ePPN,
@@ -659,7 +735,8 @@ class SCIM {
           }
 
           if ($ePPN != '') {
-            $errors .= (isset($userList[$ePPN]['seen']) && $userList[$ePPN]['seen']) ? sprintf ("%s exists twice in SCIM.\n", $ePPN) : '';
+            $errors .= (isset($userList[$ePPN]['seen']) && $userList[$ePPN]['seen'])
+              ? sprintf("%s exists twice in SCIM.\n", $ePPN) : '';
             $userList[$ePPN]['seen'] = true;
           }
         }
@@ -668,34 +745,37 @@ class SCIM {
         $index = 100000;
       }
     }
-    foreach ($scimList as $scimId => $data ) {
+    foreach ($scimList as $scimId => $data) {
       if (! $data['seen']) {
         # Not in SCIM
         switch ($data['status']) {
-          case 1 :
+          case 1:
             # Mark user as deleted
             $disableUserHandler->execute(array(
               self::SQL_INSTANCE => $this->dbInstanceId,
               self::SQL_STATUS => 8,
               self::SQL_SCIMID => $scimId));
-            $errors .= sprintf ("Disabled %s->%s since missing in SCIM.\n", $scimId, $data['ePPN']);
+            $errors .= sprintf("Disabled %s->%s since missing in SCIM.\n", $scimId, $data['ePPN']);
             break;
-          case 8 :
+          case 8:
             if (isset($userList[$data['ePPN']]) && $userList[$data['ePPN']]['seen']) {
               $disableUserHandler->execute(array(
                 self::SQL_INSTANCE => $this->dbInstanceId,
                 self::SQL_STATUS => 16,
                 self::SQL_SCIMID => $scimId));
-              $errors .= sprintf ("Archived %s->%s since exists in scim again.\n", $scimId, $data['ePPN']);
+              $errors .= sprintf("Archived %s->%s since exists in scim again.\n", $scimId, $data['ePPN']);
             }
             break;
-          default :
+          default:
         }
       }
-
     }
-    if ($errors != '' ) {
-      printf('        <div class="row alert-danger" role="alert">%s</div>%s', str_ireplace("\n", "<br>", $errors), "\n");
+    if ($errors != '') {
+      printf(
+        '        <div class="row alert-danger" role="alert">%s</div>%s',
+        str_ireplace("\n", "<br>", $errors),
+        "\n"
+      );
     }
   }
 
@@ -706,13 +786,17 @@ class SCIM {
    *
    * @return string
    */
-  public function restoreUser($id) {
-    $userHandler =  $this->db->prepare('SELECT `ePPN`, `externalId`, `name`, `personNIN`
+  public function restoreUser($id)
+  {
+    $userHandler =  $this->db->prepare(
+      'SELECT `ePPN`, `externalId`, `name`, `personNIN`
       FROM `users`
-      WHERE `status` = 8 AND `instance_id` = :Instance AND `scimId` = :ScimId');
+      WHERE `status` = 8 AND `instance_id` = :Instance AND `scimId` = :ScimId'
+    );
     $userHandler->execute(array(
       self::SQL_INSTANCE => $this->dbInstanceId,
-      self::SQL_SCIMID => $id));
+      self::SQL_SCIMID => $id
+    ));
     if ($user = $userHandler->fetch(PDO::FETCH_ASSOC)) {
       $userArray = new \stdClass();
       $userArray->externalId = $user['externalId'];
@@ -733,28 +817,34 @@ class SCIM {
       if ($userInfo = $this->request('POST', self::SCIM_USERS, json_encode($userArray))) {
         $scimInfo = json_decode($userInfo);
 
-        $addUserHandler = $this->db->prepare('INSERT INTO `users`
+        $addUserHandler = $this->db->prepare(
+          'INSERT INTO `users`
           (`instance_id`, `ePPN`, `externalId`, `name`, `scimId`, `personNIN`, `lastSeen`, `status`)
-          VALUES (:Instance, :EPPN, :ExternalId, :Name, :ScimId, :PersonNIN, NOW(), 1)');
-        $updateUserHandler =  $this->db->prepare('UPDATE `users`
+          VALUES (:Instance, :EPPN, :ExternalId, :Name, :ScimId, :PersonNIN, NOW(), 1)'
+        );
+        $updateUserHandler = $this->db->prepare(
+          'UPDATE `users`
           SET `status` = 16
-          WHERE `instance_id` = :Instance AND `scimId` = :ScimId');
+          WHERE `instance_id` = :Instance AND `scimId` = :ScimId'
+        );
         $addUserHandler->execute(array(
           self::SQL_INSTANCE => $this->dbInstanceId,
           self::SQL_EPPN => $user['ePPN'],
           self::SQL_EXTERNALID => $user['externalId'],
           self::SQL_NAME => $user['name'],
           self::SQL_SCIMID => $scimInfo->id,
-          self::SQL_PERSONNIN => $user['personNIN']));
+          self::SQL_PERSONNIN => $user['personNIN']
+        ));
         $updateUserHandler->execute(array(
           self::SQL_INSTANCE => $this->dbInstanceId,
-          self::SQL_SCIMID => $id));
+          self::SQL_SCIMID => $id
+        ));
         return $scimInfo->id;
       }
-      printf ('Problem to restore user in SCIM!!');
+      printf('Problem to restore user in SCIM!!');
       exit;
     } else {
-      printf ('User was not removed. Can not restore!!');
+      printf('User was not removed. Can not restore!!');
       exit;
     }
   }
@@ -767,7 +857,8 @@ class SCIM {
    *
    * @return bool
    */
-  public function autoEPPN() {
+  public function autoEPPN()
+  {
     return $this->autoEPPN;
   }
 
@@ -778,7 +869,8 @@ class SCIM {
    *
    * @return string
    */
-  public function translatedSAML($attribute) {
+  public function translatedSAML($attribute)
+  {
     return isset($this->translateSAML[$attribute]) ? $this->translateSAML[$attribute] : $attribute;
   }
 }

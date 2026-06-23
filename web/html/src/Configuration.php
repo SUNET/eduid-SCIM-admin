@@ -1,10 +1,12 @@
 <?php
+
 namespace scimAdmin;
 
 use PDO;
 use PDOException;
 
-class Configuration {
+class Configuration
+{
   private string $scope = '';
   private array $possibleAffiliations = array();
   private array $instance = array();
@@ -23,7 +25,8 @@ class Configuration {
    *
    * @return void
    */
-  public function __construct($startDB = true, $scope = false) {
+  public function __construct($startDB = true, $scope = false)
+  {
     include __DIR__ . '/../config.php'; # NOSONAR
 
     $reqParams = array('dbServername', 'dbUsername', 'dbPassword', 'dbName',
@@ -45,13 +48,13 @@ class Configuration {
         $this->db = new PDO("mysql:host=$dbServername;dbname=$dbName", $dbUsername, $dbPassword);
         // set the PDO error mode to exception
         $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-      } catch(PDOException $e) {
+      } catch (PDOException $e) {
         echo "Error: " . $e->getMessage();
       }
       $this->checkDBVersion();
     }
 
-    $this->scope = $scope ? $scope : str_replace('/','',$_SERVER['CONTEXT_PREFIX']);
+    $this->scope = $scope ? $scope : str_replace('/', '', $_SERVER['CONTEXT_PREFIX']);
 
     $this->mode =  $Mode;
 
@@ -90,37 +93,45 @@ class Configuration {
    *
    * @return void
    */
-  private function checkDBVersion() {
+  private function checkDBVersion()
+  {
     $dbVersionHandler = $this->db->query("SELECT value FROM params WHERE `id` = 'dbVersion'");
     if (! $dbVersion = $dbVersionHandler->fetch(PDO::FETCH_ASSOC)) {
       $dbVersion = 0;
     } else {
-      $dbVersion=$dbVersion['value'];
+      $dbVersion = $dbVersion['value'];
     }
     if ($dbVersion < 5) {
       if ($dbVersion < 1) {
         $this->db->query("INSERT INTO params (`instance`, `id`, `value`) VALUES ('', 'dbVersion', 1)");
       }
-      if ($dbVersion < 2 && $this->db->query(
-        "ALTER TABLE invites ADD
+      if (
+        $dbVersion < 2 && $this->db->query(
+          'ALTER TABLE invites ADD
           `id` int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY
-          FIRST")) {
+          FIRST'
+        )
+      ) {
         # 1 Update went well. Do the rest
         $this->db->query(
-          "ALTER TABLE invites ADD
+          'ALTER TABLE invites ADD
             `status` tinyint unsigned
-          AFTER `hash`");
+          AFTER `hash`'
+        );
         $this->db->query(
-          "ALTER TABLE invites ADD
+          'ALTER TABLE invites ADD
             `inviteInfo` text DEFAULT NULL
-          AFTER `attributes`");
+          AFTER `attributes`'
+        );
         $this->db->query(
-          "ALTER TABLE invites ADD
+          'ALTER TABLE invites ADD
             `migrateInfo` text DEFAULT NULL
-          AFTER `inviteInfo`");
+          AFTER `inviteInfo`'
+        );
         $this->db->query(
-          "ALTER TABLE invites MODIFY COLUMN
-            `hash` varchar(65) DEFAULT NULL");
+          'ALTER TABLE invites MODIFY COLUMN
+            `hash` varchar(65) DEFAULT NULL'
+        );
         $this->db->query("UPDATE params SET value = 2 WHERE `instance`='' AND `id`='dbVersion'");
       }
       if ($dbVersion < 3) {
@@ -159,8 +170,10 @@ class Configuration {
         $this->db->query('DELETE FROM `users`');
         $this->db->query("UPDATE params SET value = 4 WHERE `instance_id` = 1 AND `id` = 'dbVersion'");
       }
-      $this->db->query('ALTER TABLE `invites`
-          CHANGE `session` `session` varchar(40) DEFAULT NULL');
+      $this->db->query(
+        'ALTER TABLE `invites`
+        CHANGE `session` `session` varchar(40) DEFAULT NULL'
+      );
       $this->db->query("UPDATE params SET value = 5 WHERE `instance_id` = 1 AND `id` = 'dbVersion'");
     }
   }
@@ -174,7 +187,8 @@ class Configuration {
    * @param string $scope
    * @return void
    */
-  private function checkInstanceExitInDB($scope) {
+  private function checkInstanceExitInDB($scope)
+  {
     $instanceHandler = $this->db->prepare('SELECT `id` FROM `instances` WHERE `instance` = :Instance');
     $instanceHandler->execute(array('Instance' => $scope));
     if ($instance = $instanceHandler->fetch(PDO::FETCH_ASSOC)) {
@@ -191,7 +205,8 @@ class Configuration {
    *
    * @return array
    */
-  public function getPossibleAffiliations() {
+  public function getPossibleAffiliations()
+  {
     return $this->possibleAffiliations;
   }
 
@@ -200,7 +215,8 @@ class Configuration {
    *
    * @return array
    */
-  public function getSCIM() {
+  public function getSCIM()
+  {
     return $this->scim;
   }
 
@@ -209,7 +225,8 @@ class Configuration {
    *
    * @return array
    */
-  public function getSMTP() {
+  public function getSMTP()
+  {
     return $this->smtp;
   }
 
@@ -220,7 +237,8 @@ class Configuration {
    *
    * @return array
    */
-  public function getInstance() {
+  public function getInstance()
+  {
     return $this->instance;
   }
 
@@ -229,7 +247,8 @@ class Configuration {
    *
    * @return PDO
    */
-  public function getDb() {
+  public function getDb()
+  {
     return $this->db;
   }
 
@@ -238,7 +257,8 @@ class Configuration {
    *
    * @return string
    */
-  public function getScope() {
+  public function getScope()
+  {
     return $this->scope;
   }
 
@@ -247,7 +267,8 @@ class Configuration {
    *
    * @return int
    */
-  public function getDbInstanceId() {
+  public function getDbInstanceId()
+  {
     return $this->dbInstanceId;
   }
 
@@ -256,7 +277,8 @@ class Configuration {
    *
    * @return bool
    */
-  public function forceMFA() {
+  public function forceMFA()
+  {
     return $this->instance['forceMFA'];
   }
 
@@ -265,7 +287,8 @@ class Configuration {
    *
    * @return string
    */
-  public function orgName() {
+  public function orgName()
+  {
     return $this->instance['orgName'];
   }
 
@@ -274,7 +297,8 @@ class Configuration {
    *
    * @return string
    */
-  public function mode() {
+  public function mode()
+  {
     return $this->mode;
   }
 
@@ -283,7 +307,8 @@ class Configuration {
    *
    * @return bool
    */
-  public function scopeConfigured() {
+  public function scopeConfigured()
+  {
     return ($this->instance) ? true : false;
   }
 }

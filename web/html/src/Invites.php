@@ -1,4 +1,5 @@
 <?php
+
 namespace scimAdmin;
 
 use PDO;
@@ -6,8 +7,8 @@ use PDO;
 /**
  * Class to handle Invites to be added to SCIM
  */
-class Invites {
-
+class Invites
+{
   /**
    * Scope for instance
    *
@@ -76,28 +77,29 @@ class Invites {
    */
   private int $dbInstanceId = 0;
 
-  const SQL_INVITELIST = 'SELECT *  FROM invites WHERE `instance_id` = :Instance
+  private const SQL_INVITELIST = 'SELECT *  FROM invites WHERE `instance_id` = :Instance
     ORDER BY `status` DESC, `hash`, `session`';
-  const SQL_INVITE = 'SELECT *  FROM invites WHERE `instance_id` = :Instance AND `id` = :Id';
-  const SQL_SPECIFICINVITE = 'SELECT *  FROM invites WHERE `session` = :Session AND `instance_id` = :Instance';
+  private const SQL_INVITE = 'SELECT *  FROM invites WHERE `instance_id` = :Instance AND `id` = :Id';
+  private const SQL_SPECIFICINVITE = 'SELECT *  FROM invites WHERE `session` = :Session AND `instance_id` = :Instance';
 
-  const SQL_INSTANCE = ':Instance';
-  const SQL_ID = ':Id';
-  const SQL_MIGRATEINFO = ':MigrateInfo';
-  const SQL_SESSION = ':Session';
-  const SQL_ATTRIBUTES =':Attributes';
-  const SQL_INVITEINFO = ':InviteInfo';
-  const SQL_HASH = ':Hash';
-  const SQL_LANG = ':Lang';
+  private const SQL_INSTANCE = ':Instance';
+  private const SQL_ID = ':Id';
+  private const SQL_MIGRATEINFO = ':MigrateInfo';
+  private const SQL_SESSION = ':Session';
+  private const SQL_ATTRIBUTES = ':Attributes';
+  private const SQL_INVITEINFO = ':InviteInfo';
+  private const SQL_HASH = ':Hash';
+  private const SQL_LANG = ':Lang';
 
-  const SWAMID_AL = 'http://www.swamid.se/policy/assurance/al'; # NOSONAR
+  private const SWAMID_AL = 'http://www.swamid.se/policy/assurance/al'; # NOSONAR
 
   /**
    * Setup the class
    *
    * @return void
    */
-  public function __construct() {
+  public function __construct()
+  {
     $config = new Configuration();
     $this->db = $config->getDb();
 
@@ -124,7 +126,8 @@ class Invites {
    *
    * @return array
    */
-  public function getInvitesList() {
+  public function getInvitesList()
+  {
     $invitesHandler = $this->db->prepare(self::SQL_INVITELIST);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
     $invitesHandler->execute();
@@ -138,7 +141,8 @@ class Invites {
    *
    * @return array
    */
-  public function getInvite($id) {
+  public function getInvite($id)
+  {
     $invitesHandler = $this->db->prepare(self::SQL_INVITE);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
     $invitesHandler->bindValue(self::SQL_ID, $id);
@@ -155,7 +159,8 @@ class Invites {
    *
    * @return bool|string
    */
-  public function validateID($id) {
+  public function validateID($id)
+  {
     $invitesHandler = $this->db->prepare(self::SQL_INVITE);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
     $invitesHandler->bindValue(self::SQL_ID, $id);
@@ -173,7 +178,8 @@ class Invites {
    *
    * @return bool|array
    */
-  public function checkInviteBySession($session) {
+  public function checkInviteBySession($session)
+  {
     $invitesHandler = $this->db->prepare(self::SQL_SPECIFICINVITE);
     $invitesHandler->bindParam(self::SQL_SESSION, $session);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
@@ -190,10 +196,15 @@ class Invites {
    *
    * @return void
    */
-  public function startMigrateFromSourceIdP() {
-    $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
-    $redirectURL = sprintf('%s/Shibboleth.sso/Login?entityID=%s&target=%s&forceAuthn=true',
-      $hostURL, $this->sourceIdP, urlencode($hostURL . '/' . $this->scope . '/migrate/?source'));
+  public function startMigrateFromSourceIdP()
+  {
+    $hostURL = "http" . (!empty($_SERVER['HTTPS']) ? "s" : "") . "://" . $_SERVER['SERVER_NAME'];
+    $redirectURL = sprintf(
+      '%s/Shibboleth.sso/Login?entityID=%s&target=%s&forceAuthn=true',
+      $hostURL,
+      $this->sourceIdP,
+      urlencode($hostURL . '/' . $this->scope . '/migrate/?source')
+    );
     header('Location: ' . $redirectURL);
   }
 
@@ -202,7 +213,8 @@ class Invites {
    *
    * @return bool|array
    */
-  public function checkSourceData() {
+  public function checkSourceData()
+  {
     $migrate = array();
     if ($_SERVER['Shib-Identity-Provider'] == $this->sourceIdP) {
       foreach ($this->attributes2migrate as $attribute => $SCIM) {
@@ -222,7 +234,8 @@ class Invites {
    *
    * @return bool
    */
-  public function checkCorrectBackendIdP() {
+  public function checkCorrectBackendIdP()
+  {
     return $_SERVER['Shib-Identity-Provider'] == $this->backendIdP;
   }
 
@@ -231,9 +244,10 @@ class Invites {
    *
    * @return array
    */
-  public function getUserDataFromIdP() {
+  public function getUserDataFromIdP()
+  {
     $migrate = array();
-    $attributes= array('eduPersonPrincipalName','givenName', 'mail', 'mailLocalAddress',
+    $attributes = array('eduPersonPrincipalName', 'givenName', 'mail', 'mailLocalAddress',
       'norEduPersonNIN', 'schacDateOfBirth', 'sn', 'eduPersonAssurance');
     foreach ($attributes as $attribute) {
       $migrate[$attribute] = isset($_SERVER[$attribute]) ? $_SERVER[$attribute] : '';
@@ -246,7 +260,8 @@ class Invites {
    *
    * @return bool|array
    */
-  public function checkBackendData() {
+  public function checkBackendData()
+  {
     if ($this->checkCorrectBackendIdP()) {
       if (isset($_SERVER['eduPersonPrincipalName'])) {
         $migrate = $this->getUserDataFromIdP();
@@ -265,7 +280,8 @@ class Invites {
    *
    * @return bool
    */
-  public function checkALLevel($level) {
+  public function checkALLevel($level)
+  {
     $idpACFound = false;
     $userACFound = false;
     if (isset($_SERVER['Meta-Assurance-Certification'])) {
@@ -288,11 +304,13 @@ class Invites {
    *
    * @return bool|int
    */
-  public function ePPNexists($eduPersonPrincipalName) {
+  public function ePPNexists($eduPersonPrincipalName)
+  {
     $inviteHandler = $this->db->prepare(
       'SELECT `id`, `status`, `attributes`
       FROM `invites`
-      WHERE `instance_id` = :Instance');
+      WHERE `instance_id` = :Instance'
+    );
     $inviteHandler->execute(array(self::SQL_INSTANCE => $this->dbInstanceId));
     while ($invite = $inviteHandler->fetch(PDO::FETCH_ASSOC)) {
       $json = json_decode($invite['attributes']);
@@ -311,11 +329,13 @@ class Invites {
    *
    * @return bool|int
    */
-  public function personNINexists($personNIN) {
+  public function personNINexists($personNIN)
+  {
     $inviteHandler = $this->db->prepare(
       'SELECT `id`, `status`, `inviteInfo`
       FROM `invites`
-      WHERE `instance_id` = :Instance');
+      WHERE `instance_id` = :Instance'
+    );
     $inviteHandler->execute(array(self::SQL_INSTANCE => $this->dbInstanceId));
     while ($invite = $inviteHandler->fetch(PDO::FETCH_ASSOC)) {
       $json = json_decode($invite['inviteInfo']);
@@ -331,12 +351,15 @@ class Invites {
    * Updates attribute in an invite based on the session
    *
    * @param string $session
-   * @param string $attributes
-   * @param string $inviteInfo
+   *
+   * @param array $attributes
+   *
+   * @param array $inviteInfo
    *
    * @return bool
    */
-  public function updateInviteAttributes($session, $attributes, $inviteInfo) {
+  public function updateInviteAttributes($session, $attributes, $inviteInfo)
+  {
     $invitesHandler = $this->db->prepare(self::SQL_SPECIFICINVITE);
     $invitesHandler->bindParam(self::SQL_SESSION, $session);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
@@ -369,7 +392,8 @@ class Invites {
    *
    * @return bool
    */
-  public function updateInviteSession($session) {
+  public function updateInviteSession($session)
+  {
     $updateHandler = $this->db->prepare('UPDATE invites
       SET `modified` = NOW(), `session` = :Session
       WHERE `id`= :Id AND status = 1 AND `instance_id` = :Instance');
@@ -386,10 +410,11 @@ class Invites {
    *
    * @return void
    */
-  public function sendNewInviteCode($id) {
+  public function sendNewInviteCode($id)
+  {
     $invite = $this->getInvite($id);
     $inviteInfo = json_decode($invite['inviteInfo']);
-    $code = hash_hmac('md5','HashCode',time()); // NOSONAR
+    $code = hash_hmac('md5', 'HashCode', strval(time())); // NOSONAR
 
     if ($invite['lang'] == 'sv') {
       setlocale(LC_MESSAGES, 'sv_SE');
@@ -407,7 +432,8 @@ class Invites {
     $updateHandler->bindValue(self::SQL_HASH, hash('sha256', $code));
     $updateHandler->execute();
 
-    $hostURL = "http" . (!empty($_SERVER['HTTPS'])?"s":"") . "://" . $_SERVER['SERVER_NAME'] . '/' . $this->scope . '/';
+    $hostURL = "http" . (!empty($_SERVER['HTTPS']) ? "s" : "") . "://" .
+      $_SERVER['SERVER_NAME'] . '/' . $this->scope . '/';
 
     $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
     $mail->isSMTP();
@@ -426,7 +452,8 @@ class Invites {
     $mail->addAddress($inviteInfo->mail);
     //Content
     $mail->isHTML(true);
-    $mail->Body = sprintf('      <!DOCTYPE html>
+    $mail->Body = sprintf(
+      '      <!DOCTYPE html>
       <html lang="en">
         <head>
           <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -440,16 +467,23 @@ class Invites {
               <li><a href="https://eduid.se/profile/">%s</a></li>%s',
       _('Hi.'),
       $this->orgName,
-      _('uses eduID for login into national and international web-services. To be able to use this service you need to connect your personal eduID-account to your organisation. This is done by following the instructions below.'),
+      _('uses eduID for login into national and international web-services.' .
+        ' To be able to use this service you need to connect your personal eduID-account to your organisation.' .
+        ' This is done by following the instructions below.'),
       _('To be able to make this connection, you need to have done the following:'),
       _('Create a personal identity on eduID.'),
       _('Verify your identity in eduID.'),
-      "\n");
+      "\n"
+    );
     if ($this->forceMFA) {
-      $mail->Body .= sprintf('              <li><a href="https://eduid.se/profile/">%s</a></li>%s',
-        _('Add a security key to eduID for safer login.'), "\n");
+      $mail->Body .= sprintf(
+        '              <li><a href="https://eduid.se/profile/">%s</a></li>%s',
+        _('Add a security key to eduID for safer login.'),
+        "\n"
+      );
     }
-    $mail->Body .= sprintf('            </ol>
+    $mail->Body .= sprintf(
+      '            </ol>
           </div>
           <p>%s <a href="%s?action=showInviteFlow">%s?action=showInviteFlow</a> %s</p>
           <p>%s <b>%s</b></p>
@@ -457,12 +491,15 @@ class Invites {
         </body>
       </html>',
       _('When you have a personal identity in eduID, proceed to this web-page'),
-      $hostURL, $hostURL,
+      $hostURL,
+      $hostURL,
       _('enter the follwing code and press the button.'),
       _('Invitecode:'),
       $code,
-      _('Welcome'));
-    $mail->AltBody = sprintf('%s
+      _('Welcome')
+    );
+    $mail->AltBody = sprintf(
+      '%s
       %s %s
 
       %s
@@ -471,16 +508,22 @@ class Invites {
       2. %s, https://eduid.se/profile/%s',
       _('Hi.'),
       $this->orgName,
-      _('uses eduID for login into national and international web-services. To be able to use this service you need to connect yoour personal eduID-account to your organisation.'),
+      _('uses eduID for login into national and international web-services.' .
+        ' To be able to use this service you need to connect your personal eduID-account to your organisation.'),
       _('To be able to make this connection, you need to have done the following:'),
       _('Create a personal identity on eduID.'),
       _('Verify your identity in eduID.'),
-      "\n");
+      "\n"
+    );
     if ($this->forceMFA) {
-      $mail->AltBody .= sprintf('      3. %s, https://eduid.se/profile/%s',
-        _('Add a security key to eduID for safer login.'), "\n");
+      $mail->AltBody .= sprintf(
+        '      3. %s, https://eduid.se/profile/%s',
+        _('Add a security key to eduID for safer login.'),
+        "\n"
+      );
     }
-    $mail->AltBody .= sprintf('
+    $mail->AltBody .= sprintf(
+      '
       %s %s?action=showInviteFlow %s
 
       %s %s
@@ -491,7 +534,8 @@ class Invites {
       _('enter the follwing code and press the button.'),
       _('Invitecode:'),
       $code,
-    _('Welcome'));
+      _('Welcome')
+    );
     $mail->Subject  = _('Your invite code for eduID Connect');
 
     try {
@@ -513,7 +557,8 @@ class Invites {
    *
    * @return bool
    */
-  public function updateInviteAttributesById($id, $attributes, $inviteInfo, $lang, $sendMail = true) {
+  public function updateInviteAttributesById($id, $attributes, $inviteInfo, $lang, $sendMail = true)
+  {
     $invitesHandler = $this->db->prepare('SELECT *  FROM invites WHERE `id` = :Id AND `instance_id` = :Instance');
     $invitesHandler->bindParam(self::SQL_ID, $id);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
@@ -540,7 +585,7 @@ class Invites {
       $insertHandler->bindValue(self::SQL_LANG, $lang);
       if ($insertHandler->execute()) {
         if ($sendMail) {
-          $this->sendNewInviteCode($this->db->lastInsertId());
+          $this->sendNewInviteCode(intval($this->db->lastInsertId()));
         }
         return true;
       } else {
@@ -557,7 +602,8 @@ class Invites {
    *
    * @return bool
    */
-  public function updateInviteByCode($session,$code) {
+  public function updateInviteByCode($session, $code)
+  {
     $invitesHandler = $this->db->prepare("SELECT *  FROM invites
       WHERE `hash` = :Hash AND `instance_id` = :Instance AND `status` = 1");
     $invitesHandler->bindValue(self::SQL_HASH, hash('sha256', $code));
@@ -584,7 +630,8 @@ class Invites {
    *
    * @return array
    */
-  public function getInviteBySession($session) {
+  public function getInviteBySession($session)
+  {
     $invitesHandler = $this->db->prepare(self::SQL_SPECIFICINVITE);
     $invitesHandler->bindParam(self::SQL_SESSION, $session);
     $invitesHandler->bindValue(self::SQL_INSTANCE, $this->dbInstanceId);
@@ -599,7 +646,8 @@ class Invites {
    *
    * @return bool
    */
-  public function removeInvite($id) {
+  public function removeInvite($id)
+  {
     $invitesHandler = $this->db->prepare('DELETE FROM invites
       WHERE `id` = :Id AND `instance_id` = :Instance');
     $invitesHandler->bindParam(self::SQL_ID, $id);
@@ -615,7 +663,8 @@ class Invites {
    *
    * @return bool
    */
-  public function move2Manual($id, $migrateInfo) {
+  public function move2Manual($id, $migrateInfo)
+  {
     $invitesHandler = $this->db->prepare('UPDATE invites
       SET `status` = 2, `migrateInfo`= :MigrateInfo, `session` = NULL
       WHERE `id` = :Id AND `instance_id` = :Instance');
@@ -630,7 +679,8 @@ class Invites {
    *
    * @return string
    */
-  public function getInstance() {
+  public function getInstance()
+  {
     return $this->scope;
   }
 
@@ -639,7 +689,8 @@ class Invites {
    *
    * @return int
    */
-  public function getInviteePPNid() {
+  public function getInviteePPNid()
+  {
     return $this->ePPNId;
   }
 
@@ -651,11 +702,16 @@ class Invites {
    *
    * @return void
    */
-  public function redirectToNewIdP($page, $mfa = false) {
-    $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
-    $redirectURL = sprintf('%s/Shibboleth.sso/Login?entityID=%s&target=%s&forceAuthn=true%s',
-      $hostURL, $this->backendIdP, urlencode($hostURL . '/' . $this->scope . '/' . $page),
-      $mfa ? '&authnContextClassRef=https%3A%2F%2Frefeds.org%2Fprofile%2Fmfa' : '');
+  public function redirectToNewIdP($page, $mfa = false)
+  {
+    $hostURL = "http" . (!empty($_SERVER['HTTPS']) ? "s" : "") . "://" . $_SERVER['SERVER_NAME'];
+    $redirectURL = sprintf(
+      '%s/Shibboleth.sso/Login?entityID=%s&target=%s&forceAuthn=true%s',
+      $hostURL,
+      $this->backendIdP,
+      urlencode($hostURL . '/' . $this->scope . '/' . $page),
+      $mfa ? '&authnContextClassRef=https%3A%2F%2Frefeds.org%2Fprofile%2Fmfa' : ''
+    );
     header('Location: ' . $redirectURL);
   }
 
@@ -666,12 +722,13 @@ class Invites {
    *
    * @return bool
    */
-  public function validateEmail($string) {
+  public function validateEmail($string)
+  {
     $mailA = explode('@', $string);
     if (isset($mailA[1]) && strlen($mailA[0])) {
       # x exists set in x@yy.zz
       $domainA = explode('.', $mailA[1]);
-      if (count($domainA) > 1 && strlen($domainA[count($domainA)-1]) > 1) {
+      if (count($domainA) > 1 && strlen($domainA[count($domainA) - 1]) > 1) {
         ## yy and zz exists and zz is at least 2 chars
         return true;
       }
@@ -687,9 +744,10 @@ class Invites {
    *
    * @return bool
    */
-  public function validateSSN($ssn, $allowBirthDate = false) {
+  public function validateSSN($ssn, $allowBirthDate = false)
+  {
     if (strlen($ssn) == 12 || (strlen($ssn) == 8 && $allowBirthDate)) {
-      $dateA = str_split($ssn,2);
+      $dateA = str_split($ssn, 2);
       if ($dateA[0] > 18 && $dateA[0] < 21 && $dateA[2] < 13 && $dateA[3] < 32) {
         if ($allowBirthDate) {
           return true;
@@ -697,19 +755,18 @@ class Invites {
           $ssnA = str_split($ssn);
           $checkValue = 0;
           for ($pos = 2; $pos <= 10; $pos += 2) {
-            if ($ssnA[$pos] * 2 > 9) {
-              $checkValue += ($ssnA[$pos] * 2) - 9;
+            if (intval($ssnA[$pos]) * 2 > 9) {
+              $checkValue += (intval($ssnA[$pos]) * 2) - 9;
             } else {
-              $checkValue += $ssnA[$pos] * 2;
+              $checkValue += intval($ssnA[$pos]) * 2;
             }
           }
           for ($pos = 3; $pos <= 9; $pos += 2) {
             $checkValue += $ssnA[$pos];
           }
-          return (10 - ($checkValue %10))%10 == $ssnA[11];
+          return (10 - ($checkValue % 10)) % 10 == $ssnA[11];
         }
       }
-
     }
     return false;
   }

@@ -1,18 +1,20 @@
 <?php
+
 namespace scimAdmin;
 
 /**
  * Class to handle Localization of application
  */
-class Localize {
-
+class Localize
+{
   /**
    * Setup the class
    *
    * @return void
    */
-  public function __construct() {
-    if(session_status() !== PHP_SESSION_ACTIVE) {
+  public function __construct()
+  {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
       session_start();
     }
 
@@ -24,15 +26,18 @@ class Localize {
       } else {
         $selectedLang = 'en';
       }
-    }
-    elseif (isset($_SESSION['lang'])) {
+    } elseif (isset($_SESSION['lang'])) {
       $this->setLocale($_SESSION['lang']);
     } else {
       $langs = array();
 
       if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
         // break up string into pieces (languages and q factors)
-        preg_match_all('/([a-z]{1,8}(-[a-z]{1,8})?)\s*(;\s*q\s*=\s*(1|0\.\d+))?/i', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $lang_parse);
+        preg_match_all(
+          '/([a-z]{1,8}(-[a-z]{1,8})?)\s*(;\s*q\s*=\s*(1|0\.\d+))?/i',
+          $_SERVER['HTTP_ACCEPT_LANGUAGE'],
+          $lang_parse
+        );
 
         if (count($lang_parse[1])) {
           // create a list like "en" => 0.8
@@ -50,15 +55,15 @@ class Localize {
 
       // look through sorted list and use first one that matches our languages
       foreach ($langs as $lang => $val) {
-        if (! $selectedLang ) {
+        if (! $selectedLang) {
           switch ($lang) {
-            case 'sv' :
-            case 'sv-SE' :
+            case 'sv':
+            case 'sv-SE':
               $selectedLang = 'sv_SE';
               break;
-            case 'en-GB' :
-            case 'en-US' :
-            case 'en' :
+            case 'en-GB':
+            case 'en-US':
+            case 'en':
               $selectedLang = 'en';
               break;
             default:
@@ -80,7 +85,8 @@ class Localize {
    * @param string $locale locale to translae into
    * @return void
    */
-  private function setLocale($locale) {
+  private function setLocale($locale)
+  {
     setlocale(LC_MESSAGES, $locale); // Linux
     bindtextdomain("SCIM", __DIR__ . '/../locale');
     textdomain("SCIM");

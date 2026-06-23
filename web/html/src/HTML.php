@@ -1,7 +1,9 @@
 <?php
+
 namespace scimAdmin;
 
-class HTML {
+class HTML
+{
   # Setup
   private $displayName = '';
   private $extraURL  = '';
@@ -14,10 +16,11 @@ class HTML {
    *
    * @return void
    */
-  public function __construct($tagLine = '') {
+  public function __construct($tagLine = '')
+  {
     $this->displayName = '';
     $this->extraURL = '';
-    $this->scope = str_replace('/','',$_SERVER['CONTEXT_PREFIX']);
+    $this->scope = str_replace('/', '', $_SERVER['CONTEXT_PREFIX']);
     $this->tagLine = $tagLine == '' ? _('Activate your organisation identity in eduID') : $tagLine;
   }
 
@@ -29,7 +32,9 @@ class HTML {
    *
    * @return void
    */
-  public function showHeaders($title = '', $tagLine = '') { ?>
+  public function showHeaders($title = '', $tagLine = '')
+  {
+    ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -42,7 +47,8 @@ class HTML {
     <link rel="stylesheet" href="/<?=$this->scope?>/css/solid.min.css" type="text/css" media="all" />
     <link rel="stylesheet" href="/<?=$this->scope?>/css/regular.min.css" type="text/css" media="all" />
     <link rel="stylesheet" href="//cdn.datatables.net/v/dt/dt-2.3.4/datatables.min.css"
-      integrity="sha384-pmGS6IIcXhAVIhcnh9X/mxffzZNHbuxboycGuQQoP3pAbb0SwlSUUHn2v22bOenI" crossorigin="anonymous" media="all" />
+      integrity="sha384-pmGS6IIcXhAVIhcnh9X/mxffzZNHbuxboycGuQQoP3pAbb0SwlSUUHn2v22bOenI"
+      crossorigin="anonymous" media="all" />
     <link rel="icon" href="/assets/favicon.ico" type="image/x-icon" />
   </head>
 
@@ -61,7 +67,8 @@ class HTML {
 
     <section class="panel">
       <div class="horizontal-content-margin content">
-<?php }
+<?php
+  }
 
   /**
    * Print footer on webpage
@@ -70,7 +77,9 @@ class HTML {
    *
    * @return void
    */
-  public function showFooter($collapse = false) { ?>
+  public function showFooter($collapse = false)
+  {
+    ?>
       </div>
     </section>
 
@@ -81,10 +90,7 @@ class HTML {
         </a>
       </div>
       <div>
-        <?php
-        printf ('<a href="?lang=sv%s">Svenska</a> | <a href="?lang=en%s">English</a>', $this->extraURL, $this->extraURL);
-        ?>
-
+        <a href="?lang=sv<?= $this->extraURL ?>">Svenska</a> | <a href="?lang=en<?= $this->extraURL ?>">English</a>
       </div>
     </footer>
 
@@ -98,7 +104,7 @@ class HTML {
     </script>
     <script src="//cdn.datatables.net/v/dt/dt-2.3.4/datatables.min.js"
       integrity="sha384-X2pTSfom8FUa+vGQ+DgTCSyBZYkC1RliOduHa0X96D060s7Q//fnOh3LcazRNHyo" crossorigin="anonymous">
-    </script>%s', $this->scope, $this->scope, "\n");
+    </script>%s', $this->scope, "\n");
       }
       print "    <script>\n";
       if ($collapse) {
@@ -138,13 +144,13 @@ class HTML {
       if (isset($this->tableToSort[0])) {
         print "    $(document).ready(function () {\n";
         foreach ($this->tableToSort as $table) {
-          printf ("      $('#%s').DataTable( {paging: false});\n", $table);
+          printf("      $('#%s').DataTable( {paging: false});\n", $table);
         }
         print "    });\n";
       }
       print '    </script>' . "\n";
     }
-    printf ('  </body>%s</html>%s', "\n", "\n");
+    printf('  </body>%s</html>%s', "\n", "\n");
   }
 
   /**
@@ -156,7 +162,8 @@ class HTML {
    *
    * @return void
    */
-  public function setDisplayName($name) {
+  public function setDisplayName($name)
+  {
     $this->displayName = $name;
   }
 
@@ -167,7 +174,8 @@ class HTML {
    *
    * @return void
    */
-  public function setExtraURLPart($extra) {
+  public function setExtraURLPart($extra)
+  {
     $this->extraURL = $extra;
   }
 
@@ -178,7 +186,8 @@ class HTML {
    *
    * @return void
    */
-  public function addTableSort($tableId) {
+  public function addTableSort($tableId)
+  {
     $this->tableToSort[] = $tableId;
   }
 }

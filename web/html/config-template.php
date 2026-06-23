@@ -1,4 +1,5 @@
 <?php
+
 $dbServername = "mariadb";
 $dbUsername = "admin";
 $dbPassword = "adminpwd";
@@ -30,7 +31,7 @@ $possibleAffiliations = array(
 );
 
 $instances = array (
-  'sunet.se'=> array (
+  'sunet.se' => array(
     'orgName' => 'Sunet',
     'forceMFA' => true,
     'sourceIdP' => 'https://idp.sunet.se/idp',

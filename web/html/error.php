@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+<?php
+
+print '<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -15,46 +17,49 @@
           <div class="eduid-connect-logo"></div>
         </a>
       </header>
-      <div class="horizontal-content-margin">
-<?php
+      <div class="horizontal-content-margin">' . "\n";
 
 $errorURL = isset($_GET['errorURL']) ?
   'For more info visit this <a href="' . $_GET['errorURL'] . '">support-page</a>.' : '';
-$errorURL = str_replace(array('ERRORURL_TS'), array(time()), $errorURL);
+$errorURL = str_replace(array('ERRORURL_TS'), array(strval(time())), $errorURL);
 $errorURL = isset($_GET['RelayState']) ?
-  str_replace(array('ERRORURL_RP'), array($_GET['RelayState'].'shibboleth'), $errorURL) : $errorURL;
+  str_replace(array('ERRORURL_RP'), array($_GET['RelayState'] . 'shibboleth'), $errorURL) : $errorURL;
 $errorURL = isset($_SERVER['Shib-Session-ID']) ?
   str_replace(array('ERRORURL_TID'), array($_SERVER['Shib-Session-ID']), $errorURL) : $errorURL;
 
 
 switch ($_GET['errorType']) {
-  case 'opensaml::saml2md::MetadataException' :
+  case 'opensaml::saml2md::MetadataException':
     showMetadataException();
     break;
-  case 'opensaml::FatalProfileException' :
+  case 'opensaml::FatalProfileException':
     if ($_GET['statusMessage'] == 'Request cancelled by user') {
       print '        <h1>Login cancelled</h1>
         <p>You seems to have cancelled your login. Please try to login again.';
     } else {
-      if ($_GET['eventType'] == 'Login' &&
+      if (
+        $_GET['eventType'] == 'Login' &&
         $_GET['statusCode'] == 'urn:oasis:names:tc:SAML:2.0:status:Responder' &&
         isset($_GET['statusCode2']) &&
-        $_GET['statusCode2'] == 'urn:oasis:names:tc:SAML:2.0:status:NoAuthnContext') {
-                  //case 'urn:oasis:names:tc:SAML:2.0:status:AuthnFailed' :
-                  //case 'urn:oasis:names:tc:SAML:2.0:status:NoPassive' :
-                  //case 'urn:oasis:names:tc:SAML:2.0:status:RequestDenied' :
-        $errorURL = str_replace(array('ERRORURL_CODE', 'ERRORURL_CTX'),
-          array('AUTHENTICATION_FAILURE', 'https://refeds.org/profile/mfa'), $errorURL);
+        $_GET['statusCode2'] == 'urn:oasis:names:tc:SAML:2.0:status:NoAuthnContext'
+      ) {
+        $errorURL = str_replace(
+          array('ERRORURL_CODE', 'ERRORURL_CTX'),
+          array('AUTHENTICATION_FAILURE', 'https://refeds.org/profile/mfa'),
+          $errorURL
+        );
       }
       showFatalProfileException();
     }
     break;
-  default :
+  default:
     showInfo();
 }
-showFooter ();
+showFooter();
 
-function showMetadataException() {?>
+function showMetadataException()
+{
+  ?>
         <h1>Unknown Identity Provider</h1>
         <p>To report this problem, please contact the site administrator at
         <a href="mailto:noc@sunet.se">noc@sunet.se</a>.
@@ -67,8 +72,9 @@ function showMetadataException() {?>
         </div>
 <?php }
 
-function showFatalProfileException() {
-    global $errorURL;?>
+function showFatalProfileException()
+{
+  global $errorURL;?>
         <h1>Unusable Identity Provider</h1>
         <p>The identity provider supplying your login credentials does not support the necessary capabilities.</p>
         <p>To report this problem, please contact the IdP administrator. <?=$errorURL?><br>
@@ -79,15 +85,17 @@ function showFatalProfileException() {
         <p class="error">Identity provider lookup failed at (<?=htmlspecialchars($_GET['requestURL'])?>)</p>
         <p><strong>EntityID:</strong> <?=htmlspecialchars($_GET['entityID'])?></p>
         <p><?=htmlspecialchars($_GET['errorType'])?>: <?=htmlspecialchars($_GET['errorText'])?></p><?php
-    print isset($_GET['statusCode']) ?
-      "\n        <p>statusCode : " . htmlspecialchars($_GET['statusCode']) . '</p>' : '';
-    print isset($_GET['statusCode2']) ?
-      "\n        <p>statusCode2 : " . htmlspecialchars($_GET['statusCode2']) . '</p>' : '';
-    print isset($_GET['statusMessage']) ?
-      "\n        <p>statusMessage : " . htmlspecialchars($_GET['statusMessage']) . '</p>' : '';
- }
+  print isset($_GET['statusCode']) ?
+    "\n        <p>statusCode : " . htmlspecialchars($_GET['statusCode']) . '</p>' : '';
+  print isset($_GET['statusCode2']) ?
+    "\n        <p>statusCode2 : " . htmlspecialchars($_GET['statusCode2']) . '</p>' : '';
+  print isset($_GET['statusMessage']) ?
+    "\n        <p>statusMessage : " . htmlspecialchars($_GET['statusMessage']) . '</p>' : '';
+}
 
-function showInfo() { ?>
+function showInfo()
+{
+  ?>
     <table>
       <caption>Values</caption>
       <tr><th>Key</th><th>Value</th></tr>
@@ -102,8 +110,9 @@ function showInfo() { ?>
 ###
 # Print footer on webpage
 ###
-function showFooter() { ?>
-
+function showFooter()
+{
+  ?>
       </div>
     </section>
 

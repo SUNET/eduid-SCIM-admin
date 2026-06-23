@@ -1,4 +1,5 @@
 <?php
+
 const SWAMID_AL2 = 'http://www.swamid.se/policy/assurance/al2'; # NOSONAR
 
 require_once '../vendor/autoload.php';
@@ -26,7 +27,12 @@ if (isset($_GET['source'])) {
         showError(sprintf(_('%s already have an account.'), $inviteInfo['eduPersonPrincipalName']));
       } elseif ($status = $invites->ePPNexists($inviteInfo['eduPersonPrincipalName'])) {
         if ($status == 2) {
-          showError(sprintf(_('%s already have an invite waiting for approval, please ask your admin for approval.'), $inviteInfo['eduPersonPrincipalName']));
+          showError(
+            sprintf(
+              _('%s already have an invite waiting for approval, please ask your admin for approval.'),
+              $inviteInfo['eduPersonPrincipalName']
+            )
+          );
         } else {
           $inviteExist = true;
         }
@@ -37,7 +43,15 @@ if (isset($_GET['source'])) {
         showError(sprintf(_('A user with personNIN %s already have an account.'), $inviteInfo['personNIN']));
       } elseif ($status = $invites->personNINexists($inviteInfo['personNIN'])) {
         if ($status == 2) {
-          showError(sprintf(_('A user with personNIN %s already have an invite waiting for approval, please ask your admin for approval.'), $inviteInfo['personNIN']));
+          showError(
+            sprintf(
+              _(
+                'A user with personNIN %s already have an invite waiting for approval,' .
+                ' please ask your admin for approval.'
+              ),
+              $inviteInfo['personNIN']
+            )
+          );
         } else {
           $inviteExist = true;
         }
@@ -58,14 +72,14 @@ if (isset($_GET['source'])) {
         $inviteInfo['personNIN'] = '';
       }
 
-      foreach ( $attributes2Remove as $part) {
+      foreach ($attributes2Remove as $part) {
         if (isset($inviteInfo[$part])) {
           unset($inviteInfo[$part]);
         }
       }
       $invites->updateInviteAttributes($sessionID, $attributes, $inviteInfo);
     }
-    $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
+    $hostURL = "http" . (!empty($_SERVER['HTTPS']) ? "s" : "") . "://" . $_SERVER['SERVER_NAME'];
     $redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=showMigrateFlow';
     header('Location: ' . $redirectURL);
   } else {
@@ -75,8 +89,13 @@ if (isset($_GET['source'])) {
   $html->setExtraURLPart('&backend');
   if ($migrateInfo = $invites->checkBackendData()) {
     if ($scim->getIdFromExternalId($migrateInfo['eduPersonPrincipalName'])) {
-      showError(sprintf(_('%s is already connected to an account. If you need help contact your user administrator. Please close your browser.'),
-        $migrateInfo['eduPersonPrincipalName']));
+      showError(
+        sprintf(
+          _('%s is already connected to an account.' .
+          ' If you need help contact your user administrator. Please close your browser.'),
+          $migrateInfo['eduPersonPrincipalName']
+        )
+      );
     }
     if ($invites->checkALLevel(2)) {
       $inviteData = $invites->getInviteBySession($sessionID);
@@ -88,21 +107,22 @@ if (isset($_GET['source'])) {
       } elseif (
         $migrateInfo['schacDateOfBirth'] == $inviteInfo->personNIN &&
         $migrateInfo['givenName'] == $inviteInfo->givenName &&
-        $migrateInfo['sn'] == $inviteInfo->sn) {
+        $migrateInfo['sn'] == $inviteInfo->sn
+      ) {
         # Name and Birth date is OK. Now check if any mail matches
         $mailOK = $migrateInfo['mail'] == $inviteInfo->mail;
-        foreach (explode (';',$migrateInfo['mailLocalAddress']) as $mailAddress) {
+        foreach (explode(';', $migrateInfo['mailLocalAddress']) as $mailAddress) {
           $mailOK = $mailAddress == $inviteInfo->mail ? true : $mailOK;
         }
         if ($mailOK) {
           migrate(json_encode($migrateInfo), $inviteData['attributes'], $inviteData['id']);
         } else {
           # Manual check before migration!!!
-          move2Manual($inviteData['id'],$migrateInfo);
+          move2Manual($inviteData['id'], $migrateInfo);
         }
       } else {
         # Manual check before migration!!!
-        move2Manual($inviteData['id'],$migrateInfo);
+        move2Manual($inviteData['id'], $migrateInfo);
       }
     } else {
       showError(_('eduID account needs to be at verified.'));
@@ -114,11 +134,12 @@ if (isset($_GET['source'])) {
   showError('No action requested');
 }
 
-function migrate($migrateInfo, $attributes, $id) {
+function migrate($migrateInfo, $attributes, $id)
+{
   global $scim, $invites;
   if ($scim->migrate($migrateInfo, $attributes)) {
     $invites->removeInvite($id);
-    $hostURL = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'];
+    $hostURL = "http" . (!empty($_SERVER['HTTPS']) ? "s" : "") . "://" . $_SERVER['SERVER_NAME'];
     $redirectURL = $hostURL . '/' . $invites->getInstance() . '/?action=migrateSuccess';
     header('Location: ' . $redirectURL);
   } else {
@@ -126,25 +147,33 @@ function migrate($migrateInfo, $attributes, $id) {
   }
 }
 
-function move2Manual($id,$migrateInfo) {
+function move2Manual($id, $migrateInfo)
+{
   global $invites;
-  $invites->move2Manual($id,json_encode($migrateInfo));
+  $invites->move2Manual($id, json_encode($migrateInfo));
   showError(
-    _('Automatic matching of registered user information could not be completed.
-    Contact the organisation user administrator to complete the account activation.
-    Please close the window.'),
-    true, _('Activation of account awaiting approval'));
+    _('Automatic matching of registered user information could not be completed.' .
+    ' Contact the organisation user administrator to complete the account activation.' .
+    ' Please close the window.'),
+    true,
+    _('Activation of account awaiting approval')
+  );
 }
 
-function showError($error, $exit = true, $tagline = '') {
+function showError($error, $exit = true, $tagline = '')
+{
   global $html, $config;
 
   $html->showHeaders(_('eduID Connect Self-service'), $tagline);
-  printf('        %s
+  printf(
+    '        %s
         <div class="buttons">
           <a class="btn btn-primary" href="/%s/">%s</a>
         </div>',
-    $error, $config->getScope(), _('Back'));
+    $error,
+    $config->getScope(),
+    _('Back')
+  );
   if ($exit) {
     print"\n";
     $html->showFooter(false);

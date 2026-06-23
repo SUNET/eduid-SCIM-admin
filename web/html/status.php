@@ -1,17 +1,24 @@
 <?php
+
 //Load composer's autoloader
 require_once 'vendor/autoload.php';
 $config = new scimAdmin\Configuration(false);
 $scim = $config->getSCIM();
 
-function request($url) {
+/**
+ * Make a request
+ *
+ * @param string $url
+ */
+function request($url)
+{
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, $url);
-  curl_setopt($ch, CURLOPT_PORT , 443);
-  curl_setopt($ch, CURLOPT_VERBOSE, 0);
-  curl_setopt($ch, CURLOPT_HEADER, 0);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_PORT, 443);
+  curl_setopt($ch, CURLOPT_VERBOSE, false);
+  curl_setopt($ch, CURLOPT_HEADER, false);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_TIMEOUT, 5);
 
   $response = curl_exec($ch);
@@ -19,7 +26,7 @@ function request($url) {
   switch ($curl_errno) {
     case 0:
       $info = curl_getinfo($ch);
-      if ($info['http_code'] == 200 ) {
+      if ($info['http_code'] == 200) {
         return $response;
       } else {
         print "<pre>";
@@ -29,7 +36,6 @@ function request($url) {
         print "</pre>";
         exit;
       }
-      break;
     case 6:
       # Could not resolve host. The given remote host was not resolved.
       printf('{"status":"STATUS_FAIL_","reason":"Host unknown: %s"}', $url);
@@ -45,14 +51,14 @@ function request($url) {
   }
 }
 
-if ($API = request($scim['apiUrl'].'status/healthy')) {
+if ($API = request($scim['apiUrl'] . 'status/healthy')) {
   $API_json = json_decode($API);
   $statusAPI = $API_json->status == 'STATUS_OK_scimapi_';
 } else {
   $statusAPI = false;
 }
 
-if ($auth = request($scim['authUrl'].'status/healthy')) {
+if ($auth = request($scim['authUrl'] . 'status/healthy')) {
   $auth_json = json_decode($auth);
   $statusAuth = $auth_json->status == 'STATUS_OK_';
 } else {
